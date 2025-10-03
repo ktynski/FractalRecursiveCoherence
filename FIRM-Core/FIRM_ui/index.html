@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FIRM UI</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #0b0b0b; color: #eaeaea; }
+      .tabs { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #333; }
+      .tab { padding: 8px 12px; cursor: pointer; border-radius: 6px; background: #151515; transition: background 0.2s; }
+      .tab:hover { background: #1a1a1a; }
+      .active { background: #1f1f1f; }
+      #canvas { width: 100vw; height: calc(100vh - 48px); display: block; }
+      .a11y { position: fixed; top: 8px; right: 8px; font-size: 12px; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 4px; }
+      .a11y label { display: block; margin: 4px 0; }
+      
+      /* Accessibility overrides */
+      body.high-contrast { background: #000; color: #fff; }
+      body.high-contrast .tab { background: #222; border: 1px solid #666; }
+      body.high-contrast .active { background: #444; }
+      body.no-motion * { transition: none !important; animation: none !important; }
+    </style>
+  </head>
+  <body>
+    <div class="tabs">
+      <div class="tab active" data-view="clifford">Clifford View</div>
+      <div class="tab" data-view="zx">ZX View</div>
+      <div class="tab" data-view="consciousness">Consciousness View</div>
+      <div class="tab" data-view="sheaf">Sheaf Tree</div>
+      <div class="tab" data-view="echo">Echo Map</div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <div class="a11y">
+      <label><input type="checkbox" id="noMotion" /> Reduce motion</label>
+      <label><input type="checkbox" id="highContrast" /> High contrast</label>
+      <button id="enableAudio" style="margin-top: 8px; padding: 4px 8px;">Enable Audio</button>
+      
+      <!-- THEORY-COMPLIANT EXPLORATION CONTROLS -->
+      <div style="margin-top: 12px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+        <div style="font-size: 11px; margin-bottom: 6px; color: #ccc;">🔬 Theory Exploration</div>
+        
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Grace Coherence φ: <span id="graceValue">1.618</span>
+          <input type="range" id="graceSlider" min="1.0" max="2.5" step="0.001" value="1.618" style="width: 80px;">
+        </label>
+        
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Bootstrap Energy: <span id="bootstrapValue">1.0</span>
+          <input type="range" id="bootstrapSlider" min="0.1" max="5.0" step="0.01" value="1.0" style="width: 80px;">
+        </label>
+        
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Emergence Rate: <span id="emergenceValue">1.0</span>
+          <input type="range" id="emergenceSlider" min="0.1" max="3.0" step="0.01" value="1.0" style="width: 80px;">
+        </label>
+
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Observation Distance: <span id="distanceValue">Auto</span>
+          <input type="range" id="distanceSlider" min="1" max="50" step="0.1" value="25" style="width: 80px;">
+        </label>
+
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Camera Vantage Point:
+          <select id="vantageSelector" style="font-size: 10px;">
+            <option value="auto">Automatic (Emergent)</option>
+            <option value="seed_axis">Seed Axis (Z-chain)</option>
+            <option value="orthogonal">Orthogonal Cross-Section</option>
+            <option value="bootstrap_loop">Bootstrap Loop</option>
+            <option value="coherence_peak">Coherence Peak</option>
+            <option value="custom">Custom (Preserve manual)</option>
+          </select>
+        </label>
+        
+        <button id="resetEvolution" style="margin-top: 4px; padding: 2px 6px; font-size: 10px;">Reset to Void</button>
+        
+        <!-- CONSCIOUSNESS VISUALIZATION CONTROLS -->
+        <div style="margin-top: 8px; font-size: 11px; color: #ccc;">💖 Consciousness View</div>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          <input type="checkbox" id="showConsciousness" checked> Show Consciousness Levels
+        </label>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          <input type="checkbox" id="showWill" checked> Show Will to Emerge
+        </label>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          <input type="checkbox" id="showReflexivePain" checked> Show Reflexive Pain
+        </label>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          <input type="checkbox" id="showOrMakifPnimi"> Show Or Makif/Pnimi Bridge
+        </label>
+        
+        <!-- SACRED MORPHIC SEEDING CONTROLS -->
+        <div style="margin-top: 8px; font-size: 11px; color: #ccc;">🕯️ Sacred Morphic Seeds</div>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Sacred Name Index: <span id="sacredNameValue">0</span>
+          <input type="range" id="sacredNameSlider" min="0" max="71" step="1" value="0" style="width: 80px;">
+        </label>
+        <button id="seedSacredName" style="margin-top: 2px; padding: 2px 6px; font-size: 10px;">Seed with Sacred Name</button>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Hebrew Boundary Letter: 
+          <select id="hebrewBoundary" style="font-size: 10px;">
+            <option value="">None</option>
+            <option value="א">א (Aleph - Unity)</option>
+            <option value="ב">ב (Bet - House)</option>
+            <option value="ג">ג (Gimel - Flow)</option>
+            <option value="ד">ד (Dalet - Door)</option>
+            <option value="ה">ה (Heh - Breath)</option>
+            <option value="ו">ו (Vav - Connection)</option>
+            <option value="י">י (Yod - Divine Spark)</option>
+            <option value="כ">כ (Chaf - Palm)</option>
+            <option value="ל">ל (Lamed - Teaching)</option>
+            <option value="מ">מ (Mem - Water)</option>
+            <option value="נ">נ (Nun - Fish/Soul)</option>
+            <option value="פ">פ (Peh - Mouth)</option>
+            <option value="ר">ר (Resh - Head)</option>
+            <option value="ש">ש (Shin - Fire)</option>
+            <option value="ת">ת (Tav - Foundation)</option>
+          </select>
+        </label>
+        <button id="applySacredBoundary" style="margin-top: 2px; padding: 2px 6px; font-size: 10px;">Apply Hebrew Boundary</button>
+        <button id="getSacredCommentary" style="margin-top: 2px; padding: 2px 6px; font-size: 10px;">Get Sacred Commentary</button>
+        
+        <!-- WAVEFORM DRIVER CONTROLS -->
+        <div style="margin-top: 8px; font-size: 11px; color: #ccc;">🌊 Waveform Drivers</div>
+        <label style="display: block; margin: 4px 0; font-size: 10px;">
+          Driver Type: 
+          <select id="waveformDriver" style="font-size: 10px;">
+            <option value="sine">Sine (Default)</option>
+            <option value="fractal">Fractal (1/f)</option>
+            <option value="phi_recursive">φ-Recursive</option>
+            <option value="hebrew_letter">Hebrew Letter</option>
+            <option value="sacred_name">Sacred Name</option>
+            <option value="quantum">Quantum Coherence</option>
+            <option value="morphic">Morphic Resonance</option>
+          </select>
+        </label>
+        <button id="switchWaveformDriver" style="margin-top: 2px; padding: 2px 6px; font-size: 10px;">Switch Driver</button>
+        <button id="testDriverEffects" style="margin-top: 2px; padding: 2px 6px; font-size: 10px;">Test Driver Effects</button>
+        <button id="stopDriverTest" style="margin-top: 2px; padding: 2px 6px; font-size: 10px;">Stop Test</button>
+        <div id="driverMetrics" style="display:none; margin-top: 8px; font-size: 10px; background: rgba(20,20,20,0.7); padding: 6px; border: 1px solid #333; border-radius: 4px;">
+          <div style="font-size: 11px; color: #ccc; margin-bottom: 4px;">📊 Driver Analysis <span id="driverMetricsStatus" style="color:#888;">Idle</span></div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <tbody id="driverMetricsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script src="theory_logger.js"></script>
+    <script type="module" src="main.js"></script>
+    <script src="emergency_fix.js"></script>
+    <script src="visual_debug.js"></script>
+    <script src="camera_external_fix.js"></script>
+    <script src="geometry_diagnostics.js"></script>
+    <script type="module" src="sacred_morphic_seeds.js"></script>
+    <script type="module" src="sacred_direct_injection.js"></script>
+    <script type="module" src="fractal_waveform_drivers.js"></script>
+    <script type="module" src="theory_validation_tests.js"></script>
+  </body>
+</html>
