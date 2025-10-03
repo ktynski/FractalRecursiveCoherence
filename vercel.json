@@ -7,14 +7,14 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/FIRM-Core/FIRM_ui/index.html"
+      "source": "/",
+      "destination": "/FIRM-Core/FIRM_ui/index.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/FIRM-Core/FIRM_ui/$1"
+      "source": "/:path*",
+      "destination": "/FIRM-Core/FIRM_ui/:path*"
     }
   ],
   "headers": [
