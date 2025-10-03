@@ -185,3 +185,13 @@ This work integrates knowledge from:
 **Status**: Research platform with 100% test pass rate. Peer review in progress.
 
 **Next Steps**: Academic publication, external validation, institutional partnerships.
+
+![FIRM UI Overview](FIRM-Core/docs/images/01_basic_setup.png "Bootstrap interface and metrics panel")
+
+![Grace Emergence Attractor](FIRM-Core/docs/images/02_grace_attractor.png "φ-scaled grace operator forming coherent nodes")
+
+![Audio-Coherence Coupling](FIRM-Core/docs/images/03_audio_coupling.png "Thermodynamic audio linkage driving rewrite activation")
+
+![Sacred Morphic Network](FIRM-Core/docs/images/04_sacred_network.png "Hebrew letter boundary seeding with provenance tracking")
+
+![Metamirror Bireflection](FIRM-Core/docs/images/05_metamirror_bireflection.png "β-involution blending ZX colors within the Clifford field")
