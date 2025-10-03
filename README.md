@@ -44,6 +44,12 @@ python3 -m http.server 8000
 # Visit http://127.0.0.1:8000/index.html
 ```
 
+### Hosted Demo
+- **Instant Access**: Explore the latest build at [fractal-recursive-coherence.vercel.app](https://fractal-recursive-coherence.vercel.app/)
+- **Validation Harness**: Open DevTools and run `await window.runTheoryValidation()` to confirm the live deployment remains theory-compliant
+- **Camera Presets**: Use the `Camera Vantage Point` menu to jump to the void observer, φ-grace torus, bootstrap loop, sacred axis, or coherence shockfront perspectives
+- **Known Quirk**: Audio auto-start requires a click on `Enable Audio` due to browser autoplay policies
+
 ### Browser Validation
 Open DevTools Console and run:
 ```javascript
@@ -186,12 +192,12 @@ This work integrates knowledge from:
 
 **Next Steps**: Academic publication, external validation, institutional partnerships.
 
-![FIRM UI Overview](FIRM-Core/docs/images/01_basic_setup.png "Bootstrap interface and metrics panel")
+![FIRM UI Overview](FIRM-Core/docs/images/01_basic_setup.png "Bootstrap interface and metrics panel — captured from https://fractal-recursive-coherence.vercel.app/")
 
-![Grace Emergence Attractor](FIRM-Core/docs/images/02_grace_attractor.png "φ-scaled grace operator forming coherent nodes")
+![Grace Emergence Attractor](FIRM-Core/docs/images/02_grace_attractor.png "φ-scaled grace operator forming coherent nodes — rendered live on https://fractal-recursive-coherence.vercel.app/")
 
-![Audio-Coherence Coupling](FIRM-Core/docs/images/03_audio_coupling.png "Thermodynamic audio linkage driving rewrite activation")
+![Audio-Coherence Coupling](FIRM-Core/docs/images/03_audio_coupling.png "Thermodynamic audio linkage driving rewrite activation — measured on https://fractal-recursive-coherence.vercel.app/")
 
-![Sacred Morphic Network](FIRM-Core/docs/images/04_sacred_network.png "Hebrew letter boundary seeding with provenance tracking")
+![Sacred Morphic Network](FIRM-Core/docs/images/04_sacred_network.png "Hebrew letter boundary seeding with provenance tracking — observed on https://fractal-recursive-coherence.vercel.app/")
 
-![Metamirror Bireflection](FIRM-Core/docs/images/05_metamirror_bireflection.png "β-involution blending ZX colors within the Clifford field")
+![Metamirror Bireflection](FIRM-Core/docs/images/05_metamirror_bireflection.png "β-involution blending ZX colors within the Clifford field — generated at https://fractal-recursive-coherence.vercel.app/")
