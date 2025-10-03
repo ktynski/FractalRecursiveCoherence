@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRM Framework - WebGL Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #ffd700;
+            max-width: 300px;
+        }
+        
+        #console-output {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 400px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        
+        #stats {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active { background: #00ff00; }
+        .status-inactive { background: #ff0000; }
+        .status-pending { background: #ffff00; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="info">
+            <h3>🌌 FIRM Cosmological Sequence</h3>
+            <p><strong>Universe Creation:</strong> Void → Bootstrap → Grace → Sovereignty → Duality</p>
+            <div id="status">
+                <div><span class="status-indicator status-pending"></span>WebGL Context</div>
+                <div><span class="status-indicator status-pending"></span>Scene Setup</div>
+                <div><span class="status-indicator status-pending"></span>Cosmological Sequence</div>
+                <div><span class="status-indicator status-pending"></span>Bootstrap (𝒳)</div>
+                <div><span class="status-indicator status-pending"></span>Grace (𝒢)</div>
+                <div><span class="status-indicator status-pending"></span>Sovereignty (Ψ)</div>
+                <div><span class="status-indicator status-pending"></span>Bireflection (β)</div>
+                <div><span class="status-indicator status-pending"></span>Hebrew Network</div>
+                <div><span class="status-indicator status-pending"></span>231-Gates</div>
+                <div><span class="status-indicator status-pending"></span>Audio Processor</div>
+                <div><span class="status-indicator status-pending"></span>TE Coupling</div>
+            </div>
+            <div id="cosmology-info" style="margin-top: 10px; font-size: 12px; color: #ccc;">
+                <div>🌌 Current Phase: <span id="current-phase-name">VOID (∅)</span></div>
+                <div>📈 Progress: <span id="phase-progress-percent">0%</span></div>
+                <div>🕎 Hebrew Letter: <span id="current-hebrew">∅</span></div>
+                <div>🔗 TE Flow: <span id="total-flow">0.000</span></div>
+            </div>
+    <div id="bootstrap-info" style="margin-top: 10px; font-size: 12px; color: #ccc;">
+        <div>🚀 Manifestation: <span id="manifestation-steps">0/10</span></div>
+        <div>📐 Dimension: <span id="bootstrap-dimension">0.000</span></div>
+        <div>🌀 Phase: <span id="bootstrap-phase">Void State</span></div>
+        <div>⚡ Creation Energy: <span id="creation-energy">0.000</span></div>
+        <div>🌟 Structures: <span id="structure-count">0</span></div>
+    </div>
+        </div>
+        
+        <!-- Move rendering controls to top-right corner -->
+        <div id="rendering-controls" style="position: fixed; top: 10px; right: 10px; width: 250px; padding: 15px; background: rgba(0,0,0,0.8); border-radius: 8px; border: 1px solid #333; z-index: 1000;">
+            <div style="color: #fff; font-size: 16px; margin-bottom: 15px; text-align: center;"><strong>🎨 Visual Controls</strong></div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 13px; display: block; margin-bottom: 4px;">Particle Size: <span id="particle-size-value" style="color: #fff;">0.5</span></label>
+                <input type="range" id="particle-size" min="0.1" max="2.0" step="0.1" value="0.5" 
+                       style="width: 100%; height: 20px;">
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 13px; display: block; margin-bottom: 4px;">Opacity: <span id="opacity-value" style="color: #fff;">0.4</span></label>
+                <input type="range" id="opacity" min="0.1" max="1.0" step="0.05" value="0.4" 
+                       style="width: 100%; height: 20px;">
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 13px; display: block; margin-bottom: 4px;">Background: <span id="background-value" style="color: #fff;">0.15</span></label>
+                <input type="range" id="background" min="0.0" max="0.5" step="0.01" value="0.15" 
+                       style="width: 100%; height: 20px;">
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 13px; display: block; margin-bottom: 4px;">System Separation: <span id="separation-value" style="color: #fff;">1.0</span></label>
+                <input type="range" id="system-separation" min="0.5" max="3.0" step="0.1" value="1.0" 
+                       style="width: 100%; height: 20px;">
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 13px; display: block; margin-bottom: 4px;">Show Systems:</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                    <label style="color: #ccc; font-size: 11px;"><input type="checkbox" id="show-grace" checked> Grace</label>
+                    <label style="color: #ccc; font-size: 11px;"><input type="checkbox" id="show-sovereignty" checked> Sovereignty</label>
+                    <label style="color: #ccc; font-size: 11px;"><input type="checkbox" id="show-bireflection" checked> Bireflection</label>
+                    <label style="color: #ccc; font-size: 11px;"><input type="checkbox" id="show-bootstrap" checked> Bootstrap</label>
+                    <label style="color: #ccc; font-size: 11px;"><input type="checkbox" id="show-hebrew" checked> Hebrew</label>
+                    <label style="color: #ccc; font-size: 11px;"><input type="checkbox" id="show-gates" checked> Gates</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="stats">
+            <div>FPS: <span id="fps">0</span></div>
+            <div>Objects: <span id="objects">0</span></div>
+            <div>Step: <span id="current-step">9/9</span></div>
+        </div>
+        
+        <div id="console-output">
+            <div><strong>Console Output:</strong></div>
+            <div id="log-content"></div>
+        </div>
+    </div>
+    
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

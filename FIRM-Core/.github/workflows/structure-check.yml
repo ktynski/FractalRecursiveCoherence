@@ -1,0 +1,79 @@
+name: structure-check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure required files exist
+        run: |
+          test -f FIRM_spec.md
+          test -f FIRM_COVENANT.md
+          test -f LICENSE
+          test -d FIRM_dsl
+          test -d FIRM_zx
+          test -d FIRM_clifford
+          test -d FIRM_audio
+          test -d FIRM_ui
+          test -d tests
+          test -d provenance
+          test -d FIRM_constants
+      - name: Validate provenance schema JSON
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y jq
+          test -f provenance/run.schema.json && jq . provenance/run.schema.json > /dev/null
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Run tests
+        env:
+          CI: true
+        run: |
+          pytest -q
+      - name: Generate constants header
+        run: |
+          python3 -c "
+          import sys
+          sys.path.insert(0, '.')
+          from FIRM_constants.generate_header import build_constants_from_derivations, render_header
+          constants = build_constants_from_derivations([2, 4, 8])  # Test phase denominators
+          if constants:
+              header = render_header(constants)
+              print('Generated constants header:')
+              print(header[:200] + '...' if len(header) > 200 else header)
+              print(f'Header contains {len(constants)} constants')
+          else:
+              print('No constants generated (expected until derivations implemented)')
+          "
+      - name: Validate constants header structure
+        run: |
+          python3 -c "
+          import sys
+          sys.path.insert(0, '.')
+          from FIRM_constants.generate_header import build_constants_from_derivations, render_header
+          constants = build_constants_from_derivations([2, 4])
+          if constants:
+              header = render_header(constants)
+              assert '#ifndef FIRM_CONSTANTS_GEN_H' in header
+              assert '#define FIRM_CONSTANTS_GEN_H' in header
+              assert '#endif' in header
+              for name, result in constants.items():
+                  assert f'#define {name}' in header
+                  assert f'proof: {result.proof_id}' in header
+              print('Constants header validation passed')
+          else:
+              print('No constants to validate (expected until derivations implemented)')
+          "
