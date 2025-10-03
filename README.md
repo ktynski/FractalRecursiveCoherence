@@ -192,12 +192,6 @@ This work integrates knowledge from:
 
 **Next Steps**: Academic publication, external validation, institutional partnerships.
 
-![FIRM UI Overview](FIRM-Core/docs/images/ui_overview_2025-10-03.png "Bootstrap interface with metrics panel and tabs")
+![Desktop UI (2025-10-03)](FIRM-Core/docs/images/2025-10-03/ui-desktop.png "Updated desktop layout with top bar, metrics toggle, and slide-out controls")
 
-![Grace Emergence](FIRM-Core/docs/images/grace_emergence_2025-10-03.png "φ-scaled grace emergence in current engine")
-
-![Audio Coherence](FIRM-Core/docs/images/audio_coherence_2025-10-03.png "Real-time audio coupling driving ZX rewrites")
-
-![Sacred Morphic Seeding](FIRM-Core/docs/images/sacred_seeding_2025-10-03.png "Hebrew boundary and sacred name provenance tracking")
-
-![Metamirror Bireflection](FIRM-Core/docs/images/metamirror_bireflection_2025-10-03.png "β-involution in Clifford field visualization")
+![Mobile UI (2025-10-03)](FIRM-Core/docs/images/2025-10-03/ui-mobile.png "Mobile viewport showing collapsed controls and responsive metrics")
