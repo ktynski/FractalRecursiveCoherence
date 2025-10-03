@@ -93,7 +93,6 @@ AnalogExNahilo/
 ## Documentation
 
 - **[Executive Summary](EsotericGuidance/Executive_Summary.md)** - High-level overview
-- **[Strategic Assessment](FIRM-Core/STRATEGIC_ASSESSMENT.md)** - Significance, patent analysis, next steps
 - **[Theory Audit Results](FIRM-Core/SYSTEMATIC_THEORY_AUDIT_RESULTS.md)** - Complete validation report
 - **[Theory Compliance Spec](FIRM-Core/FIRM_theory/THEORY_COMPLIANCE_SPECIFICATION.md)** - Operational criteria
 - **[FIRM Covenant](FIRM-Core/FIRM_COVENANT.md)** - Contributor guidelines
@@ -184,5 +183,3 @@ This work integrates knowledge from:
 **Status**: Research platform with 100% test pass rate. Peer review in progress.
 
 **Next Steps**: Academic publication, external validation, institutional partnerships.
-
-For detailed strategic assessment including significance analysis and patent considerations, see [STRATEGIC_ASSESSMENT.md](FIRM-Core/STRATEGIC_ASSESSMENT.md).
