@@ -1,0 +1,28 @@
+hebrew,name,form,base_hebrew,SY_class_x,fsctf,role,zx,fractal,hebrew_index_1to22,SY_class_y,SY_class_index,SY_group_tag,Path32_generic,SY_class
+א,Aleph,standard,א,Mother,τ,threshold_silence,I / no-op,seed_fixed_point,1.0,Mother,1.0,M1,11.0,
+ב,Bet,standard,ב,Double,κ,container,Z-spider (copy/merge),lattice_cell,2.0,Double,1.0,D1,12.0,
+ג,Gimel,standard,ג,Double,γ,bridge,H / basis-bridge,geodesic_web,3.0,Double,2.0,D2,13.0,
+ד,Dalet,standard,ד,Double,ε,gate,controlled-phase,poincare_section,4.0,Double,3.0,D3,14.0,
+ה,Heh,standard,ה,Simple,E,enact,X-rotation (actuation),limit_cycle_onset,5.0,Simple,1.0,S1,15.0,
+ו,Vav,standard,ו,Simple,⊗,link,spider fusion / entangler,percolation_cluster,6.0,Simple,2.0,S2,16.0,
+ז,Zayin,standard,ז,Simple,ζ,cut,Z-projector / split,cantor_prune,7.0,Simple,3.0,S3,17.0,
+ח,Chet,standard,ח,Simple,χ,enclosure,boundary / cup-cap shell,filled_julia_hull,8.0,Simple,4.0,S4,18.0,
+ט,Teth,standard,ט,Simple,ϑ,twist,Y-rotation (quadrature),KAM_tori,9.0,Simple,5.0,S5,19.0,
+י,Yod,standard,י,Simple,ξ,spark,phase-kick (tiny),infinitesimal_germ,10.0,Simple,6.0,S6,20.0,
+כ,Kaf,standard,כ,Double,κ⁺,capacity,Z-phase / global bias,annular_torus,11.0,Double,4.0,D4,21.0,
+ל,Lamed,standard,ל,Simple,λ,lift_balance,normalization / ZX-NF,RG_fixed_point,12.0,Simple,7.0,S7,22.0,
+מ,Mem,standard,מ,Mother,μ,memory,trace/feedback loop,basin_thickening,13.0,Mother,2.0,M2,23.0,
+נ,Nun,standard,נ,Simple,ν,descent_rebirth,discard+reset / damping,skeleton_prune,14.0,Simple,8.0,S8,24.0,
+ס,Samekh,standard,ס,Simple,𝒮,support,isometry + projector,backbone_tree,15.0,Simple,9.0,S9,25.0,
+ע,Ayin,standard,ע,Simple,α,observe,measurement (axis v),projected_shadow,16.0,Simple,10.0,S10,26.0,
+פ,Peh,standard,פ,Double,π,express,oracle/eval box,branch_cascade,17.0,Double,5.0,D5,27.0,
+צ,Tzaddi,standard,צ,Simple,ϕ,anchor_path,postselect / path lock,ridge_filament,18.0,Simple,11.0,S11,28.0,
+ק,Qof,standard,ק,Simple,Θ,horizon_cascade,Hadamard-X macro,period_doubling,19.0,Simple,12.0,S12,29.0,
+ר,Resh,standard,ר,Double,∂,rebirth_reflect,Z-H conjugation,arnold_tongues,20.0,Double,6.0,D6,30.0,
+ש,Shin,standard,ש,Mother,∮,flame_transform,chaotic mixer (macro),strange_attractor,21.0,Mother,3.0,M3,31.0,
+ת,Tav,standard,ת,Double,𝒢,completion_grace,global close / terminal,omega_limit,22.0,Double,7.0,D7,32.0,
+ך,Kaf sofit,final,כ,Double,κ⁺†,capacity_clamp_final,Z-phase π → project,capped_annulus,11.0,,4.0,D4.0,,Double
+ם,Mem sofit,final,מ,Mother,μ†,sealed_memory_final,trace loop → terminal cup,sealed_basin,13.0,,2.0,M2.0,,Mother
+ן,Nun sofit,final,נ,Simple,ν†,terminal_descent_final,discard to ⊥ (absorb),absorbing_sink,14.0,,8.0,S8.0,,Simple
+ף,Pe sofit,final,פ,Double,π†,final_express_final,oracle → clamp → out,plume_terminator,17.0,,5.0,D5.0,,Double
+ץ,Tzaddi sofit,final,צ,Simple,ϕ†,locked_anchor_final,postselect & freeze,pinned_filament,18.0,,11.0,S11.0,,Simple

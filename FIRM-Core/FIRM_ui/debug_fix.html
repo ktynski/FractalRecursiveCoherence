@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FIRM Debug Fix</title>
+</head>
+<body>
+    <h1>FIRM Camera & Tab Debug Fix</h1>
+    
+    <h2>Manual Fixes (Run in Browser Console):</h2>
+    
+    <h3>1. Fix Camera Position:</h3>
+    <pre>
+// Move camera outside field for external observation
+firmUI.state.camera.position = [0, 0, 30];
+console.log('📷 Camera moved to external position');
+    </pre>
+    
+    <h3>2. Test Tab Switching:</h3>
+    <pre>
+// Manually switch views to test functionality
+firmUI.switchView('zx');
+console.log('Switched to ZX view');
+
+firmUI.switchView('sheaf'); 
+console.log('Switched to Sheaf view');
+
+firmUI.switchView('echo');
+console.log('Switched to Echo view');
+
+firmUI.switchView('clifford');
+console.log('Back to Clifford view');
+    </pre>
+    
+    <h3>3. Check Field Generation:</h3>
+    <pre>
+// Check if different views generate different fields
+console.log('Current view:', firmUI.state.view);
+console.log('Camera position:', firmUI.state.camera.position);
+    </pre>
+    
+    <h3>4. Force Refresh:</h3>
+    <pre>
+// Force page refresh if needed
+location.reload();
+    </pre>
+    
+    <p><strong>Expected Results:</strong></p>
+    <ul>
+        <li>Camera at [0, 0, 30] - outside the field</li>
+        <li>Different patterns for each tab</li>
+        <li>3D structures observable from outside</li>
+        <li>No more flat plane appearance</li>
+    </ul>
+    
+    <p><a href="http://localhost:8081">← Back to FIRM Universe</a></p>
+</body>
+</html>

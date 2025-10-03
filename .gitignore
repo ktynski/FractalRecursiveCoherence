@@ -1,4 +1,114 @@
-node_modules/
-*.pyc
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Debug/temporary files
+debug-*.py
+test-*.py
+*-test.py
+diagnose-*.py
+analyze-*.py
+audit-*.py
+automated-*.py
+comprehensive-*.py
+emergency-*.py
+error-*.py
+experiment*.py
+final-*.py
+find-*.py
+fresh-*.py
+manual-*.py
+rigorous-*.py
+robust-*.py
+run-*.py
+screenshot-*.py
+simple-*.py
+single-*.py
+slider-*.py
+step_*.py
+theory-*.py
+universe-*.py
+verify-*.py
+visual-*.py
+
+# Investigation/test directories
+bootstrap_debug_screenshots/
+comprehensive_test/
+deep_investigation/
+simple_universe_test/
+theory_investigation/
+theory_iteration_screenshots/
+theory_tests/
+theory_validation/
+universe_validation/
+
+# Test output files
+*.json
+*_test.json
+*_report.json
+
+# Image files (exclude most, keep key ones)
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Keep only these key images
+!FIRM-Core/FIRM_ui/screenshots/key_validation.png
+!docs/architecture_diagram.png
+!docs/theory_overview.png
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Build artifacts
+*.gen.h
+*.o
+*.a
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
