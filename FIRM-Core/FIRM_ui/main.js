@@ -62,9 +62,9 @@ class FIRMUIController {
           const labels = {
             clifford: 'Clifford Field (Spacetime)',
             zx: 'ZX Graph (Quantum)',
-            consciousness: 'Consciousness',
-            sheaf: 'Sheaf Tree',
-            echo: 'Echo Map'
+            consciousness: 'Consciousness View',
+            sheaf: 'Sheaf Tree Observer',
+            echo: 'Echo Map Resonance'
           };
           viewDescription.textContent = labels[view] || 'FIRM Visualization';
         }
@@ -659,23 +659,28 @@ const initializeFIRM = async () => {
               }
             } else {
               const presets = {
-                seed_axis: {
-                  position: [0, 0, 18],
+                void_observer: {
+                  position: [0, 0, 28],
                   target: [0, 0, 0],
                   up: [0, 1, 0]
                 },
-                orthogonal: {
-                  position: [18, 0, 0],
+                phi_grace_torus: {
+                  position: [13, 8, 13],
                   target: [0, 0, 0],
                   up: [0, 1, 0]
                 },
                 bootstrap_loop: {
-                  position: [12 * Math.cos(Math.PI / 6), 12 * Math.sin(Math.PI / 6), 12],
+                  position: [9 * Math.cos(Math.PI / 4), 9 * Math.sin(Math.PI / 4), 11],
                   target: [0, 0, 0],
                   up: [0, 1, 0]
                 },
-                coherence_peak: {
-                  position: [10, 6, 14],
+                sacred_axis: {
+                  position: [0, 14, 0],
+                  target: [0, 0, 0],
+                  up: [0, 0, -1]
+                },
+                coherence_shockfront: {
+                  position: [6, 2, 4],
                   target: [0, 0, 0],
                   up: [0, 1, 0]
                 }

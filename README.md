@@ -47,7 +47,7 @@ python3 -m http.server 8000
 ### Hosted Demo
 - **Instant Access**: Explore the latest build at [fractal-recursive-coherence.vercel.app](https://fractal-recursive-coherence.vercel.app/)
 - **Validation Harness**: Open DevTools and run `await window.runTheoryValidation()` to confirm the live deployment remains theory-compliant
-- **Camera Presets**: Use the `Camera Vantage Point` menu to jump to the void observer, φ-grace torus, bootstrap loop, sacred axis, or coherence shockfront perspectives
+- **Camera Presets**: Use the `Camera Vantage Point` menu to jump to the void observer, φ-grace torus, bootstrap loop, sacred axis, or coherence shockfront perspectives (all present in the dropdown)
 - **Known Quirk**: Audio auto-start requires a click on `Enable Audio` due to browser autoplay policies
 
 ### Browser Validation
