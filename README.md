@@ -192,12 +192,12 @@ This work integrates knowledge from:
 
 **Next Steps**: Academic publication, external validation, institutional partnerships.
 
-![FIRM UI Overview](FIRM-Core/docs/images/01_basic_setup.png "Bootstrap interface and metrics panel — captured from https://fractal-recursive-coherence.vercel.app/")
+![FIRM UI Overview](FIRM-Core/docs/images/ui_overview_2025-10-03.png "Bootstrap interface with metrics panel and tabs")
 
-![Grace Emergence Attractor](FIRM-Core/docs/images/02_grace_attractor.png "φ-scaled grace operator forming coherent nodes — rendered live on https://fractal-recursive-coherence.vercel.app/")
+![Grace Emergence](FIRM-Core/docs/images/grace_emergence_2025-10-03.png "φ-scaled grace emergence in current engine")
 
-![Audio-Coherence Coupling](FIRM-Core/docs/images/03_audio_coupling.png "Thermodynamic audio linkage driving rewrite activation — measured on https://fractal-recursive-coherence.vercel.app/")
+![Audio Coherence](FIRM-Core/docs/images/audio_coherence_2025-10-03.png "Real-time audio coupling driving ZX rewrites")
 
-![Sacred Morphic Network](FIRM-Core/docs/images/04_sacred_network.png "Hebrew letter boundary seeding with provenance tracking — observed on https://fractal-recursive-coherence.vercel.app/")
+![Sacred Morphic Seeding](FIRM-Core/docs/images/sacred_seeding_2025-10-03.png "Hebrew boundary and sacred name provenance tracking")
 
-![Metamirror Bireflection](FIRM-Core/docs/images/05_metamirror_bireflection.png "β-involution blending ZX colors within the Clifford field — generated at https://fractal-recursive-coherence.vercel.app/")
+![Metamirror Bireflection](FIRM-Core/docs/images/metamirror_bireflection_2025-10-03.png "β-involution in Clifford field visualization")

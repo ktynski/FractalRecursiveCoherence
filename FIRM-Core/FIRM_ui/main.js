@@ -40,30 +40,108 @@ class FIRMUIController {
       }
     };
     
-    this.initializeTabs();
+    this.initializeTopBar();
     this.initializeAccessibility();
     this.initializeCanvas();
   }
   
-  initializeTabs() {
-const tabs = document.querySelectorAll('.tab');
+  initializeTopBar() {
+    const viewSelector = document.getElementById('viewSelector');
+    const viewDescription = document.getElementById('viewDescription');
+    const controlToggle = document.getElementById('toggleControlPanel');
+    const closeControlPanel = document.getElementById('closeControlPanel');
+    const metricsToggle = document.getElementById('topMetricsToggle');
+    const metricsPanel = document.getElementById('metricsPanel');
+    const metricsContent = document.getElementById('metricsContent');
 
-    tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-        this.switchView(tab.dataset.view);
+    if (viewSelector) {
+      viewSelector.addEventListener('change', (event) => {
+        const view = event.target.value;
+        this.switchView(view);
+        if (viewDescription) {
+          const labels = {
+            clifford: 'Clifford Field (Spacetime)',
+            zx: 'ZX Graph (Quantum)',
+            consciousness: 'Consciousness',
+            sheaf: 'Sheaf Tree',
+            echo: 'Echo Map'
+          };
+          viewDescription.textContent = labels[view] || 'FIRM Visualization';
+        }
       });
-    });
+    }
+
+    const openControls = () => {
+      document.body.classList.add('controls-open');
+      if (controlToggle) {
+        controlToggle.setAttribute('aria-expanded', 'true');
+        controlToggle.textContent = '⚙️ Hide Controls';
+      }
+    };
+
+    const closeControls = () => {
+      document.body.classList.remove('controls-open');
+      if (controlToggle) {
+        controlToggle.setAttribute('aria-expanded', 'false');
+        controlToggle.textContent = '⚙️ Controls';
+      }
+    };
+
+    if (controlToggle) {
+      controlToggle.addEventListener('click', () => {
+        if (document.body.classList.contains('controls-open')) {
+          closeControls();
+        } else {
+          openControls();
+        }
+      });
+      controlToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    if (closeControlPanel) {
+      closeControlPanel.addEventListener('click', closeControls);
+    }
+
+    if (metricsToggle && metricsPanel && metricsContent) {
+      const toggleMetrics = () => {
+        const isCollapsed = metricsPanel.classList.contains('collapsed');
+        if (isCollapsed) {
+          metricsPanel.classList.remove('collapsed');
+          metricsContent.setAttribute('aria-hidden', 'false');
+          metricsToggle.setAttribute('aria-expanded', 'true');
+          metricsToggle.textContent = '📊 Hide Metrics';
+        } else {
+          metricsPanel.classList.add('collapsed');
+          metricsContent.setAttribute('aria-hidden', 'true');
+          metricsToggle.setAttribute('aria-expanded', 'false');
+          metricsToggle.textContent = '📊 Show Metrics';
+        }
+        window.dispatchEvent(new Event('metricsStateChanged'));
+      };
+
+      metricsToggle.addEventListener('click', toggleMetrics);
+      const header = metricsPanel.querySelector('.metrics-header');
+      if (header) {
+        header.addEventListener('click', toggleMetrics);
+        header.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleMetrics();
+          }
+        });
+      }
+
+      metricsPanel.classList.add('collapsed');
+      metricsContent.setAttribute('aria-hidden', 'true');
+      metricsToggle.setAttribute('aria-expanded', 'false');
+      metricsToggle.textContent = '📊 Show Metrics';
+    }
   }
   
   switchView(viewName) {
     if (!['clifford', 'zx', 'sheaf', 'echo', 'consciousness'].includes(viewName)) {
       throw new Error(`Invalid view: ${viewName}`);
     }
-    
-    // Update tab visual state
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t => t.classList.remove('active'));
-    document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
     
     // Update internal state
     this.state.view = viewName;

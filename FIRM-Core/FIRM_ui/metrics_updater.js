@@ -88,17 +88,15 @@ function updateScientificMetrics() {
 function initializeMetricsPanel() {
   const metricsHeader = document.querySelector('.metrics-header');
   const metricsContent = document.getElementById('metricsContent');
-  const toggleBtn = document.getElementById('toggleMetrics');
   const metricsPanel = document.getElementById('metricsPanel');
+  const topBar = document.getElementById('topBar');
 
   const root = document.documentElement;
 
   const updateLayoutOffsets = () => {
     window.requestAnimationFrame(() => {
-      const tabsEl = document.querySelector('.tabs');
-      if (tabsEl) {
-        root.style.setProperty('--tabs-height', `${tabsEl.offsetHeight}px`);
-      }
+      const topHeight = topBar ? topBar.offsetHeight : 64;
+      root.style.setProperty('--top-bar-height', `${topHeight}px`);
 
       if (metricsPanel) {
         const panelHeight = metricsPanel.classList.contains('collapsed')
@@ -109,7 +107,7 @@ function initializeMetricsPanel() {
     });
   };
 
-  if (!metricsHeader || !metricsContent || !toggleBtn || !metricsPanel) {
+  if (!metricsHeader || !metricsContent || !metricsPanel) {
     console.warn('Metrics panel elements not found');
     return;
   }
@@ -119,14 +117,10 @@ function initializeMetricsPanel() {
       metricsPanel.classList.remove('collapsed');
       metricsPanel.classList.add('expanded');
       metricsContent.setAttribute('aria-hidden', 'false');
-      toggleBtn.setAttribute('aria-expanded', 'true');
-      toggleBtn.textContent = '▼';
     } else {
       metricsPanel.classList.remove('expanded');
       metricsPanel.classList.add('collapsed');
       metricsContent.setAttribute('aria-hidden', 'true');
-      toggleBtn.setAttribute('aria-expanded', 'false');
-      toggleBtn.textContent = '▶';
     }
 
     updateLayoutOffsets();
@@ -135,30 +129,25 @@ function initializeMetricsPanel() {
   // Initialize collapsed state from class
   const initialExpanded = !metricsPanel.classList.contains('collapsed');
   applyState(initialExpanded);
-
+ 
   const handleToggle = () => {
-    const nowExpanded = metricsPanel.classList.contains('collapsed');
-    applyState(nowExpanded);
-    document.body.dataset.metricsState = nowExpanded ? 'expanded' : 'collapsed';
+    const nowCollapsed = metricsPanel.classList.contains('collapsed');
+    applyState(!nowCollapsed);
+    document.body.dataset.metricsState = nowCollapsed ? 'expanded' : 'collapsed';
   };
-
-  metricsHeader.addEventListener('click', handleToggle);
-
-  toggleBtn.addEventListener('click', (event) => {
-    event.stopPropagation();
-    handleToggle();
+ 
+  window.addEventListener('metricsStateChanged', () => {
+    updateLayoutOffsets();
   });
-
-  document.body.dataset.metricsState = initialExpanded ? 'expanded' : 'collapsed';
-
   window.addEventListener('resize', updateLayoutOffsets);
-
+ 
   updateLayoutOffsets();
-
+ 
   window.addEventListener('beforeunload', () => {
+    window.removeEventListener('metricsStateChanged', updateLayoutOffsets);
     window.removeEventListener('resize', updateLayoutOffsets);
   });
-
+ 
   console.log('📊 Scientific metrics panel initialized');
 }
 
