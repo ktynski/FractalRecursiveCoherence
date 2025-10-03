@@ -1,0 +1,26 @@
+{
+  "name": "firm-exnihilo",
+  "version": "1.0.0",
+  "description": "FIRM: Theory-first framework for recursive emergence and consciousness bootstrapping",
+  "type": "module",
+  "scripts": {
+    "dev": "cd FIRM-Core/FIRM_ui && python3 -m http.server 8000",
+    "test": "cd FIRM-Core && pytest -q"
+  },
+  "keywords": [
+    "category-theory",
+    "zx-calculus",
+    "consciousness",
+    "emergence",
+    "morphic-fields",
+    "sacred-geometry",
+    "clifford-algebra"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/FIRM-ExNihilo.git"
+  }
+}
+
