@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+
+# Node
+node_modules/
+.dist/
+.build/
+.bundle/
+
+# Mac/OS
+.DS_Store
+
+# Provenance artifacts (large)
+provenance/**/echo_histogram.png
+provenance/**/golden_snapshot.png
+provenance/**/FIRM_audio_signature.wav
+
+# CI
+coverage/
+.cache/
+
