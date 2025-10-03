@@ -6,6 +6,8 @@
 [![Theory Compliant](https://img.shields.io/badge/theory-compliant-blue)](FIRM-Core/FIRM_theory/THEORY_COMPLIANCE_SPECIFICATION.md)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](FIRM-Core/LICENSE)
 
+**🚀 [Live Demo](https://fractal-recursive-coherence.vercel.app/)** | **📖 [Full Documentation](EsotericGuidance/README.md)** | **🔬 [Theory Audit](FIRM-Core/SYSTEMATIC_THEORY_AUDIT_RESULTS.md)**
+
 ---
 
 ## Overview

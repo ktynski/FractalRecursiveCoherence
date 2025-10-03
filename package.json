@@ -20,7 +20,8 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/FIRM-ExNihilo.git"
-  }
+    "url": "https://github.com/ktynski/FractalRecursiveCoherence.git"
+  },
+  "homepage": "https://fractal-recursive-coherence.vercel.app"
 }
 
