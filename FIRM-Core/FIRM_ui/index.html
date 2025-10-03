@@ -6,12 +6,31 @@
     <title>FIRM UI</title>
     <style>
       body { margin: 0; font-family: system-ui, sans-serif; background: #0b0b0b; color: #eaeaea; }
-      .tabs { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #333; }
-      .tab { padding: 8px 12px; cursor: pointer; border-radius: 6px; background: #151515; transition: background 0.2s; }
+      .tabs { display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #333; align-items: center; }
+      .tab { padding: 8px 12px; cursor: pointer; border-radius: 6px; background: #151515; transition: background 0.2s; border: none; color: #eaeaea; font-size: 14px; }
       .tab:hover { background: #1a1a1a; }
       .active { background: #1f1f1f; }
-      #canvas { width: 100vw; height: calc(100vh - 48px); display: block; }
-      .a11y { position: fixed; top: 8px; right: 8px; font-size: 12px; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 4px; }
+      .interpretation-btn { background: #2a4a6a; margin-left: auto; }
+      .interpretation-btn:hover { background: #3a5a7a; }
+      
+      /* Metrics Panel */
+      .metrics-panel { background: #0f0f0f; border-bottom: 1px solid #333; }
+      .metrics-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; cursor: pointer; }
+      .metrics-title { font-size: 13px; font-weight: 600; color: #4a9eff; }
+      .metrics-toggle { background: none; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 0; }
+      .metrics-content { padding: 12px; max-height: 180px; overflow-y: auto; transition: max-height 0.3s; }
+      .metrics-content.collapsed { max-height: 0; padding: 0; overflow: hidden; }
+      .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+      .metric-group { background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #2a2a2a; }
+      .metric-group h4 { margin: 0 0 8px 0; font-size: 12px; color: #4a9eff; font-weight: 600; }
+      .metric-row { display: flex; justify-content: space-between; font-size: 11px; margin: 4px 0; }
+      .metric-label { color: #aaa; }
+      .metric-row span:last-child { color: #eee; font-weight: 600; font-family: 'Courier New', monospace; }
+      
+      #canvas { width: 100vw; height: calc(100vh - 48px - 0px); display: block; }
+      .metrics-panel.expanded + canvas { height: calc(100vh - 48px - 200px); }
+      
+      .a11y { position: fixed; top: 56px; right: 8px; font-size: 12px; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 4px; max-height: calc(100vh - 64px); overflow-y: auto; }
       .a11y label { display: block; margin: 4px 0; }
       
       /* Accessibility overrides */
@@ -23,12 +42,61 @@
   </head>
   <body>
     <div class="tabs">
-      <div class="tab active" data-view="clifford">Clifford View</div>
-      <div class="tab" data-view="zx">ZX View</div>
-      <div class="tab" data-view="consciousness">Consciousness View</div>
+      <div class="tab active" data-view="clifford">Clifford Field (Spacetime)</div>
+      <div class="tab" data-view="zx">ZX Graph (Quantum)</div>
+      <div class="tab" data-view="consciousness">Consciousness</div>
       <div class="tab" data-view="sheaf">Sheaf Tree</div>
       <div class="tab" data-view="echo">Echo Map</div>
+      <button id="openInterpretation" class="tab interpretation-btn">🔬 Physics Guide</button>
     </div>
+    
+    <!-- Scientific Metrics Panel -->
+    <div id="metricsPanel" class="metrics-panel">
+      <div class="metrics-header">
+        <span class="metrics-title">📊 Scientific Metrics</span>
+        <button id="toggleMetrics" class="metrics-toggle">▼</button>
+      </div>
+      <div id="metricsContent" class="metrics-content">
+        <div class="metrics-grid">
+          <div class="metric-group">
+            <h4>ZX Graph Structure</h4>
+            <div class="metric-row"><span class="metric-label">Nodes:</span><span id="metric-nodes">-</span></div>
+            <div class="metric-row"><span class="metric-label">Z-spiders:</span><span id="metric-z-spiders">-</span></div>
+            <div class="metric-row"><span class="metric-label">X-spiders:</span><span id="metric-x-spiders">-</span></div>
+            <div class="metric-row"><span class="metric-label">Edges:</span><span id="metric-edges">-</span></div>
+            <div class="metric-row"><span class="metric-label">Coherence C(G):</span><span id="metric-coherence">-</span></div>
+          </div>
+          
+          <div class="metric-group">
+            <h4>Clifford Field (Cl(1,3))</h4>
+            <div class="metric-row"><span class="metric-label">Scalar (grade-0):</span><span id="metric-scalar">-</span></div>
+            <div class="metric-row"><span class="metric-label">Vectors (grade-1):</span><span id="metric-vectors">-</span></div>
+            <div class="metric-row"><span class="metric-label">Bivectors (grade-2):</span><span id="metric-bivectors">-</span></div>
+            <div class="metric-row"><span class="metric-label">Trivectors (grade-3):</span><span id="metric-trivectors">-</span></div>
+            <div class="metric-row"><span class="metric-label">Pseudoscalar:</span><span id="metric-pseudo">-</span></div>
+          </div>
+          
+          <div class="metric-group">
+            <h4>Evolution Dynamics</h4>
+            <div class="metric-row"><span class="metric-label">Total rewrites:</span><span id="metric-rewrites">-</span></div>
+            <div class="metric-row"><span class="metric-label">Fusion events:</span><span id="metric-fusion">-</span></div>
+            <div class="metric-row"><span class="metric-label">Color-flips:</span><span id="metric-colorflip">-</span></div>
+            <div class="metric-row"><span class="metric-label">Grace emergence:</span><span id="metric-grace">-</span></div>
+            <div class="metric-row"><span class="metric-label">Evolution steps:</span><span id="metric-steps">-</span></div>
+          </div>
+          
+          <div class="metric-group">
+            <h4>Physics Observables</h4>
+            <div class="metric-row"><span class="metric-label">Predicted spheres:</span><span id="metric-pred-spheres">-</span></div>
+            <div class="metric-row"><span class="metric-label">Dominant grade:</span><span id="metric-dom-grade">-</span></div>
+            <div class="metric-row"><span class="metric-label">Audio coherence α:</span><span id="metric-audio">-</span></div>
+            <div class="metric-row"><span class="metric-label">Bootstrap energy:</span><span id="metric-boot-energy">-</span></div>
+            <div class="metric-row"><span class="metric-label">Emergence rate:</span><span id="metric-emerg-rate">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <canvas id="canvas"></canvas>
     <div class="a11y">
       <label><input type="checkbox" id="noMotion" /> Reduce motion</label>
@@ -150,6 +218,8 @@
     <script src="visual_debug.js"></script>
     <script src="camera_external_fix.js"></script>
     <script src="geometry_diagnostics.js"></script>
+    <script type="module" src="interpretation_modal.js"></script>
+    <script src="metrics_updater.js"></script>
     <script type="module" src="sacred_morphic_seeds.js"></script>
     <script type="module" src="sacred_direct_injection.js"></script>
     <script type="module" src="fractal_waveform_drivers.js"></script>
