@@ -9,6 +9,10 @@
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "/FIRM-Core/FIRM_ui/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/FIRM-Core/FIRM_ui/$1"
     }
