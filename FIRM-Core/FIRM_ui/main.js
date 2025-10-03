@@ -435,10 +435,9 @@ const initializeFIRM = async () => {
       
       // Initialize Sacred Morphic System and fractal drivers with shared analog engine
       try {
-        const sacredSeeds = window.sacredSeeds || initializeSacredMorphicSystem();
-        window.sacredSeeds = sacredSeeds;
-        window.sacredNames72 = sacredSeeds.names72;
-        console.log(`🕯️ Sacred Morphic System initialized with ${sacredSeeds.names72.length} names`);
+        window.sacredSeeds = window.sacredSeeds || initializeSacredMorphicSystem();
+        window.sacredNames72 = window.sacredSeeds?.names72 || [];
+        console.log(`🕯️ Sacred Morphic System initialized with ${window.sacredNames72.length} names`);
       } catch (sacredError) {
         console.error('❌ Sacred system initialization failed:', sacredError);
       }
@@ -523,7 +522,7 @@ const initializeFIRM = async () => {
             const nameIndex = parseInt(sacredNameSlider?.value || 0);
             if (window.seedWithSacredName) {
               const success = window.seedWithSacredName(nameIndex);
-              if (success) {
+              if (success && sacredMorphicSeeds.names72?.[nameIndex]) {
                 const sacredName = sacredMorphicSeeds.names72[nameIndex];
                 console.log(`🌟 Sacred field seeded with ${sacredName.name} - ${sacredName.consciousness_quality}`);
               }

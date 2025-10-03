@@ -90,23 +90,75 @@ function initializeMetricsPanel() {
   const metricsContent = document.getElementById('metricsContent');
   const toggleBtn = document.getElementById('toggleMetrics');
   const metricsPanel = document.getElementById('metricsPanel');
-  
-  let isExpanded = true;
-  
-  metricsHeader.addEventListener('click', () => {
-    isExpanded = !isExpanded;
-    
-    if (isExpanded) {
-      metricsContent.classList.remove('collapsed');
-      toggleBtn.textContent = '▼';
+
+  const root = document.documentElement;
+
+  const updateLayoutOffsets = () => {
+    window.requestAnimationFrame(() => {
+      const tabsEl = document.querySelector('.tabs');
+      if (tabsEl) {
+        root.style.setProperty('--tabs-height', `${tabsEl.offsetHeight}px`);
+      }
+
+      if (metricsPanel) {
+        const panelHeight = metricsPanel.classList.contains('collapsed')
+          ? metricsHeader.offsetHeight
+          : metricsPanel.offsetHeight;
+        root.style.setProperty('--metrics-height', `${panelHeight}px`);
+      }
+    });
+  };
+
+  if (!metricsHeader || !metricsContent || !toggleBtn || !metricsPanel) {
+    console.warn('Metrics panel elements not found');
+    return;
+  }
+
+  const applyState = (expanded) => {
+    if (expanded) {
+      metricsPanel.classList.remove('collapsed');
       metricsPanel.classList.add('expanded');
+      metricsContent.setAttribute('aria-hidden', 'false');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+      toggleBtn.textContent = '▼';
     } else {
-      metricsContent.classList.add('collapsed');
-      toggleBtn.textContent = '▶';
       metricsPanel.classList.remove('expanded');
+      metricsPanel.classList.add('collapsed');
+      metricsContent.setAttribute('aria-hidden', 'true');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      toggleBtn.textContent = '▶';
     }
+
+    updateLayoutOffsets();
+  };
+
+  // Initialize collapsed state from class
+  const initialExpanded = !metricsPanel.classList.contains('collapsed');
+  applyState(initialExpanded);
+
+  const handleToggle = () => {
+    const nowExpanded = metricsPanel.classList.contains('collapsed');
+    applyState(nowExpanded);
+    document.body.dataset.metricsState = nowExpanded ? 'expanded' : 'collapsed';
+  };
+
+  metricsHeader.addEventListener('click', handleToggle);
+
+  toggleBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    handleToggle();
   });
-  
+
+  document.body.dataset.metricsState = initialExpanded ? 'expanded' : 'collapsed';
+
+  window.addEventListener('resize', updateLayoutOffsets);
+
+  updateLayoutOffsets();
+
+  window.addEventListener('beforeunload', () => {
+    window.removeEventListener('resize', updateLayoutOffsets);
+  });
+
   console.log('📊 Scientific metrics panel initialized');
 }
 

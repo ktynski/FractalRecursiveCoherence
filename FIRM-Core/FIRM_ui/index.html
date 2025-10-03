@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FIRM UI</title>
     <style>
-      body { margin: 0; font-family: system-ui, sans-serif; background: #0b0b0b; color: #eaeaea; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-      .tabs { position: sticky; top: 0; z-index: 50; display: flex; gap: 8px; padding: 8px; border-bottom: 1px solid #333; align-items: center; background: rgba(11,11,11,0.9); backdrop-filter: blur(8px); }
+      :root { --tabs-height: 48px; --metrics-height: 56px; --body-padding: calc(var(--tabs-height) + var(--metrics-height)); }
+      body { margin: 0; font-family: system-ui, sans-serif; background: #0b0b0b; color: #eaeaea; min-height: 100vh; overflow: hidden; padding-top: var(--tabs-height); }
+      .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; border-bottom: 1px solid #333; align-items: center; background: rgba(11,11,11,0.95); backdrop-filter: blur(8px); box-sizing: border-box; }
       .tab { padding: 8px 12px; cursor: pointer; border-radius: 6px; background: #151515; transition: background 0.2s; border: none; color: #eaeaea; font-size: 14px; }
       .tab:hover { background: #1a1a1a; }
       .active { background: #1f1f1f; }
@@ -14,12 +15,11 @@
       .interpretation-btn:hover { background: #3a5a7a; }
       
       /* Metrics Panel */
-      .metrics-panel { position: sticky; top: 48px; z-index: 40; background: rgba(15,15,15,0.92); border-bottom: 1px solid #333; backdrop-filter: blur(8px); }
+      .metrics-panel { position: fixed; top: var(--tabs-height); left: 0; right: 0; z-index: 40; background: rgba(15,15,15,0.92); border-bottom: 1px solid #333; backdrop-filter: blur(8px); box-sizing: border-box; }
       .metrics-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; cursor: pointer; }
       .metrics-title { font-size: 13px; font-weight: 600; color: #4a9eff; }
       .metrics-toggle { background: none; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 0; }
-      .metrics-content { padding: 0 12px 12px 12px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-      .metrics-content.expanded { max-height: 240px; overflow-y: auto; }
+      .metrics-panel.collapsed .metrics-content { display: none; }
       .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
       .metric-group { background: #1a1a1a; padding: 10px; border-radius: 6px; border: 1px solid #2a2a2a; }
       .metric-group h4 { margin: 0 0 8px 0; font-size: 12px; color: #4a9eff; font-weight: 600; }
@@ -27,14 +27,20 @@
       .metric-label { color: #aaa; }
       .metric-row span:last-child { color: #eee; font-weight: 600; font-family: 'Courier New', monospace; }
       
-      #canvasContainer { position: relative; flex: 1 1 auto; width: 100%; }
+      #canvasContainer { position: fixed; top: calc(var(--tabs-height) + var(--metrics-height)); left: 0; right: 0; bottom: 0; }
       #canvas { width: 100%; height: 100%; display: block; }
       
-      .a11y { position: fixed; top: 110px; right: 12px; font-size: 12px; background: rgba(0,0,0,0.85); padding: 8px; border-radius: 4px; max-height: calc(100vh - 130px); overflow-y: auto; width: 280px; z-index: 1000; backdrop-filter: blur(10px); }
-      .metrics-panel.expanded + #canvasContainer { flex: 1 1 calc(100% - 220px); }
-      .metrics-panel.collapsed + #canvasContainer { flex: 1 1 auto; }
+      .a11y { position: fixed; top: calc(var(--tabs-height) + var(--metrics-height) + 12px); right: 12px; font-size: 12px; background: rgba(0,0,0,0.85); padding: 12px; border-radius: 6px; max-height: calc(100vh - (var(--tabs-height) + var(--metrics-height) + 24px)); overflow-y: auto; width: 320px; z-index: 1000; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); }
       .a11y label { display: block; margin: 4px 0; }
       
+      @media (max-width: 1024px) {
+        .tabs { justify-content: center; }
+        .interpretation-btn { margin-left: 0; }
+        .a11y { position: static; width: auto; max-height: none; margin: 16px; }
+        body { padding-bottom: 320px; overflow: auto; }
+        #canvasContainer { position: relative; height: 60vh; top: 0; }
+      }
+
       /* Accessibility overrides */
       body.high-contrast { background: #000; color: #fff; }
       body.high-contrast .tab { background: #222; border: 1px solid #666; }
