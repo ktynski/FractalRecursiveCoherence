@@ -1,6 +1,7 @@
 {
-  "buildCommand": "cd FIRM-Core/FIRM_ui && ls -la",
-  "outputDirectory": "FIRM-Core/FIRM_ui",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/FIRM-Core/FIRM_ui/$1" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -17,4 +18,3 @@
     }
   ]
 }
-
