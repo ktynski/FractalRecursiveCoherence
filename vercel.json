@@ -1,8 +1,6 @@
 {
-  "version": 2,
-  "installCommand": "echo 'No dependencies to install'",
-  "buildCommand": "mkdir -p FIRM_ui && cp -r FIRM-Core/FIRM_ui/* FIRM_ui/",
-  "outputDirectory": "FIRM_ui",
+  "buildCommand": "cd FIRM-Core/FIRM_ui && ls -la",
+  "outputDirectory": "FIRM-Core/FIRM_ui",
   "headers": [
     {
       "source": "/(.*)",
