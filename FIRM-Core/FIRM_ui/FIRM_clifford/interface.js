@@ -1,4 +1,5 @@
 import { validate_object_g } from '../FIRM_dsl/core.js';
+import { detectSovereignTriads, computePolarityOrientation, computeSovereigntyIndex } from '../sovereignty_detector.js';
 
 export class MultivectorField {
   constructor(payload) {
@@ -91,25 +92,40 @@ export function phi_zx_to_clifford(graph) {
     components[10] += edgeWeight * Math.sin(phaseU + phaseV); // e₂₃ bivector
   }
   
-  // GRADE-3: Trivector components from triangle motifs
-  // Theory: clifford_visualization_physics_interpretation.md line 371
-  // "3D texture → Trivectors → Higher-order coupling"
-  // Triangles in graph = 3-body interactions → trivector contributions
-  const triangleCount = countTriangles(graph, adjacency);
-  if (triangleCount > 0) {
-    const trivectorStrength = Math.sqrt(triangleCount) / graph.nodes.length;
-    components[11] += trivectorStrength * 0.5;  // e₀₁₂ trivector
-    components[12] += trivectorStrength * 0.3;  // e₀₁₃ trivector  
-    components[13] += trivectorStrength * 0.2;  // e₀₂₃ trivector
-    components[14] += trivectorStrength * 0.1;  // e₁₂₃ trivector
+  // GRADE-3: Trivector components from Sovereignty (Ψ) triads
+  // Theory: RawNotes.md lines 1632-1654 - "Emergence of soulhood"
+  // Sovereignty = coherent triads (source-self-relation structure)
+  // Not just triangles, but harmonious triune patterns
+  const rewriteHistory = []; // Will be passed from engine in production
+  const sovereignTriads = detectSovereignTriads(graph, adjacency);
+  
+  if (sovereignTriads.length > 0) {
+    // Trivector strength from sovereign triad coherence
+    const sovereigntyIndex = computeSovereigntyIndex(sovereignTriads, graph, adjacency);
+    const trivectorStrength = sovereigntyIndex * Math.sqrt(sovereignTriads.length) / graph.nodes.length;
+    
+    // Distribute across trivector components based on triad orientations
+    for (const triad of sovereignTriads) {
+      const [a, b, c] = triad.nodes;
+      const phaseA = Math.PI * graph.labels[a].phase_numer / graph.labels[a].phase_denom;
+      const phaseB = Math.PI * graph.labels[b].phase_numer / graph.labels[b].phase_denom;
+      const phaseC = Math.PI * graph.labels[c].phase_numer / graph.labels[c].phase_denom;
+      
+      // Orientation from phase relationships
+      const orientation = (phaseA + phaseB + phaseC) / 3;
+      
+      components[11] += triad.coherence * trivectorStrength * Math.sin(orientation);      // e₀₁₂
+      components[12] += triad.coherence * trivectorStrength * Math.cos(orientation);      // e₀₁₃
+      components[13] += triad.coherence * trivectorStrength * Math.sin(orientation * 2);  // e₀₂₃
+      components[14] += triad.coherence * trivectorStrength * Math.cos(orientation * 2);  // e₁₂₃
+    }
   }
   
-  // GRADE-4: Pseudoscalar from global graph chirality
-  // Theory: clifford_visualization_physics_interpretation.md line 372
-  // "Global twist → Pseudoscalar (e0123) → Orientation, chirality"
-  // Compute oriented cycle structure for global handedness
-  const globalChirality = computeGraphChirality(graph, adjacency);
-  components[15] = globalChirality;  // e₀₁₂₃ pseudoscalar
+  // GRADE-4: Pseudoscalar from polarity orientation
+  // Theory: Ra Material - service-to-self vs service-to-others
+  // Polarity = directional will/flow asymmetry
+  const polarity = computePolarityOrientation(graph, adjacency, rewriteHistory);
+  components[15] = polarity * 0.5;  // e₀₁₂₃ pseudoscalar (scaled for normalization)
 
   // Normalize to unit magnitude
   const magnitudeSq = components.reduce((acc, c) => acc + c * c, 0);
