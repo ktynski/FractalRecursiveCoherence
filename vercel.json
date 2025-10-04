@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "echo 'No build needed - static files only'",
-  "outputDirectory": "FIRM-Core/FIRM_ui",
+  "installCommand": "echo 'No dependencies to install'",
+  "buildCommand": "mkdir -p FIRM_ui && cp -r FIRM-Core/FIRM_ui/* FIRM_ui/",
+  "outputDirectory": "FIRM_ui",
   "headers": [
     {
       "source": "/(.*)",
