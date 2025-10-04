@@ -49,6 +49,8 @@ class FIRMUIController {
     const viewSelector = document.getElementById('viewSelector');
     const viewDescription = document.getElementById('viewDescription');
     const controlToggle = document.getElementById('toggleControlPanel');
+    const topAutoAlign = document.getElementById('topAutoAlignOmega');
+    const topAutoMode = document.getElementById('topAutoOmegaMode');
     const closeControlPanel = document.getElementById('closeControlPanel');
     const metricsToggle = document.getElementById('topMetricsToggle');
     const metricsPanel = document.getElementById('metricsPanel');
@@ -136,6 +138,17 @@ class FIRMUIController {
       metricsToggle.setAttribute('aria-expanded', 'false');
       metricsToggle.textContent = '📊 Show Metrics';
     }
+
+    // Wire top-bar Ω controls to existing handlers
+    const forwardClick = (sourceEl, targetId) => {
+      if (!sourceEl) return;
+      sourceEl.addEventListener('click', () => {
+        const el = document.getElementById(targetId);
+        if (el) el.click();
+      });
+    };
+    forwardClick(topAutoAlign, 'autoAlignOmega');
+    forwardClick(topAutoMode, 'autoOmegaModeToggle');
   }
   
   switchView(viewName) {
@@ -451,6 +464,17 @@ const highContrast = document.getElementById('highContrast');
         } catch (e) {
           console.warn('Auto Align to Ω failed:', e);
         }
+      });
+    }
+
+    // Auto Ω Mode: continuously maximize Res(S,Ω) × C(G) during evolution
+    const autoOmegaBtn = document.getElementById('autoOmegaModeToggle');
+    if (autoOmegaBtn) {
+      this._autoOmegaEnabled = false;
+      autoOmegaBtn.addEventListener('click', async () => {
+        this._autoOmegaEnabled = !this._autoOmegaEnabled;
+        autoOmegaBtn.textContent = this._autoOmegaEnabled ? 'Disable Auto Ω Mode' : 'Enable Auto Ω Mode';
+        console.log('Auto Ω Mode:', this._autoOmegaEnabled);
       });
     }
   }
@@ -1162,7 +1186,34 @@ const initializeFIRM = async () => {
           const consciousness = emergentObserver.evolveConsciousness(fieldAnalysis, {nonBlackPixels: 0}); // Will be updated with real visual feedback
           const optimalObservation = fieldAnalysis ? emergentObserver.computeOptimalObservation(fieldAnalysis, consciousness) : null;
           
-          // 4. MANIFOLD OBSERVATION: Update camera to observe transforming manifold
+          // 4. THEORY-DRIVEN EVOLUTION CONTROL (Auto Ω Mode)
+          if (this._autoOmegaEnabled) {
+            try {
+              if (!window.__resonanceMod) {
+                // Lazy-load once; render loop must remain fast
+                import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(() => {});
+              }
+              if (!window.__omegaSignature && window.__resonanceMod && zxSnapshot) {
+                window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(zxSnapshot.graph);
+              }
+              if (window.__resonanceMod && window.__omegaSignature && window.zxEvolutionEngine) {
+                // Compute current resonance
+                const res = window.__resonanceMod.computeResonanceAlignment(zxSnapshot.graph, window.__omegaSignature);
+                // Update control params to steer toward Ω: higher emergence when Res is rising
+                const targetEmergence = Math.min(3.0, 0.5 + 2.5 * Math.max(0, res));
+                window.zxEvolutionEngine.updateControlParams?.({ emergenceRate: targetEmergence });
+                // Light audio modulation coupling on Res (kept bounded)
+                if (window.analogEngine && typeof window.analogEngine.modulateFromGraphState === 'function') {
+                  const nodes = zxSnapshot?.graph?.nodes?.length || 0;
+                  window.analogEngine.modulateFromGraphState(res, nodes);
+                }
+              }
+            } catch (_) {
+              // Non-fatal; evolution continues
+            }
+          }
+
+          // 5. MANIFOLD OBSERVATION: Update camera to observe transforming manifold
           if (optimalObservation && fieldAnalysis) {
             // Compute manifold-appropriate observation distance
             const manifoldRadius = 3.0;  // Base manifold size
@@ -1233,7 +1284,7 @@ const initializeFIRM = async () => {
             }
           }
           
-          // 5. PARAMETER EVOLUTION: Both audio and graph coherence drive parameters
+          // 6. PARAMETER EVOLUTION: Both audio and graph coherence drive parameters
           // Field parameters updated with coherence values
           systemState.fieldParameters.amplitude = 1.0 + (graphCoherence || 0) * 6.0; // Safe fallback
           systemState.fieldParameters.spatialFreq = 0.5 + audioCoherence * 3.0;
