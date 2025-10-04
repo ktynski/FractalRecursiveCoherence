@@ -8,6 +8,9 @@
  */
 
 import { WebGLShaderRuntime } from './shader_runtime.js';
+import { renderMerkaba, renderSriYantra, renderSealOfSolomon } from './sacred_geometry.js';
+import { computeChernNumber } from './topological_invariants.js';
+import { detectSovereignTriads, computePolarityOrientation, computeSovereigntyIndex } from './sovereignty_detector.js';
 
 export class FIRMRenderer {
   constructor(canvas) {
