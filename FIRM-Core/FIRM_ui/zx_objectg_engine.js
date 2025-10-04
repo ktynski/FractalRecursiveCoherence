@@ -3,6 +3,8 @@ import { compute_coherence, compute_cycle_basis_signature } from './FIRM_dsl/coh
 import { CoherenceDeltaScaffold } from '../FIRM_zx/rules.js';
 import { phi_zx_to_clifford } from './FIRM_clifford/interface.js';
 import { ControlParamsValidator } from './control_params.js';
+import { detectSovereignTriads, computePolarityOrientation, computeSovereigntyIndex, detectDevourerPatterns } from './sovereignty_detector.js';
+import { computeTopologicalInvariants } from './topological_invariants.js';
 
 function createEmptyGraph() {
   return validate_object_g(new ObjectG({ nodes: [], edges: [], labels: {} }));
@@ -157,8 +159,9 @@ export class ZXObjectGraphEngine {
     const bootstrapEnergy = Math.max(0.1, this._controlParams.bootstrapEnergy || 1.0);
     const energyScaled = Math.min(1, audioClamped * bootstrapEnergy);
 
-    // Bootstrap only when still in primordial state (single node, no edges)
-    if (graph.nodes.length === 1 && graph.edges.length === 0 && this._rewriteHistory.length === 1) {
+    // Bootstrap when in primordial state (single node, no edges)
+    // FIXED: Allow bootstrap even after rewrites (enables recovery from fusion collapse)
+    if (graph.nodes.length === 1 && graph.edges.length === 0) {
       const anchor = graph.nodes[0];
       const anchorLabel = graph.labels[anchor];
       const baseId = this._allocateNodeId(graph);
@@ -395,7 +398,70 @@ export class ZXObjectGraphEngine {
     graph.nodes.push(newNodeId);
     graph.labels[newNodeId] = newLabel;
 
+    // Primary edge: source → new node
     graph.edges.push([sourceNodeId, newNodeId]);
+    
+    // CYCLE CREATION: Grace cross-linking (theory-compliant)
+    // Theory: Sovereignty requires "ZX cycle" (Ω operator - Observer Closure)
+    // Grace probabilistically creates cross-links to enable cyclic topology
+    // Probability scales with audio coherence (higher coherence → more complex topology)
+    const crossLinkProbability = audioCoherence * 0.5;  // 0-50% chance (increased for faster triangle formation)
+    
+    // Deterministic random for cross-link decision
+    const crossLinkRand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
+    this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+    
+    let crossLinkCreated = false;
+    if (crossLinkRand < crossLinkProbability && graph.nodes.length > 3) {
+      // Select random target node (prefer high-degree for triad formation)
+      const adjacency = new Map();
+      for (const node of graph.nodes) adjacency.set(node, []);
+      for (const [u, v] of graph.edges) {
+        if (!adjacency.has(u)) adjacency.set(u, []);
+        if (!adjacency.has(v)) adjacency.set(v, []);
+        adjacency.get(u).push(v);
+        adjacency.get(v).push(u);
+      }
+      
+      // INTELLIGENT CROSS-LINKING: Prefer opposite-type nodes for coherent triads
+      // Theory: "Polarity within unity" requires mixed Z-X patterns in triads
+      const candidates = graph.nodes.filter(n => n !== newNodeId && n !== sourceNodeId);
+      if (candidates.length > 0) {
+        // Strongly prefer opposite-type nodes (creates Z-X-Z or X-Z-X triangles)
+        const weights = candidates.map(n => {
+          const degree = adjacency.get(n)?.length || 0;
+          const candidateLabel = graph.labels[n];
+          
+          // Type diversity bonus: 10x weight for opposite type
+          const typeDiversityBonus = (candidateLabel && candidateLabel.kind !== newKind) ? 10.0 : 1.0;
+          
+          // Degree bonus: favor hubs
+          const degreeBonus = 1 + degree;
+          
+          return typeDiversityBonus * degreeBonus;
+        });
+        
+        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        
+        // Weighted selection
+        const targetRand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
+        this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+        
+        let cumulative = 0;
+        let targetNode = candidates[0];
+        for (let i = 0; i < candidates.length; i++) {
+          cumulative += weights[i] / totalWeight;
+          if (targetRand < cumulative) {
+            targetNode = candidates[i];
+            break;
+          }
+        }
+        
+        // Create cross-link edge (CREATES CYCLES with type diversity!)
+        graph.edges.push([newNodeId, targetNode]);
+        crossLinkCreated = true;
+      }
+    }
 
     // Coherence delta from Theorem 1
     const graceDelta = resonance * degreeDecay;
@@ -411,8 +477,9 @@ export class ZXObjectGraphEngine {
       degreeDecay,
       phaseAlignment,
       synthesisStrength,
+      crossLinkCreated,  // Track if cycle was created
       timestamp: Date.now(),
-      provenance: 'FIRM_theory/grace_emergence_derivation.md Theorem 1'
+      provenance: 'FIRM_theory/grace_emergence_derivation.md Theorem 1 + Ω (Observer Closure)'
     };
   }
 
@@ -556,32 +623,74 @@ export class ZXObjectGraphEngine {
       // Higher audio coherence → LOWER threshold (easier to trigger rewrites)
       const threshold = Math.max(0.0, emergenceRate * baseline_threshold * (1 - coupling_efficiency * audioCoherence));
       
-      for (const candidate of scheduled) {
-        if (candidate.delta_c < threshold) break;
-        let appliedResult = false;
-        if (candidate.type === 'fusion') {
-          appliedResult = this._applyFusion(mutable, candidate);
-        } else if (candidate.type === 'color_flip') {
-          appliedResult = this._applyColorFlip(mutable, candidate);
-        }
-        if (appliedResult) {
-          const record = {
-            type: candidate.type,
-            delta_c: candidate.delta_c,
-            audioCoherence,
-            source: candidate.nodes || candidate.node,
-            timestamp: Date.now()
-          };
-          applied.push(record);
-          if (typeof window !== 'undefined' && window.theoryLogger) {
-            if (candidate.type === 'fusion' && window.theoryLogger.zx) {
-              window.theoryLogger.zx(`Fusion ΔC=${candidate.delta_c.toFixed?.(4) ?? candidate.delta_c}`);
-            }
-            if (candidate.type === 'color_flip' && window.theoryLogger.zx) {
-              window.theoryLogger.zx(`Color flip ΔC=${candidate.delta_c.toFixed?.(4) ?? candidate.delta_c}`);
+      // Filter to above-threshold candidates
+      const eligible = scheduled.filter(c => c.delta_c >= threshold);
+      
+      if (eligible.length > 0) {
+        // PROBABILISTIC SELECTION (enables natural complexity emergence)
+        // Theory: Allow lower-ΔC rewrites (fusion) to occasionally fire
+        // Instead of pure greedy, use Boltzmann distribution
+        
+        const temperature = 2.0;  // Controls exploration vs exploitation
+        
+        // Compute Boltzmann weights: w_i ∝ exp(ΔC_i / T)
+        const weights = eligible.map(c => {
+          const normalizedDelta = Math.max(0, c.delta_c);  // Clamp negatives to zero
+          return Math.exp(normalizedDelta / temperature);
+        });
+        
+        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+        
+        if (totalWeight > 0) {
+          // Probabilistic selection using deterministic PRNG
+          const rand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
+          this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+          
+          const scaledRand = rand * totalWeight;
+          let cumulative = 0;
+          let selectedCandidate = null;
+          
+          for (let i = 0; i < eligible.length; i++) {
+            cumulative += weights[i];
+            if (scaledRand < cumulative) {
+              selectedCandidate = eligible[i];
+              break;
             }
           }
-          break;
+          
+          // Fallback to highest if selection fails
+          if (!selectedCandidate) {
+            selectedCandidate = eligible[0];
+          }
+          
+          // Apply selected rewrite
+          let appliedResult = false;
+          if (selectedCandidate.type === 'fusion') {
+            appliedResult = this._applyFusion(mutable, selectedCandidate);
+          } else if (selectedCandidate.type === 'color_flip') {
+            appliedResult = this._applyColorFlip(mutable, selectedCandidate);
+          }
+          
+          if (appliedResult) {
+            const record = {
+              type: selectedCandidate.type,
+              delta_c: selectedCandidate.delta_c,
+              audioCoherence,
+              source: selectedCandidate.nodes || selectedCandidate.node,
+              timestamp: Date.now(),
+              selectionMethod: 'boltzmann_probabilistic'
+            };
+            applied.push(record);  // Will be added to _rewriteHistory at end of evolve()
+            
+            if (typeof window !== 'undefined' && window.theoryLogger) {
+              if (selectedCandidate.type === 'fusion' && window.theoryLogger.zx) {
+                window.theoryLogger.zx(`Fusion ΔC=${selectedCandidate.delta_c.toFixed?.(4) ?? selectedCandidate.delta_c}`);
+              }
+              if (selectedCandidate.type === 'color_flip' && window.theoryLogger.zx) {
+                window.theoryLogger.zx(`Color flip ΔC=${selectedCandidate.delta_c.toFixed?.(4) ?? selectedCandidate.delta_c}`);
+              }
+            }
+          }
         }
       }
     }
@@ -657,11 +766,80 @@ export class ZXObjectGraphEngine {
   getSnapshot() {
     const coherence = compute_coherence(this._graph);
     const cliffordField = this.mapToCliffordField();
+    const plainGraph = toPlainGraph(this._graph);
+    
+    // Build adjacency map for sovereignty detection
+    const adjacency = new Map();
+    for (const node of plainGraph.nodes) {
+      adjacency.set(node, []);
+    }
+    for (const [u, v] of plainGraph.edges) {
+      if (!adjacency.has(u)) adjacency.set(u, []);
+      if (!adjacency.has(v)) adjacency.set(v, []);
+      adjacency.get(u).push(v);
+      adjacency.get(v).push(u);
+    }
+    
+    // SOVEREIGNTY METRICS COMPUTATION
+    const sovereignTriads = detectSovereignTriads(plainGraph, adjacency);
+    const polarity = computePolarityOrientation(plainGraph, adjacency, this._rewriteHistory);
+    const sovereigntyIndex = computeSovereigntyIndex(sovereignTriads, plainGraph, adjacency);
+    const devourerSignature = detectDevourerPatterns(plainGraph, adjacency, sovereignTriads);
+    
+    // Compute trivector magnitude from Clifford field
+    let trivectorMagnitude = 0;
+    if (cliffordField && cliffordField.payload && cliffordField.payload.components) {
+      const c = cliffordField.payload.components;
+      trivectorMagnitude = Math.sqrt(c[11]**2 + c[12]**2 + c[13]**2 + c[14]**2);
+    }
+    
+    // Compute recursive depth (triad nesting)
+    let recursiveDepth = 0;
+    if (sovereignTriads.length >= 2) {
+      // Count shared nodes between triads
+      let sharedCount = 0;
+      for (let i = 0; i < sovereignTriads.length; i++) {
+        for (let j = i + 1; j < sovereignTriads.length; j++) {
+          const shared = sovereignTriads[i].nodes.filter(n => 
+            sovereignTriads[j].nodes.includes(n)
+          ).length;
+          if (shared >= 2) sharedCount++;
+        }
+      }
+      recursiveDepth = Math.log(1 + sharedCount);
+    }
+    
+    // TOPOLOGICAL INVARIANTS
+    const previousChern = this._previousChernNumber || 0;
+    const topologicalInvariants = computeTopologicalInvariants(
+      cliffordField,
+      sovereignTriads,
+      plainGraph,
+      previousChern
+    );
+    this._previousChernNumber = topologicalInvariants.chernNumber;
+    
+    // Store sovereignty metrics for renderer access
+    this.sovereigntyMetrics = {
+      sovereignTriads,
+      trivectorMagnitude,
+      recursiveDepth,
+      polarity,
+      sovereigntyIndex,
+      devourerSignature,
+      chernNumber: topologicalInvariants.chernNumber,
+      topologicalTransition: topologicalInvariants.transition,
+      topologicallyProtected: topologicalInvariants.topologicallyProtected,
+      consciousnessLevel: topologicalInvariants.consciousnessLevel
+    };
+    
     return {
-      graph: toPlainGraph(this._graph),
+      graph: plainGraph,
       coherence,
       cliffordField,
       rewrites: [...this._rewriteHistory],
+      sovereigntyMetrics: this.sovereigntyMetrics,
+      topologicalInvariants,
       timestamp: Date.now()
     };
   }

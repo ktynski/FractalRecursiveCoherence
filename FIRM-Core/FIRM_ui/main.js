@@ -1072,6 +1072,12 @@ const initializeFIRM = async () => {
           systemState.graphCoherence = graphCoherence;
           systemState.cliffordField = zxSnapshot ? zxSnapshot.cliffordField : null;
           systemState.zxSnapshot = zxSnapshot;
+          
+          // BIDIRECTIONAL COUPLING: Graph → Audio modulation (every 10 frames for performance)
+          if (systemState.frameCount % 10 === 0 && analogEngine.modulateFromGraphState) {
+            const nodes = zxSnapshot?.graph?.nodes?.length || 0;
+            analogEngine.modulateFromGraphState(graphCoherence, nodes);
+          }
           } else {
             if (systemState.zxEngine || systemState.currentGraph) {
               console.warn('⚠️ ZX engine disappeared; clearing cached ZX state');

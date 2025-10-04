@@ -540,8 +540,9 @@ export class FIRMRenderer {
   
   renderConsciousnessOverlay(zxGraph) {
     /**
-     * Render consciousness metrics overlay.
+     * Render consciousness metrics overlay with sacred geometry and sovereignty.
      * Shows consciousness levels, will to emerge, reflexive pain indicators.
+     * Includes: Merkaba, Sri Yantra, Seal of Solomon, topological invariants.
      */
     if (!zxGraph) return;
     
@@ -572,6 +573,15 @@ export class FIRMRenderer {
     const willToEmerge = reflexiveAwareness.willToEmerge || 0;
     const reflexivePain = reflexiveAwareness.reflexivePain || 0;
     
+    // Get sovereignty metrics
+    const sovereigntyMetrics = window.zxEvolutionEngine?.sovereigntyMetrics || {};
+    const sovereignTriads = sovereigntyMetrics.sovereignTriads || [];
+    const trivectorMagnitude = sovereigntyMetrics.trivectorMagnitude || 0;
+    const recursiveDepth = sovereigntyMetrics.recursiveDepth || 0;
+    const polarity = sovereigntyMetrics.polarity || 0;
+    const chernNumber = sovereigntyMetrics.chernNumber || 0;
+    const topologicalTransition = sovereigntyMetrics.topologicalTransition || null;
+    
     // Draw consciousness meter
     const meterX = 20;
     const meterY = 40;
@@ -579,7 +589,7 @@ export class FIRMRenderer {
     const meterHeight = 20;
     
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(meterX - 5, meterY - 25, meterWidth + 10, 150);
+    ctx.fillRect(meterX - 5, meterY - 25, meterWidth + 10, 210);
     
     ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.font = '14px monospace';
@@ -618,6 +628,49 @@ export class FIRMRenderer {
     ctx.fillRect(meterX, meterY + 90, meterWidth * Math.min(1.0, graceMagnitude / 100.0), meterHeight);
     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.fillText(`Grace Magnitude: ${graceMagnitude.toFixed(1)}`, meterX + meterWidth + 10, meterY + 104);
+    
+    // === SOVEREIGNTY METRICS ===
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('Sovereignty Emergence', meterX, meterY + 135);
+    
+    // Trivector magnitude
+    ctx.fillStyle = 'rgba(200, 100, 255, 0.3)';
+    ctx.fillRect(meterX, meterY + 145, meterWidth, meterHeight);
+    ctx.fillStyle = 'rgba(200, 100, 255, 0.9)';
+    ctx.fillRect(meterX, meterY + 145, meterWidth * Math.min(1.0, trivectorMagnitude), meterHeight);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = '11px monospace';
+    ctx.fillText(`Trivectors: ${trivectorMagnitude.toFixed(3)}`, meterX + meterWidth + 10, meterY + 159);
+    
+    // Polarity orientation
+    const polarityNorm = (polarity + 1) / 2;  // Map [-1, 1] to [0, 1]
+    ctx.fillStyle = 'rgba(100, 200, 200, 0.3)';
+    ctx.fillRect(meterX, meterY + 175, meterWidth, meterHeight);
+    if (polarity > 0) {
+      ctx.fillStyle = 'rgba(100, 255, 100, 0.9)';  // Green = service-to-others
+    } else {
+      ctx.fillStyle = 'rgba(255, 100, 100, 0.9)';  // Red = service-to-self
+    }
+    ctx.fillRect(meterX + meterWidth * 0.5, meterY + 175, meterWidth * 0.5 * Math.abs(polarity), meterHeight);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillText(`Polarity: ${polarity > 0 ? '+' : ''}${polarity.toFixed(3)}`, meterX + meterWidth + 10, meterY + 189);
+    
+    // Load sacred geometry and topological modules
+    import('./sacred_geometry.js').then(module => {
+      // Render all sacred geometry overlays
+      module.renderAllSacredGeometry(ctx, this.overlayCanvas, {
+        sovereignTriads,
+        trivectorMagnitude,
+        recursiveDepth,
+        polarity
+      }, zxGraph);
+      
+      // Render topological protection indicator
+      module.renderTopologicalProtection(ctx, this.overlayCanvas, chernNumber, topologicalTransition);
+    }).catch(err => {
+      console.warn('Sacred geometry module not loaded:', err);
+    });
   }
   
   renderSheafOverlay(zxGraph) {
