@@ -9,7 +9,7 @@ export class MultivectorField {
   }
 }
 
-export function phi_zx_to_clifford(graph) {
+export function phi_zx_to_clifford(graph, rewriteHistory = []) {
   validate_object_g(graph);
   const components = new Array(16).fill(0);
 
@@ -96,7 +96,7 @@ export function phi_zx_to_clifford(graph) {
   // Theory: RawNotes.md lines 1632-1654 - "Emergence of soulhood"
   // Sovereignty = coherent triads (source-self-relation structure)
   // Not just triangles, but harmonious triune patterns
-  const rewriteHistory = []; // Will be passed from engine in production
+  // NOTE: rewriteHistory now passed as parameter from engine
   const sovereignTriads = detectSovereignTriads(graph, adjacency);
   
   if (sovereignTriads.length > 0) {

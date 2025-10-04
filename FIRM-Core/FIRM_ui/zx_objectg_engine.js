@@ -731,7 +731,8 @@ export class ZXObjectGraphEngine {
 
   mapToCliffordField() {
     validate_object_g(this._graph);
-    return phi_zx_to_clifford(this._graph);
+    // Pass rewrite history for polarity orientation calculation
+    return phi_zx_to_clifford(this._graph, this._rewriteHistory);
   }
 
   getSnapshot() {

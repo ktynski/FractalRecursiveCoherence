@@ -401,6 +401,58 @@ const highContrast = document.getElementById('highContrast');
     } else {
       console.error('🔊 Audio button not found in DOM');
     }
+
+    // Auto Align to Ω button
+    const autoAlignBtn = document.getElementById('autoAlignOmega');
+    if (autoAlignBtn) {
+      autoAlignBtn.addEventListener('click', async () => {
+        try {
+          // 1) Derive Ω from current snapshot if not set
+          if (!window.__resonanceMod) {
+            window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
+          }
+          const snap = window.zxEvolutionEngine?.getSnapshot?.();
+          if (snap) {
+            window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(snap.graph);
+          }
+
+          // 2) Briefly explore drivers and choose the best by near-horizon Res×C(G)
+          const exploreDrivers = ['fractal', 'phi_recursive', 'morphic'];
+          const results = [];
+          for (const d of exploreDrivers) {
+            if (window.switchToFractalDriver) {
+              const drv = window.switchToFractalDriver(d);
+              if (drv && drv.start) drv.start();
+            }
+            // Take a few steps and measure average score
+            let score = 0; let samples = 0;
+            for (let i = 0; i < 10; i++) {
+              window.zxEvolutionEngine?.evolveFromAudioCoherence?.(0.5, 0.016);
+              const s = window.zxEvolutionEngine?.getSnapshot?.();
+              if (!s || !window.__omegaSignature) continue;
+              const res = window.__resonanceMod.computeResonanceAlignment(s.graph, window.__omegaSignature);
+              const cg = s.coherence || 0;
+              score += Math.max(0, res) * Math.max(0, cg);
+              samples += 1;
+            }
+            results.push({ driver: d, score: samples ? (score / samples) : 0 });
+          }
+          results.sort((a, b) => b.score - a.score);
+
+          // 3) Commit the best driver
+          const best = results[0];
+          if (best && window.switchToFractalDriver) {
+            window.switchToFractalDriver(best.driver);
+          }
+
+          console.log('Ω Auto-Align:', { omegaSet: !!window.__omegaSignature, results, chosen: best?.driver });
+          // Toggle metrics to refresh/confirm
+          window.dispatchEvent(new Event('metricsStateChanged'));
+        } catch (e) {
+          console.warn('Auto Align to Ω failed:', e);
+        }
+      });
+    }
   }
   
   getState() {
