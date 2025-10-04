@@ -382,9 +382,13 @@ export class ZXObjectGraphEngine {
     const newKind = sourceLabel.kind === 'Z' ? 'X' : 'Z';
 
     // Theory-compliant φ-modulated phase assignment
-    const phaseIncrement = Math.round(φ * synthesisStrength * sourceLabel.phase_denom);
-    const phaseNumer = (sourceLabel.phase_numer + phaseIncrement) % (2 * sourceLabel.phase_denom || 8);
-    const phaseDenom = sourceLabel.phase_denom || 8;
+    // FIX: Use higher denominator to enable non-zero increments
+    // Grace should create phase diversity even with small synthesis strength
+    const baseDenom = Math.max(sourceLabel.phase_denom || 1, 8);  // Minimum q=8 for phase resolution
+    const scaledSynthesis = synthesisStrength * 100;  // Scale up to overcome rounding
+    const phaseIncrement = Math.round(φ * scaledSynthesis * baseDenom);
+    const phaseNumer = (sourceLabel.phase_numer * (baseDenom / (sourceLabel.phase_denom || 1)) + phaseIncrement) % (2 * baseDenom);
+    const phaseDenom = baseDenom;
     const monadicId = `${sourceLabel.monadic_id}|𝒢`;
 
     const newLabel = make_node_label(newKind, phaseNumer, phaseDenom, monadicId);
