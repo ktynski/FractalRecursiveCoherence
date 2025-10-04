@@ -38,6 +38,9 @@ export class WebGLShaderRuntime {
         const vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
         const renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
         console.log('🎮 GPU:', { vendor, renderer });
+        try {
+          window.__firmGLInfo = { version, contextAttributes: ctxParams || null, vendor, renderer };
+        } catch (_) {}
       }
     } catch (e) {
       console.warn('🎮 GPU diagnostics unavailable:', e?.message || e);

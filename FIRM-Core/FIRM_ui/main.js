@@ -225,6 +225,27 @@ const highContrast = document.getElementById('highContrast');
     
     // Add 3D camera controls (single initialization)
     this.setupCameraControls(canvas);
+
+    // Expose quick diagnostics helper for manual/mobile checks
+    try {
+      window.firmDiag = () => {
+        const c = document.getElementById('canvas');
+        const rect = c.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const ctx = (c.getContext && (c.getContext('webgl2') || c.getContext('webgl')));
+        const glInfo = window.__firmGLInfo || null;
+        const info = {
+          css: { width: rect.width, height: rect.height },
+          pixels: { width: c.width, height: c.height },
+          dpr,
+          webglVersion: ctx ? (ctx instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1') : 'none',
+          hasContext: !!ctx,
+          glInfo
+        };
+        console.log('[FIRM] Diagnostics:', info);
+        return info;
+      };
+    } catch (_) {}
   }
   
   handleResize() {
