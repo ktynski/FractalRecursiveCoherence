@@ -144,6 +144,55 @@ AnalogExNahilo/
 - View switching (5 rendering modes with overlays)
 - Clifford mapping (edges→vectors, triangles→trivectors, chirality→pseudoscalar)
 
+## Live Verification (Vercel)
+
+Use the hosted build to verify behavior quickly.
+
+Steps
+- Open the Live Demo link.
+- Click "⚙️ Controls" and "📊 Scientific Metrics".
+- Click "Enable Audio" (button becomes "Audio Active ✓").
+- In the "Waveform Drivers" section:
+  - Set Driver Type to "Morphic Resonance" → "Switch Driver".
+  - Click "Test Effects" and watch the Driver Analysis table populate.
+- Open DevTools Console and run: `await window.runTheoryValidation()` → expect `{ passed: 5, total: 5 }`.
+
+Expected Observables
+- ZX nodes and edges increase over time; C(G) rises.
+- Dominant grade typically Bivector under default scene; audio coherence α ≈ 0.10–0.12.
+- Driver Analysis table shows live rows (ZX Nodes, ZX Edges, C(G), ΔNodes, ΔEvents).
+
+Troubleshooting
+- If metrics are hidden, use the top bar button "📊 Show Metrics".
+- Some browsers require an explicit click for audio; ensure the button shows "Audio Active ✓".
+- If view is black: switch Visualization view to "ZX Graph (Quantum)" and back to "Clifford Field".
+
+### Ω Alignment Controls (when available)
+
+If your deployed build exposes the Ω controls in the top bar or the side controls panel:
+
+Steps
+- Click "Auto Align to Ω" to derive and cache the Ω signature for the current system state.
+- Verify the UI shows a resonance metric ("Resonance Res(S,Ω)") and that it updates over time.
+- Click "Enable Auto Ω Mode" to continuously steer evolution toward Ω using resonance-driven scheduling.
+
+Expected Effects
+- Emergence rate adjusts dynamically with the resonance alignment.
+- Grace emergence probability tracks the resonance value (higher Res(S,Ω) → more frequent grace events).
+- Rewrite eligibility and weights are modulated by resonance; ΔC contributions are amplified by positive resonance.
+- ZX evolution steps and C(G) trend upward during successful alignment runs.
+
+Console Quick Checks
+```javascript
+// Read resonance metric text if present
+document.querySelector('#metric-resonance')?.textContent
+
+// Run theory validation (should be unchanged):
+await window.runTheoryValidation();
+```
+
+Note: If the Ω buttons are not yet visible in your environment, proceed with the driver tests and theory validation as above; Ω UI exposure may be behind a feature flag on your build.
+
 ## Key Theoretical Contributions
 
 1. **Grace Emergence Derivation**

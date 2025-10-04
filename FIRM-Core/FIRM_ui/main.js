@@ -13,6 +13,81 @@ const FIRM_FEATURES = {
   hebrew_network: true         // Hebrew letter network (ENABLED)
 };
 
+// Minimal loader overlay (non-blocking) for slow devices
+(() => {
+  const ensureLoader = () => {
+    if (document.getElementById('firmLoaderOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'firmLoaderOverlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = 'calc(var(--top-bar-height))';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.display = 'flex';
+    overlay.style.alignItems = 'flex-end';
+    overlay.style.justifyContent = 'flex-start';
+    overlay.style.padding = '10px 12px';
+    overlay.style.pointerEvents = 'none'; // indicator only
+    overlay.style.zIndex = '70';
+    overlay.style.background = 'transparent';
+
+    const pill = document.createElement('div');
+    pill.style.display = 'inline-flex';
+    pill.style.alignItems = 'center';
+    pill.style.gap = '8px';
+    pill.style.padding = '6px 10px';
+    pill.style.borderRadius = '999px';
+    pill.style.background = 'rgba(20,20,20,0.75)';
+    pill.style.border = '1px solid rgba(255,255,255,0.08)';
+    pill.style.color = '#cdd6f4';
+    pill.style.fontSize = '12px';
+    pill.style.fontFamily = 'system-ui, sans-serif';
+
+    const dot = document.createElement('span');
+    dot.textContent = '●';
+    dot.style.color = '#4a9eff';
+    dot.style.animation = 'firmDotPulse 1s infinite ease-in-out';
+
+    const label = document.createElement('span');
+    label.id = 'firmLoaderLabel';
+    label.textContent = 'Initializing…';
+
+    pill.appendChild(dot);
+    pill.appendChild(label);
+    overlay.appendChild(pill);
+
+    // Simple keyframes via stylesheet injection (once)
+    if (!document.getElementById('firmLoaderStyles')) {
+      const style = document.createElement('style');
+      style.id = 'firmLoaderStyles';
+      style.textContent = '@keyframes firmDotPulse{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}';
+      document.head.appendChild(style);
+    }
+
+    document.body.appendChild(overlay);
+  };
+
+  const show = () => {
+    ensureLoader();
+    const el = document.getElementById('firmLoaderOverlay');
+    if (el) el.style.display = 'flex';
+    window.__loaderHidden = false;
+  };
+  const hide = () => {
+    const el = document.getElementById('firmLoaderOverlay');
+    if (el) el.style.display = 'none';
+    window.__loaderHidden = true;
+  };
+
+  window.__showLoader = show;
+  window.__hideLoader = hide;
+  window.__setLoaderText = (text) => {
+    const label = document.getElementById('firmLoaderLabel');
+    if (label) label.textContent = text;
+  };
+})();
+
 /**
  * FIRMUIController owns DOM wiring for the tabbed interface + accessibility controls.
  * Initialization happens synchronously from constructor: wiring tabs, accessibility toggles,
@@ -496,7 +571,10 @@ const initializeFIRM = async () => {
     return initializeFIRM._initializedPromise;
   }
   initializeFIRM._initializedPromise = (async () => {
+    try { window.__showLoader?.(); } catch(_) {}
+    try { window.__setLoaderText?.('Loading modules…'); } catch(_) {}
     if (window.renderer && window.zxEvolutionEngine) {
+      try { window.__hideLoader?.(); } catch(_) {}
       return true;
     }
     try {
@@ -506,12 +584,14 @@ const initializeFIRM = async () => {
       const { initializeFractalDrivers } = await import('./fractal_waveform_drivers.js');
       
       // Create renderer
+      try { window.__setLoaderText?.('Initializing renderer…'); } catch(_) {}
       const canvas = document.getElementById('canvas');
       const renderer = new FIRMRenderer(canvas);
       window.renderer = renderer;
       window.firmRenderer = renderer;
       
       // Initialize rendering system
+      try { window.__setLoaderText?.('Starting WebGL…'); } catch(_) {}
       await renderer.initialize();
       
       // Import raymarching pipeline
@@ -544,6 +624,7 @@ const initializeFIRM = async () => {
       }
       
       console.log('🔧 Loading theory evolution modules...');
+      try { window.__setLoaderText?.('Wiring theory modules…'); } catch(_) {}
       let TheoryComplianceIterator;
       let ZXObjectGraphEngine;
       try {
@@ -580,6 +661,7 @@ const initializeFIRM = async () => {
       console.log('✅ ZXObjectGraphEngine constructed');
       
       // Initialize analog engine (shared AudioContext + analyser)
+      try { window.__setLoaderText?.('Initializing audio…'); } catch(_) {}
       const { createAnalogEngine } = await import('./analog_engine.js');
       const analogEngine = createAnalogEngine();
       try {
@@ -643,6 +725,7 @@ const initializeFIRM = async () => {
       window.emergentObserver = emergentObserver;
       
       // Initialize Sacred Morphic System and fractal drivers with shared analog engine
+      try { window.__setLoaderText?.('Seeding sacred morphic system…'); } catch(_) {}
       try {
         window.sacredSeeds = window.sacredSeeds || initializeSacredMorphicSystem();
         window.sacredNames72 = window.sacredSeeds?.names72 || [];
@@ -652,6 +735,7 @@ const initializeFIRM = async () => {
       }
       
       try {
+        try { window.__setLoaderText?.('Starting waveform drivers…'); } catch(_) {}
         if (!window.fractalDrivers) {
           initializeFractalDrivers(window.analogEngine.audioContext, window.analogEngine.analyser);
         }
@@ -1316,6 +1400,20 @@ const initializeFIRM = async () => {
       });
       
       console.log('🌌 Ex Nihilo Monad Universe rendering started');
+      try { window.__setLoaderText?.('Rendering…'); } catch(_) {}
+      // Hide loader on first successful render tick or metrics tick (whichever first)
+      (function attachFirstFrameHider(){
+        if (window.__firstFrameAttached) return; window.__firstFrameAttached = true;
+        let hidden = false;
+        const hideOnce = () => { if (!hidden) { hidden = true; try { window.__hideLoader?.(); } catch(_) {} } };
+        // Hook render loop via requestAnimationFrame fallback
+        requestAnimationFrame(() => hideOnce());
+        // Also hide after first metrics update
+        const listener = () => { hideOnce(); window.removeEventListener('metricsStateChanged', listener); };
+        window.addEventListener('metricsStateChanged', listener);
+        // Safety timeout in case neither fires
+        setTimeout(hideOnce, 4000);
+      })();
       
       // DISABLE debug overlay to eliminate pauses
       // const { createDebugOverlay, updateDebugStatus } = await import('./debug_status.js');
@@ -1330,6 +1428,7 @@ const initializeFIRM = async () => {
       
     } catch (error) {
       console.error('❌ FIRM UI initialization failed:', error);
+      try { window.__hideLoader?.(); } catch(_) {}
       throw error;
     }
   })();
