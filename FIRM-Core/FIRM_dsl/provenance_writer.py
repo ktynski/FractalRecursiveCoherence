@@ -129,6 +129,26 @@ class ProvenanceBundleWriter:
             "write_successful": True,
             "validation": validation
         }
+
+    def attach_resonance_provenance(self, bundle_path: str, omega_signature: dict, resonance_series: list) -> None:
+        """Attach Ω signature and resonance time-series to an existing bundle.
+
+        Files written:
+          - omega_signature.json
+          - resonance_series.json
+        """
+        if not isinstance(omega_signature, dict):
+            raise ValueError("omega_signature must be a dict")
+        if not isinstance(resonance_series, list):
+            raise ValueError("resonance_series must be a list")
+        if not os.path.isdir(bundle_path):
+            raise ValueError("bundle_path must be an existing directory")
+        omega_path = os.path.join(bundle_path, 'omega_signature.json')
+        series_path = os.path.join(bundle_path, 'resonance_series.json')
+        with open(omega_path, 'w', encoding='utf-8') as f:
+            json.dump(omega_signature, f, ensure_ascii=False, indent=2)
+        with open(series_path, 'w', encoding='utf-8') as f:
+            json.dump(resonance_series, f, ensure_ascii=False, indent=2)
     
     def verify_bundle_integrity(self, bundle_path: str, expected_hash: str) -> Dict[str, Any]:
         """Verify integrity of written bundle.

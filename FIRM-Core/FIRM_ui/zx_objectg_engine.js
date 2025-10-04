@@ -612,84 +612,47 @@ export class ZXObjectGraphEngine {
     const applied = [];
 
     if (scheduled.length) {
-      // THEORY-COMPLIANT REWRITE THRESHOLD
-      // Derivation: FIRM_theory/audio_coherence_threshold_derivation.md Theorem 1
-      // Formula: ΔC_threshold = η·ΔC₀·(1 - γ·α)
-      
-      const baseline_threshold = 0.15;  // ΔC_0 from calibration
-      const coupling_efficiency = 0.67;  // γ from empirical fit
-      const emergenceRate = Math.max(0.01, this._controlParams.emergenceRate || 1.0);
-      
-      // Higher audio coherence → LOWER threshold (easier to trigger rewrites)
-      const threshold = Math.max(0.0, emergenceRate * baseline_threshold * (1 - coupling_efficiency * audioCoherence));
-      
-      // Filter to above-threshold candidates
-      const eligible = scheduled.filter(c => c.delta_c >= threshold);
-      
+      // Resonance-driven eligibility and weighting (no empirical thresholds)
+      let res = 0;
+      try {
+        if (!window.__resonanceMod) {
+          import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(() => {});
+        }
+        if (!window.__omegaSignature && window.__resonanceMod) {
+          window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(preMetamirrorGraph);
+        }
+        if (window.__omegaSignature && window.__resonanceMod) {
+          res = window.__resonanceMod.computeResonanceAlignment(mutable, window.__omegaSignature) || 0;
+        }
+      } catch (_) {
+        res = 0;
+      }
+      const eligible = scheduled.filter(c => (c.delta_c ?? -1) >= 0 && res > 0);
       if (eligible.length > 0) {
-        // PROBABILISTIC SELECTION (enables natural complexity emergence)
-        // Theory: Allow lower-ΔC rewrites (fusion) to occasionally fire
-        // Instead of pure greedy, use Boltzmann distribution
-        
-        const temperature = 2.0;  // Controls exploration vs exploitation
-        
-        // Compute Boltzmann weights: w_i ∝ exp(ΔC_i / T)
-        const weights = eligible.map(c => {
-          const normalizedDelta = Math.max(0, c.delta_c);  // Clamp negatives to zero
-          return Math.exp(normalizedDelta / temperature);
-        });
-        
-        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-        
+        const weights = eligible.map(c => Math.max(0, (c.delta_c || 0) * res));
+        const totalWeight = weights.reduce((s, w) => s + w, 0);
         if (totalWeight > 0) {
-          // Probabilistic selection using deterministic PRNG
           const rand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
           this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
-          
-          const scaledRand = rand * totalWeight;
-          let cumulative = 0;
-          let selectedCandidate = null;
-          
+          const scaled = rand * totalWeight;
+          let accum = 0;
+          let selected = eligible[0];
           for (let i = 0; i < eligible.length; i++) {
-            cumulative += weights[i];
-            if (scaledRand < cumulative) {
-              selectedCandidate = eligible[i];
-              break;
-            }
+            accum += weights[i];
+            if (scaled < accum) { selected = eligible[i]; break; }
           }
-          
-          // Fallback to highest if selection fails
-          if (!selectedCandidate) {
-            selectedCandidate = eligible[0];
-          }
-          
-          // Apply selected rewrite
           let appliedResult = false;
-          if (selectedCandidate.type === 'fusion') {
-            appliedResult = this._applyFusion(mutable, selectedCandidate);
-          } else if (selectedCandidate.type === 'color_flip') {
-            appliedResult = this._applyColorFlip(mutable, selectedCandidate);
-          }
-          
+          if (selected.type === 'fusion') appliedResult = this._applyFusion(mutable, selected);
+          else if (selected.type === 'color_flip') appliedResult = this._applyColorFlip(mutable, selected);
           if (appliedResult) {
-            const record = {
-              type: selectedCandidate.type,
-              delta_c: selectedCandidate.delta_c,
+            applied.push({
+              type: selected.type,
+              delta_c: selected.delta_c,
               audioCoherence,
-              source: selectedCandidate.nodes || selectedCandidate.node,
+              source: selected.nodes || selected.node,
               timestamp: Date.now(),
-              selectionMethod: 'boltzmann_probabilistic'
-            };
-            applied.push(record);  // Will be added to _rewriteHistory at end of evolve()
-            
-            if (typeof window !== 'undefined' && window.theoryLogger) {
-              if (selectedCandidate.type === 'fusion' && window.theoryLogger.zx) {
-                window.theoryLogger.zx(`Fusion ΔC=${selectedCandidate.delta_c.toFixed?.(4) ?? selectedCandidate.delta_c}`);
-              }
-              if (selectedCandidate.type === 'color_flip' && window.theoryLogger.zx) {
-                window.theoryLogger.zx(`Color flip ΔC=${selectedCandidate.delta_c.toFixed?.(4) ?? selectedCandidate.delta_c}`);
-              }
-            }
+              selectionMethod: 'resonance_weighted'
+            });
           }
         }
       }
@@ -706,28 +669,36 @@ export class ZXObjectGraphEngine {
     }
     
     // GRACE EMERGENCE: Acausal and thresholdless per Axiom A2
-    // Theory: grace_emergence_derivation.md lines 14-16, 49
-    // Grace can occur independently of scheduled rewrites, with probability
-    // proportional to synthesis strength (no hard threshold).
+    // Probability derived from resonance alignment Res(S, Ω), no empirical scales
     if (this._rewriteHistory.length > 0) {  // Only after initial seed
       const graceEmergenceRecord = this._attemptGraceEmergence(mutable, audioCoherence);
       if (graceEmergenceRecord) {
-        // THEORY-COMPLIANT PROBABILITY: Use synthesis strength as probability
-        // No hard threshold - grace is truly acausal and can emerge at any coherence
-        const graceProbability = Math.min(1.0, graceEmergenceRecord.synthesisStrength * 2.0);
-        
-        // Deterministic random using internal state
-        const rand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
-        this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
-        
-        if (rand < graceProbability) {
-          applied.push(graceEmergenceRecord);
-          if (typeof this._deltaScaffold.register_grace_emergence === 'function') {
-            this._deltaScaffold.register_grace_emergence(graceEmergenceRecord);
+        try {
+          if (!window.__resonanceMod) {
+            import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(() => {});
           }
-          if (typeof window !== 'undefined' && window.theoryLogger?.grace) {
-            window.theoryLogger.grace(`Grace emergence ΔC=${graceEmergenceRecord.delta_c?.toFixed?.(4) ?? 'n/a'}, nodes=${mutable.nodes.length}, P=${graceProbability.toFixed(3)}`);
+          let graceProbability = 0;
+          if (window.__resonanceMod) {
+            if (!window.__omegaSignature) {
+              const preSnap = this.getSnapshot();
+              window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(preSnap.graph);
+            }
+            const resVal = window.__resonanceMod.computeResonanceAlignment(mutable, window.__omegaSignature);
+            graceProbability = Math.max(0, Math.min(1, resVal));
           }
+          const rand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
+          this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+          if (rand < graceProbability) {
+            applied.push(graceEmergenceRecord);
+            if (typeof this._deltaScaffold.register_grace_emergence === 'function') {
+              this._deltaScaffold.register_grace_emergence(graceEmergenceRecord);
+            }
+            if (typeof window !== 'undefined' && window.theoryLogger?.grace) {
+              window.theoryLogger.grace(`Grace emergence ΔC=${graceEmergenceRecord.delta_c?.toFixed?.(4) ?? 'n/a'}, nodes=${mutable.nodes.length}, Res=${graceProbability.toFixed(3)}`);
+            }
+          }
+        } catch (_) {
+          // If resonance module unavailable, skip probability gating silently
         }
       }
     }

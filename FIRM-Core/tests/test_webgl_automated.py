@@ -134,6 +134,23 @@ class AutomatedFIRMTester:
         except Exception as e:
             print(f"✗ Metrics capture failed: {e}")
             return None
+    def read_resonance_metric(self):
+        """Read resonance metric from DOM if available."""
+        try:
+            elem = self.driver.execute_script("""
+                const el = document.getElementById('metric-resonance');
+                return el ? el.textContent : null;
+            """)
+            if elem is None:
+                return None
+            try:
+                return float(elem)
+            except Exception:
+                return None
+        except Exception as e:
+            print(f"✗ Resonance read failed: {e}")
+            return None
+
             
     def capture_visual_state(self):
         """Capture visual rendering state."""
@@ -176,6 +193,7 @@ class AutomatedFIRMTester:
         # Capture current state
         evolution_metrics = self.capture_evolution_metrics()
         visual_state = self.capture_visual_state()
+        resonance_val = self.read_resonance_metric()
         
         if evolution_metrics:
             print(f"📊 Evolution: audio={evolution_metrics['audio_coherence']:.3f}, "
@@ -194,7 +212,8 @@ class AutomatedFIRMTester:
             'iteration': self.iteration_count,
             'timestamp': time.time(),
             'evolution': evolution_metrics,
-            'visual': visual_state
+            'visual': visual_state,
+            'resonance': resonance_val
         }
         self.results.append(result)
         
@@ -219,6 +238,27 @@ class AutomatedFIRMTester:
         # Check if mathematics is working but visual is broken
         if evolution['rewrite_count'] > 10 and visual.get('nonZeroPixels', 0) == 0:
             print("🚨 CRITICAL: Mathematics working, visual completely broken")
+        # Resonance/coherence correlation check (soft)
+        if result.get('resonance') is not None:
+            recent = [r for r in self.results[-5:] if r.get('resonance') is not None and r.get('evolution')]
+            if len(recent) >= 3:
+                res_vals = [r['resonance'] for r in recent]
+                coh_vals = [r['evolution']['graph_coherence'] for r in recent if r['evolution']]
+                if len(res_vals) == len(coh_vals):
+                    trend = sum(1 for i in range(1, len(res_vals)) if res_vals[i] >= res_vals[i-1] and coh_vals[i] >= coh_vals[i-1])
+                    if trend >= max(1, (len(res_vals)-1)//2):
+                        print("✓ Resonance/coherence positive trend observed")
+
+        # Throughput estimate (iterations per second) over recent window
+        recent_window = self.results[-5:]
+        if len(recent_window) >= 2:
+            t0 = recent_window[0]['timestamp']
+            t1 = recent_window[-1]['timestamp']
+            dt = max(1e-6, t1 - t0)
+            iters = recent_window[-1]['iteration'] - recent_window[0]['iteration']
+            throughput = iters / dt
+            print(f"⚙️  Evolve throughput (iters/s): {throughput:.2f}")
+
             print("   - ZX evolution active")
             print("   - Graph structure changing") 
             print("   - Zero visual output")

@@ -5,7 +5,7 @@
  * Updates metrics display every second with current ZX graph and Clifford field state.
  */
 
-function updateScientificMetrics() {
+async function updateScientificMetrics() {
   // Check if ZX engine is available
   if (!window.zxEvolutionEngine) {
     return;
@@ -77,6 +77,24 @@ function updateScientificMetrics() {
     const controlParams = window.zxEvolutionEngine._controlParams || {};
     document.getElementById('metric-boot-energy').textContent = (controlParams.bootstrapEnergy || 1.0).toFixed(2);
     document.getElementById('metric-emerg-rate').textContent = (controlParams.emergenceRate || 1.0).toFixed(2);
+    
+    // Resonance metrics (Ω and Res)
+    try {
+      if (!window.__resonanceMod) {
+        window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
+      }
+      if (!window.__omegaSignature && window.zxEvolutionEngine) {
+        // Use current graph as reference if none supplied externally
+        window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(snapshot.graph);
+      }
+      if (window.__omegaSignature) {
+        const res = window.__resonanceMod.computeResonanceAlignment(snapshot.graph, window.__omegaSignature);
+        const resElem = document.getElementById('metric-resonance');
+        if (resElem) resElem.textContent = Number.isFinite(res) ? res.toFixed(4) : 'n/a';
+      }
+    } catch (e) {
+      // resonance metrics are optional; proceed silently
+    }
     
   } catch (error) {
     // Silent fail - metrics are non-critical

@@ -73,6 +73,17 @@
             zx_view_distinct: true
           }
         }
+        ,
+        {
+          name: 'resonance_alignment',
+          description: 'Resonance alignment increases coherence C(G)',
+          setup: () => this.setupResonanceTest(),
+          test: () => this.testResonanceAlignment(),
+          expected: {
+            positive_correlation: true,
+            resonance_in_range: true
+          }
+        }
       ];
     }
     
@@ -209,6 +220,66 @@
         window.firmUI.switchView('clifford');
         console.log('📑 Tab test setup: Clifford view selected');
       }
+    }
+
+    setupResonanceTest() {
+      // Establish Ω from current graph state as reference
+      if (window.zxEvolutionEngine) {
+        const { deriveOmegaSignature } = window.__firmResonance || {};
+        const attach = async () => {
+          try {
+            const mod = await import('./FIRM_dsl/resonance.js');
+            window.__firmResonance = mod;
+            const snap = window.zxEvolutionEngine.getSnapshot();
+            window.__omegaSignature = mod.deriveOmegaSignature(snap.graph);
+          } catch (e) {
+            console.warn('Resonance module not available for setup:', e);
+          }
+        };
+        // Attach immediately
+        // eslint-disable-next-line no-void
+        void attach();
+      }
+    }
+
+    testResonanceAlignment() {
+      if (!window.zxEvolutionEngine) {
+        throw new Error('ZX engine not available');
+      }
+      if (!window.__omegaSignature) {
+        throw new Error('Ω signature not established');
+      }
+
+      const engine = window.zxEvolutionEngine;
+      const mod = window.__firmResonance;
+      if (!mod) {
+        throw new Error('Resonance module not loaded');
+      }
+
+      // Take several steps and record (Res, C(G)) pairs
+      const pairs = [];
+      for (let i = 0; i < 8; i++) {
+        engine.evolveFromAudioCoherence(0.4 + 0.05 * i, 0.016);
+        const snap = engine.getSnapshot();
+        const res = mod.computeResonanceAlignment(snap.graph, window.__omegaSignature);
+        pairs.push({ res, coherence: snap.coherence });
+      }
+
+      // Check bounds and positive correlation (monotone trend in coarse sense)
+      const allInRange = pairs.every(p => p.res >= 0 && p.res <= 1);
+      let rising = 0;
+      for (let i = 1; i < pairs.length; i++) {
+        if (pairs[i].res >= pairs[i - 1].res && pairs[i].coherence >= pairs[i - 1].coherence) {
+          rising += 1;
+        }
+      }
+      const positiveCorrelation = rising >= Math.floor((pairs.length - 1) / 2);
+
+      return {
+        resonance_in_range: allInRange,
+        positive_correlation: positiveCorrelation,
+        samples: pairs
+      };
     }
     
     // Test Implementation Methods
