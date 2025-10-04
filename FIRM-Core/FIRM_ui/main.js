@@ -321,6 +321,18 @@ const highContrast = document.getElementById('highContrast');
     if (enableAudioBtn) {
       enableAudioBtn.addEventListener('click', async () => {
         console.log('🔊 Audio button clicked');
+        
+        // Wait for FIRM initialization to complete
+        if (window.initializeFIRM) {
+          console.log('⏳ Waiting for FIRM initialization...');
+          try {
+            await window.initializeFIRM();
+            console.log('✅ FIRM initialization complete');
+          } catch (error) {
+            console.error('❌ FIRM initialization failed:', error);
+          }
+        }
+        
         console.log('🔍 analogEngine available:', !!window.analogEngine);
         
         if (window.analogEngine && window.analogEngine.audioContext) {

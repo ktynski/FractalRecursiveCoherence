@@ -117,3 +117,4 @@ package-lock.json
 # Temporary files
 *.tmp
 *.temp
+.vercel
