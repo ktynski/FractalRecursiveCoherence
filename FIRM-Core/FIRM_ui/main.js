@@ -497,7 +497,32 @@ const highContrast = document.getElementById('highContrast');
         try {
           // 1) Derive Ω from current snapshot if not set
           if (!window.__resonanceMod) {
-            window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
+            try {
+              window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
+            } catch (_) {
+              const coh = await import('./FIRM_dsl/coherence.js');
+              const core = await import('./FIRM_dsl/core.js');
+              window.__resonanceMod = {
+                deriveOmegaSignature(graph) {
+                  core.validate_object_g(graph);
+                  const cycles = coh.compute_cycle_basis_signature(graph);
+                  const phase_bins = coh.derive_minimal_qpi_bins(graph);
+                  const phase_hist = coh.compute_phase_histogram_signature(graph, phase_bins);
+                  return { cycles, phase_bins, phase_hist };
+                },
+                computeResonanceAlignment(graph, omega) {
+                  core.validate_object_g(graph);
+                  if (!omega || !Number.isInteger(omega.phase_bins) || omega.phase_bins <= 0) {
+                    throw new Error('Invalid omega signature');
+                  }
+                  const cycles_s = coh.compute_cycle_basis_signature(graph);
+                  const hist_s = coh.compute_phase_histogram_signature(graph, omega.phase_bins);
+                  const safeCycles = omega.cycles || [];
+                  const safeHist = omega.phase_hist || new Array(omega.phase_bins).fill(0);
+                  return coh.similarity_S(cycles_s, safeCycles, hist_s, safeHist);
+                }
+              };
+            }
           }
           const snap = window.zxEvolutionEngine?.getSnapshot?.();
           if (snap) {
@@ -671,6 +696,46 @@ const initializeFIRM = async () => {
         console.warn('⚠️ Audio initialization failed (user gesture required):', audioError.message);
       }
       window.analogEngine = analogEngine;
+
+      // Autoplay policy bypass: resume audio on first user interaction
+      (function setupAudioAutoResume() {
+        try {
+          if (!window.analogEngine || !window.analogEngine.audioContext) return;
+          const ctx = window.analogEngine.audioContext;
+          if (ctx.state === 'running') return;
+
+          const enableBtn = document.getElementById('enableAudio');
+          const markActive = () => {
+            if (!enableBtn) return;
+            enableBtn.textContent = 'Audio Active ✓';
+            enableBtn.disabled = true;
+            enableBtn.style.background = '#2a5d2a';
+          };
+
+          const cleanup = () => {
+            document.removeEventListener('pointerdown', onInteract);
+            document.removeEventListener('keydown', onInteract);
+            document.removeEventListener('touchend', onInteract);
+          };
+          const tryResume = async () => {
+            try {
+              await ctx.resume();
+              if (ctx.state === 'running') {
+                markActive();
+                cleanup();
+                console.log('🔊 Audio context resumed via user gesture');
+              }
+            } catch (e) {
+              console.warn('🔊 Audio resume attempt failed:', e?.message || e);
+            }
+          };
+          const onInteract = () => { tryResume(); };
+
+          document.addEventListener('pointerdown', onInteract);
+          document.addEventListener('keydown', onInteract);
+          document.addEventListener('touchend', onInteract);
+        } catch (_) {}
+      })();
       
       // Make iterator globally accessible for theory validation
       window.theoryIterator = iterator;
@@ -1275,7 +1340,30 @@ const initializeFIRM = async () => {
             try {
               if (!window.__resonanceMod) {
                 // Lazy-load once; render loop must remain fast
-                import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(() => {});
+                import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(async () => {
+                  const coh = await import('./FIRM_dsl/coherence.js');
+                  const core = await import('./FIRM_dsl/core.js');
+                  window.__resonanceMod = window.__resonanceMod || {
+                    deriveOmegaSignature(graph) {
+                      core.validate_object_g(graph);
+                      const cycles = coh.compute_cycle_basis_signature(graph);
+                      const phase_bins = coh.derive_minimal_qpi_bins(graph);
+                      const phase_hist = coh.compute_phase_histogram_signature(graph, phase_bins);
+                      return { cycles, phase_bins, phase_hist };
+                    },
+                    computeResonanceAlignment(graph, omega) {
+                      core.validate_object_g(graph);
+                      if (!omega || !Number.isInteger(omega.phase_bins) || omega.phase_bins <= 0) {
+                        throw new Error('Invalid omega signature');
+                      }
+                      const cycles_s = coh.compute_cycle_basis_signature(graph);
+                      const hist_s = coh.compute_phase_histogram_signature(graph, omega.phase_bins);
+                      const safeCycles = omega.cycles || [];
+                      const safeHist = omega.phase_hist || new Array(omega.phase_bins).fill(0);
+                      return coh.similarity_S(cycles_s, safeCycles, hist_s, safeHist);
+                    }
+                  };
+                });
               }
               if (!window.__omegaSignature && window.__resonanceMod && zxSnapshot) {
                 window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(zxSnapshot.graph);
