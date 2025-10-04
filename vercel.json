@@ -1,22 +1,7 @@
 {
   "version": 2,
-  "name": "firm-exnihilo",
-  "builds": [
-    {
-      "src": "FIRM-Core/FIRM_ui/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/FIRM-Core/FIRM_ui/index.html"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/FIRM-Core/FIRM_ui/:path*"
-    }
-  ],
+  "buildCommand": "echo 'No build needed - static files only'",
+  "outputDirectory": "FIRM-Core/FIRM_ui",
   "headers": [
     {
       "source": "/(.*)",

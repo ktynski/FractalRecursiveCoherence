@@ -1,0 +1,74 @@
+# Python files and directories
+__pycache__/
+*.py[cod]
+*.py
+*.pyc
+venv/
+.pytest_cache/
+
+# Test and debug files
+**/test-*.py
+**/debug-*.py
+**/diagnose-*.py
+**/analyze-*.py
+**/audit-*.py
+**/experiment*.py
+**/*_test.py
+**/*-test.py
+
+# Investigation directories
+bootstrap_debug_screenshots/
+comprehensive_test/
+deep_investigation/
+simple_universe_test/
+theory_investigation/
+theory_iteration_screenshots/
+theory_tests/
+theory_validation/
+universe_validation/
+provenance/
+
+# Output files
+*.json
+!normalization.json
+!72_names_fsctf_export.json
+*.png
+*.jpg
+*.jpeg
+*.log
+
+# Documentation
+*.md
+!README.md
+
+# Build artifacts
+*.gen.h
+*.o
+*.a
+
+# Unnecessary for deployment
+Makefile
+conftest.py
+pyproject.toml
+LICENSE
+
+# Archive directory
+archive/
+
+# Scripts directory  
+scripts/
+
+# Documentation directory
+EsotericGuidance/
+docs/
+
+# Only deploy FIRM_ui
+FIRM-Core/FIRM_clifford/
+FIRM-Core/FIRM_constants/
+FIRM-Core/FIRM_dsl/
+FIRM-Core/FIRM_theory/
+FIRM-Core/FIRM_zx/
+FIRM-Core/FIRM_audio/
+FIRM-Core/tools/
+FIRM-Core/tests/
+
