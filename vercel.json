@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/_vercel/(.*)", "destination": "/_vercel/$1" },
     { "source": "/(.*)", "destination": "/FIRM-Core/FIRM_ui/$1" }
   ],
   "headers": [
