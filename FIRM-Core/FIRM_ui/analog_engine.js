@@ -37,16 +37,34 @@ export function createAnalogEngine() {
     isActive,
 
     async initialize() {
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-      }
+      // Do NOT await resume here; let UI handle user-gesture resumption
+      try {
+        if (this.audioContext.state === 'suspended') {
+          // Best-effort resume, ignore failure
+          this.audioContext.resume().catch(() => {});
+        }
+      } catch (_) {}
 
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 2048;
       this.freqDataBuffer = new Float32Array(this.analyser.frequencyBinCount);
-      this.oscillators = createOscillatorBank(this.audioContext, this.analyser);
-      this.oscillators.forEach(({ osc }) => osc.start());
       this.isActive = true;
+
+      // Start oscillators only when context is running
+      this.ensureActive();
+    },
+
+    ensureActive() {
+      if (!this.analyser) return;
+      if (this.audioContext.state !== 'running') return;
+      if (this.oscillators && this.oscillators.length > 0) return;
+      try {
+        this.oscillators = createOscillatorBank(this.audioContext, this.analyser);
+        this.oscillators.forEach(({ osc }) => osc.start());
+      } catch (_) {
+        // If starting fails (policy), will retry on next ensureActive()
+        this.oscillators = [];
+      }
     },
     
     // THEORY-COMPLIANT: Modulate audio based on graph state (bidirectional coupling)
@@ -83,7 +101,12 @@ export function createAnalogEngine() {
       }
 
       const byteBuffer = new Uint8Array(this.analyser.frequencyBinCount);
-      this.analyser.getByteFrequencyData(byteBuffer);
+      try {
+        this.analyser.getByteFrequencyData(byteBuffer);
+      } catch (_) {
+        // On Safari iOS before resume, this may throw; return a safe default
+        return 0.5;
+      }
       let energy = 0;
       for (let i = 0; i < byteBuffer.length; i++) {
         energy += byteBuffer[i] * byteBuffer[i];
