@@ -14,4 +14,6 @@ __all__ = [
     "sheaf",
     "monad",
     "provenance",
+    "resonance",
+    "grace_field",
 ]
