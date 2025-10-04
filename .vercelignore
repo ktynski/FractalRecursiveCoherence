@@ -1,0 +1,6 @@
+# Exclude everything except FIRM_ui
+*
+!FIRM-Core/
+!FIRM-Core/FIRM_ui/
+!FIRM-Core/FIRM_ui/**
+
