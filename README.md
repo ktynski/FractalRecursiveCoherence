@@ -45,7 +45,7 @@ python3 -m http.server 8000
 ```
 
 ### Hosted Demo
-- **Instant Access**: Explore the latest build at [[[[fractal-recursive-coherence-h9f2v88ft.vercel.app](https://firm-exnihilo.vercel.app/)](https://firm-exnihilo.vercel.app/)]
+- **Instant Access**: Explore the latest build at [[fractal-recursive-coherence-h9f2v88ft.vercel.app](https://firm-exnihilo.vercel.app/)](https://firm-exnihilo.vercel.app/)
 - **View Switching**: Use the top dropdown to switch between Clifford Field, ZX Graph, Consciousness, Sheaf Tree, and Echo Map views
 - **15 Camera Perspectives**: Physics-based viewpoints including Scalar Field, Vector Field, QFT, GR, QM perspectives plus 5 theory-grounded vantage points
 - **Real-time Evolution**: Graph grows from 3 nodes to 100+ per second with active color-flip rewrites
