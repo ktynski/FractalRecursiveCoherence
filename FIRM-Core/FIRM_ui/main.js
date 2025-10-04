@@ -212,6 +212,16 @@ const highContrast = document.getElementById('highContrast');
     // Set up resize handling
     this.handleResize();
     window.addEventListener('resize', () => this.handleResize());
+    window.addEventListener('orientationchange', () => {
+      // Delay resize until orientation settles
+      setTimeout(() => this.handleResize(), 150);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Recompute sizes on return to tab (mobile browsers may change viewport)
+        this.handleResize();
+      }
+    });
     
     // Add 3D camera controls (single initialization)
     this.setupCameraControls(canvas);

@@ -30,6 +30,18 @@ export class WebGLShaderRuntime {
     // Log which version we're using
     const version = this.gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1';
     console.log(`🎮 Graphics context: ${version}`);
+    try {
+      const ctxParams = this.gl.getContextAttributes?.();
+      console.log('🎮 Context attributes:', ctxParams);
+      const debugInfo = this.gl.getExtension('WEBGL_debug_renderer_info');
+      if (debugInfo) {
+        const vendor = this.gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+        const renderer = this.gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        console.log('🎮 GPU:', { vendor, renderer });
+      }
+    } catch (e) {
+      console.warn('🎮 GPU diagnostics unavailable:', e?.message || e);
+    }
     
     // Validate required extensions
     const requiredExtensions = ['EXT_color_buffer_float'];
