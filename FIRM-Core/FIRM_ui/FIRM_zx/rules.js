@@ -83,9 +83,12 @@ export class CoherenceDeltaScaffold {
     const phase_rad = Math.PI * phase_numer / phase_denom;
     const phase_stability = Math.cos(2 * phase_rad);
     const degree_impact = Math.log(1 + degree);
-    const type_factor = spider_type === 'Z' ? 1.0 : -1.0;
-
-    return type_factor * phase_stability * degree_impact;
+    
+    // THEORY FIX: Remove arbitrary type factor asymmetry
+    // ZX calculus is symmetric under bireflection (Z and X are dual bases)
+    // Color flip coherence depends only on phase stability and connectivity
+    // Reference: ZX_Calculus_Formalism.md lines 50-60 (Hadamard duality)
+    return Math.abs(phase_stability) * degree_impact;
   }
 
   compute_grace_resonance(spiderSignature, synthesisStrength) {

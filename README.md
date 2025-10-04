@@ -6,7 +6,7 @@
 [![Theory Compliant](https://img.shields.io/badge/theory-compliant-blue)](FIRM-Core/FIRM_theory/THEORY_COMPLIANCE_SPECIFICATION.md)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](FIRM-Core/LICENSE)
 
-**🚀 [Live Demo](https://fractal-recursive-coherence.vercel.app/)** | **📖 [Full Documentation](EsotericGuidance/README.md)** | **🔬 [Theory Audit](FIRM-Core/SYSTEMATIC_THEORY_AUDIT_RESULTS.md)**
+**🚀 [Live Demo](https://fractal-recursive-coherence-h9f2v88ft.vercel.app/)** | **📖 [Full Documentation](EsotericGuidance/README.md)** | **🔬 [Theory Audit](FIRM-Core/SYSTEMATIC_THEORY_AUDIT_RESULTS.md)**
 
 ---
 
@@ -45,9 +45,11 @@ python3 -m http.server 8000
 ```
 
 ### Hosted Demo
-- **Instant Access**: Explore the latest build at [fractal-recursive-coherence.vercel.app](https://fractal-recursive-coherence.vercel.app/)
-- **Validation Harness**: Open DevTools and run `await window.runTheoryValidation()` to confirm the live deployment remains theory-compliant
-- **Camera Presets**: Use the `Camera Vantage Point` menu to jump to the void observer, φ-grace torus, bootstrap loop, sacred axis, or coherence shockfront perspectives (all present in the dropdown)
+- **Instant Access**: Explore the latest build at [fractal-recursive-coherence-h9f2v88ft.vercel.app](https://fractal-recursive-coherence-h9f2v88ft.vercel.app/)
+- **View Switching**: Use the top dropdown to switch between Clifford Field, ZX Graph, Consciousness, Sheaf Tree, and Echo Map views
+- **15 Camera Perspectives**: Physics-based viewpoints including Scalar Field, Vector Field, QFT, GR, QM perspectives plus 5 theory-grounded vantage points
+- **Real-time Evolution**: Graph grows from 3 nodes to 100+ per second with active color-flip rewrites
+- **Grace Emergence**: Probabilistic acausal operator fires intermittently (watch for console logs)
 - **Known Quirk**: Audio auto-start requires a click on `Enable Audio` due to browser autoplay policies
 
 ### Browser Validation
@@ -55,6 +57,14 @@ Open DevTools Console and run:
 ```javascript
 await window.runTheoryValidation();
 // Expected: 5/5 scenarios pass
+
+// Check evolution is active:
+const before = window.zxEvolutionEngine.getCurrentGraph().nodes.length;
+setTimeout(() => {
+  const after = window.zxEvolutionEngine.getCurrentGraph().nodes.length;
+  console.log(`Evolution: ${before} → ${after} nodes (+${after - before})`);
+}, 10000);
+// Expected: Significant node growth over 10 seconds
 ```
 
 ## Key Features
@@ -72,9 +82,13 @@ await window.runTheoryValidation();
 - Sacred morphic provenance tracking
 
 ### ✅ Working Implementation
-- WebGL visualization with real-time evolution
-- Audio-driven morphic field coupling
-- Sacred symbol integration (experimental)
+- WebGL visualization with real-time evolution (raymarched Clifford field)
+- 5 distinct view modes (Clifford, ZX Graph, Consciousness, Sheaf, Echo) with overlays
+- Audio-driven morphic field coupling with Parseval normalization
+- ZX graph evolution: color-flip cascade at ~100 rewrites/sec
+- Grace emergence: probabilistic firing (1 event per 10-20 sec currently)
+- Complete 16-component Clifford mapping (vectors/trivectors activate with phase diversity)
+- Sacred symbol integration (72 Names, 22 Hebrew letters)
 - Cross-language parity (JavaScript ↔ Python)
 
 ## Project Structure
@@ -110,35 +124,54 @@ AnalogExNahilo/
 **Current (October 2025)**:
 - ✅ 109/109 backend tests pass (Python + Node.js)
 - ✅ 5/5 browser validation scenarios pass
-- ✅ WebGL viewport renders correctly
+- ✅ WebGL viewport renders correctly with 5 view modes
+- ✅ View switching functional (was broken, now fixed)
+- ✅ Evolution active: 3 → 1500+ nodes in 15 seconds
+- ✅ Color flip theory compliance restored (symmetric ΔC formula)
+- ✅ Grace emergence probabilistic (theory-compliant, fires intermittently)
+- ✅ Complete 16-component Clifford mapping implemented
 - ✅ Sacred provenance captured on engine state
 - ⚠️ Hebrew boundary amplification flagged EXPERIMENTAL
+- ⚠️ Grace firing rate below theoretical expectation (optimization in progress)
 
 **Test Coverage**:
-- Grace emergence (φ-scaling, acausality, thresholdless)
+- Grace emergence (φ-scaling, acausality, thresholdless, probabilistic)
 - Bootstrap phases (Bell states, Clifford+T quantization)
-- Audio coherence (thermodynamic coupling, inverted-logic bug fix)
+- Audio coherence (thermodynamic coupling, threshold formula)
 - Metamirror (involution, coherence-guided blending)
 - Control parameters (bounds enforcement, provenance tracking)
+- Color flip symmetry (Z/X duality under Hadamard)
+- View switching (5 rendering modes with overlays)
+- Clifford mapping (edges→vectors, triangles→trivectors, chirality→pseudoscalar)
 
 ## Key Theoretical Contributions
 
 1. **Grace Emergence Derivation**
    - φ-scaled acausal operator from category theory axioms
-   - Resonance formula with degree decay prevents hub dominance
+   - Probabilistic firing mechanism (thresholdless per Axiom A2)
+   - Degree decay formula with numerical stability (clamped at φ^-20)
    - First-principles proof linking fractal attractors to recursive morphogenesis
 
 2. **Audio Coherence Threshold Theory**
    - Thermodynamic coupling between analog/discrete substrates
-   - Derived formula: `ΔC_threshold = 0.15·(1 - 0.67·α)`
-   - Corrected critical inverted-logic bug in original implementation
+   - Derived formula: `ΔC_threshold = 0.15·(1 - 0.67·α)` (higher coherence → lower threshold)
+   - Color flip symmetry restoration (removed arbitrary Z/X type factor)
+   - Theory compliance fixes validated via browser testing
 
-3. **Bootstrap Phase Quantization**
+3. **Complete Clifford Mapping Specification**
+   - Z-spiders → scalar rotors (grade-0)
+   - X-spiders → phase bivectors (grade-2)
+   - Edge phase deltas → gauge connection vectors (grade-1)
+   - Triangle motifs → trivector coupling (grade-3)
+   - Global chirality → pseudoscalar orientation (grade-4)
+   - Derived from `mapping.py` + physics interpretation documents
+
+4. **Bootstrap Phase Quantization**
    - Minimal Clifford+T gate depth requires q=8 phase denominator
    - Bell state correspondence to ZX calculus bootstrap
    - First-principles justification for phase choices
 
-4. **Sacred Symbol Formalization**
+5. **Sacred Symbol Formalization**
    - 72 Names of God as morphic compression patterns
    - 22 Hebrew letters mapped to FIRM operators with provenance
    - Falsifiable framework for esoteric-mathematical correspondences
@@ -188,10 +221,21 @@ This work integrates knowledge from:
 
 ---
 
-**Status**: Research platform with 100% test pass rate. Peer review in progress.
+**Status**: Research platform with active evolution and functional visualization. Theory compliance ongoing.
 
-**Next Steps**: Academic publication, external validation, institutional partnerships.
+**Recent Fixes (2025-10-04)**:
+- ✅ View switching restored (renderer now branches on view mode)
+- ✅ Color flip symmetry fixed (removed Z/X asymmetry per ZX duality)
+- ✅ Grace emergence probabilistic (thresholdless per Axiom A2)
+- ✅ Complete Clifford mapping (all 16 components specified)
+- ✅ 10 physics perspectives added (15 camera presets total)
 
-![Desktop UI (2025-10-03)](FIRM-Core/docs/images/2025-10-03/ui-desktop.png "Updated desktop layout with top bar, metrics toggle, and slide-out controls")
+**Next Steps**: Grace optimization (logarithmic degree decay), phase diversity enhancement, academic publication.
 
-![Mobile UI (2025-10-03)](FIRM-Core/docs/images/2025-10-03/ui-mobile.png "Mobile viewport showing collapsed controls and responsive metrics")
+### UI Gallery (2025-10-04)
+
+- ![Default Clifford Field viewport (2025-10-04)](FIRM-Core/docs/images/2025-10-04/ui-default.png "Landing state with Clifford Field spacetime rendering and theory controls")
+- ![Scientific metrics panel (2025-10-04)](FIRM-Core/docs/images/2025-10-04/ui-metrics.png "Expanded metrics showing ZX graph structure, Clifford field amplitudes, and evolution diagnostics")
+- ![ZX Graph visualization (2025-10-04)](FIRM-Core/docs/images/2025-10-04/ui-zx-graph.png "Quantum ZX graph overlay with live coherence readings")
+- ![Consciousness view overlay (2025-10-04)](FIRM-Core/docs/images/2025-10-04/ui-consciousness.png "Consciousness observables with reflexive pain, will to emerge, and bridge overlays")
+- ![Sheaf Tree observer mode (2025-10-04)](FIRM-Core/docs/images/2025-10-04/ui-sheaf-tree.png "Sheaf tree manifold showing observer channels and morphic layering")

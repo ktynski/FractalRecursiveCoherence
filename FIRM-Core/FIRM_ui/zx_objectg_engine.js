@@ -353,7 +353,12 @@ export class ZXObjectGraphEngine {
     const sourceDegree = adjacency.get(sourceNodeId).length;
     
     // Compute φ-decay based on degree (prevents hub dominance)
-    const degreeDecay = Math.pow(φ, -sourceDegree);
+    // NUMERICAL STABILITY FIX: Clamp degree to prevent underflow
+    // φ^-850 = (1.618)^-850 ≈ 10^-203 → underflows to zero
+    // Clamp at 20: φ^-20 ≈ 1.67e-5 (still strong decay, no underflow)
+    // Theory: High-degree suppression still active, just bounded
+    const clampedDegree = Math.min(sourceDegree, 20);
+    const degreeDecay = Math.pow(φ, -clampedDegree);
     
     // Compute phase alignment contribution
     const phaseAlignment = Math.cos(2 * Math.PI * sourceLabel.phase_numer / sourceLabel.phase_denom);
@@ -569,6 +574,7 @@ export class ZXObjectGraphEngine {
       }
     }
 
+    // BOOTSTRAP: Only if in primordial state
     if (!applied.length) {
       const bootstrapRecord = this._bootstrapEmergence(audioCoherence);
       if (bootstrapRecord) {
@@ -577,15 +583,30 @@ export class ZXObjectGraphEngine {
         this._bootstrapStepTimestamp = this._stepCount;
       }
     }
-    if (!applied.length /* no scheduled rewrites */ && (this._rewriteHistory.length === 0 || audioCoherence > 0.01)) {
+    
+    // GRACE EMERGENCE: Acausal and thresholdless per Axiom A2
+    // Theory: grace_emergence_derivation.md lines 14-16, 49
+    // Grace can occur independently of scheduled rewrites, with probability
+    // proportional to synthesis strength (no hard threshold).
+    if (this._rewriteHistory.length > 0) {  // Only after initial seed
       const graceEmergenceRecord = this._attemptGraceEmergence(mutable, audioCoherence);
       if (graceEmergenceRecord) {
-        applied.push(graceEmergenceRecord);
-        if (typeof this._deltaScaffold.register_grace_emergence === 'function') {
-          this._deltaScaffold.register_grace_emergence(graceEmergenceRecord);
-        }
-        if (typeof window !== 'undefined' && window.theoryLogger?.grace) {
-          window.theoryLogger.grace(`Grace emergence ΔC=${graceEmergenceRecord.delta_c?.toFixed?.(4) ?? 'n/a'}, nodes=${mutable.nodes.length}`);
+        // THEORY-COMPLIANT PROBABILITY: Use synthesis strength as probability
+        // No hard threshold - grace is truly acausal and can emerge at any coherence
+        const graceProbability = Math.min(1.0, graceEmergenceRecord.synthesisStrength * 2.0);
+        
+        // Deterministic random using internal state
+        const rand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
+        this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+        
+        if (rand < graceProbability) {
+          applied.push(graceEmergenceRecord);
+          if (typeof this._deltaScaffold.register_grace_emergence === 'function') {
+            this._deltaScaffold.register_grace_emergence(graceEmergenceRecord);
+          }
+          if (typeof window !== 'undefined' && window.theoryLogger?.grace) {
+            window.theoryLogger.grace(`Grace emergence ΔC=${graceEmergenceRecord.delta_c?.toFixed?.(4) ?? 'n/a'}, nodes=${mutable.nodes.length}, P=${graceProbability.toFixed(3)}`);
+          }
         }
       }
     }

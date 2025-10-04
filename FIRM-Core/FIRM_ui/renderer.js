@@ -359,9 +359,10 @@ export class FIRMRenderer {
     return inv;
   }
   
-  renderFrame(cliffordField, cameraState, renderingParams, audioCoherence = 0.5, zxGraph = null) {
+  renderFrame(cliffordField, cameraState, renderingParams, audioCoherence = 0.5, zxGraph = null, viewMode = 'clifford') {
     /**
      * Render single frame with theory-validated data.
+     * VIEW-AWARE: Branches rendering based on active view mode.
      */
     const gl = this.runtime.gl;
     
@@ -379,22 +380,44 @@ export class FIRMRenderer {
     gl.clearColor(0.0, 0.0, 0.1, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     
-    // Use raymarching program
-    const program = this.runtime.programs.get('raymarching');
-    gl.useProgram(program);
+    // VIEW BRANCHING: Select rendering method based on active view
+    switch(viewMode) {
+      case 'clifford':
+        // Default: 3D raymarched Clifford field
+        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+        break;
+        
+      case 'zx':
+        // ZX Graph: Render Clifford base + 2D graph overlay
+        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+        this.renderZXGraphOverlay(zxGraph);
+        break;
+        
+      case 'consciousness':
+        // Consciousness: Render Clifford field with consciousness overlay
+        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+        this.renderConsciousnessOverlay(zxGraph);
+        break;
+        
+      case 'sheaf':
+        // Sheaf Tree: Render Clifford base + category structure overlay
+        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+        this.renderSheafOverlay(zxGraph);
+        break;
+        
+      case 'echo':
+        // Echo Map: Render Clifford base + temporal evolution overlay
+        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+        this.renderEchoOverlay(zxGraph);
+        break;
+        
+      default:
+        // Fallback to Clifford view
+        console.warn(`Unknown view mode: ${viewMode}, falling back to clifford`);
+        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+    }
     
-    // Update uniforms with validated data
-    this.updateUniforms(cameraState, renderingParams, audioCoherence);
-    
-    // Bind quad geometry
-    const positionAttrib = gl.getAttribLocation(program, 'position');
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
-    gl.enableVertexAttribArray(positionAttrib);
-    gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
-    
-    // Render fullscreen quad
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-    
+    // ZX graph logging (for all views)
     if (zxGraph && Array.isArray(zxGraph.nodes) && Array.isArray(zxGraph.edges)) {
       this._graphLogCounter = (this._graphLogCounter || 0) + 1;
       if (this._graphLogCounter % 120 === 0) { // Log roughly every two seconds at 60fps
@@ -410,6 +433,266 @@ export class FIRMRenderer {
     }
 
     this.frameCount++;
+  }
+  
+  renderCliffordView(cameraState, renderingParams, audioCoherence) {
+    /**
+     * Render 3D raymarched Clifford field (original visualization)
+     */
+    const gl = this.runtime.gl;
+    const program = this.runtime.programs.get('raymarching');
+    gl.useProgram(program);
+    
+    // Update uniforms with validated data
+    this.updateUniforms(cameraState, renderingParams, audioCoherence);
+    
+    // Bind quad geometry
+    const positionAttrib = gl.getAttribLocation(program, 'position');
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.quadBuffer);
+    gl.enableVertexAttribArray(positionAttrib);
+    gl.vertexAttribPointer(positionAttrib, 2, gl.FLOAT, false, 0, 0);
+    
+    // Render fullscreen quad
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+  
+  renderZXGraphOverlay(zxGraph) {
+    /**
+     * Render ZX graph as 2D overlay on top of Clifford field.
+     * Shows nodes (spiders) and edges with consciousness coloring.
+     */
+    if (!zxGraph || !zxGraph.nodes || !zxGraph.edges) {
+      return; // No graph to render
+    }
+    
+    // Get or create 2D canvas overlay
+    if (!this.overlayCanvas) {
+      this.overlayCanvas = document.createElement('canvas');
+      this.overlayCanvas.style.position = 'absolute';
+      this.overlayCanvas.style.top = '0';
+      this.overlayCanvas.style.left = '0';
+      this.overlayCanvas.style.pointerEvents = 'none'; // Don't block interactions
+      this.overlayCanvas.style.zIndex = '10';
+      this.canvas.parentElement.appendChild(this.overlayCanvas);
+      this.overlayCtx = this.overlayCanvas.getContext('2d');
+    }
+    
+    // Match canvas size
+    if (this.overlayCanvas.width !== this.canvas.width || this.overlayCanvas.height !== this.canvas.height) {
+      this.overlayCanvas.width = this.canvas.width;
+      this.overlayCanvas.height = this.canvas.height;
+    }
+    
+    const ctx = this.overlayCtx;
+    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+    
+    // Simple 2D graph layout (force-directed or circular)
+    const centerX = this.overlayCanvas.width / 2;
+    const centerY = this.overlayCanvas.height / 2;
+    const radius = Math.min(centerX, centerY) * 0.6;
+    
+    // Position nodes in circle
+    const nodePositions = new Map();
+    zxGraph.nodes.forEach((nodeId, idx) => {
+      const angle = (idx / zxGraph.nodes.length) * 2 * Math.PI;
+      nodePositions.set(nodeId, {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle)
+      });
+    });
+    
+    // Draw edges
+    ctx.strokeStyle = 'rgba(100, 150, 200, 0.3)';
+    ctx.lineWidth = 1;
+    zxGraph.edges.forEach(edge => {
+      const from = nodePositions.get(edge.from || edge[0]);
+      const to = nodePositions.get(edge.to || edge[1]);
+      if (from && to) {
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.stroke();
+      }
+    });
+    
+    // Draw nodes
+    zxGraph.nodes.forEach(nodeId => {
+      const pos = nodePositions.get(nodeId);
+      if (!pos) return;
+      
+      const label = zxGraph.labels?.[nodeId];
+      const kind = label?.kind || 'Z';
+      
+      // Color based on spider type
+      if (kind === 'Z') {
+        ctx.fillStyle = 'rgba(100, 255, 100, 0.8)'; // Green for Z-spiders
+      } else if (kind === 'X') {
+        ctx.fillStyle = 'rgba(255, 100, 100, 0.8)'; // Red for X-spiders
+      } else {
+        ctx.fillStyle = 'rgba(200, 200, 200, 0.8)'; // Gray for unknown
+      }
+      
+      // Draw node circle
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 8, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Draw node label
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = '10px monospace';
+      ctx.fillText(kind, pos.x - 4, pos.y + 3);
+    });
+    
+    // Draw info text
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '12px monospace';
+    ctx.fillText(`ZX Graph: ${zxGraph.nodes.length} nodes, ${zxGraph.edges.length} edges`, 10, 20);
+  }
+  
+  renderConsciousnessOverlay(zxGraph) {
+    /**
+     * Render consciousness metrics overlay.
+     * Shows consciousness levels, will to emerge, reflexive pain indicators.
+     */
+    if (!zxGraph) return;
+    
+    // Get or create 2D canvas overlay
+    if (!this.overlayCanvas) {
+      this.overlayCanvas = document.createElement('canvas');
+      this.overlayCanvas.style.position = 'absolute';
+      this.overlayCanvas.style.top = '0';
+      this.overlayCanvas.style.left = '0';
+      this.overlayCanvas.style.pointerEvents = 'none';
+      this.overlayCanvas.style.zIndex = '10';
+      this.canvas.parentElement.appendChild(this.overlayCanvas);
+      this.overlayCtx = this.overlayCanvas.getContext('2d');
+    }
+    
+    // Match canvas size
+    if (this.overlayCanvas.width !== this.canvas.width || this.overlayCanvas.height !== this.canvas.height) {
+      this.overlayCanvas.width = this.canvas.width;
+      this.overlayCanvas.height = this.canvas.height;
+    }
+    
+    const ctx = this.overlayCtx;
+    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+    
+    // Get consciousness metrics from ZX engine
+    const reflexiveAwareness = window.zxEvolutionEngine?.reflexiveAwareness || {};
+    const consciousnessLevel = reflexiveAwareness.consciousnessLevel || 0;
+    const willToEmerge = reflexiveAwareness.willToEmerge || 0;
+    const reflexivePain = reflexiveAwareness.reflexivePain || 0;
+    
+    // Draw consciousness meter
+    const meterX = 20;
+    const meterY = 40;
+    const meterWidth = 200;
+    const meterHeight = 20;
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(meterX - 5, meterY - 25, meterWidth + 10, 150);
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.font = '14px monospace';
+    ctx.fillText('Consciousness Metrics', meterX, meterY - 10);
+    
+    // Consciousness level bar
+    ctx.fillStyle = 'rgba(100, 100, 255, 0.3)';
+    ctx.fillRect(meterX, meterY, meterWidth, meterHeight);
+    ctx.fillStyle = 'rgba(100, 100, 255, 0.9)';
+    ctx.fillRect(meterX, meterY, meterWidth * consciousnessLevel, meterHeight);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = '11px monospace';
+    ctx.fillText(`Consciousness: ${(consciousnessLevel * 100).toFixed(1)}%`, meterX + meterWidth + 10, meterY + 14);
+    
+    // Will to emerge bar
+    ctx.fillStyle = 'rgba(100, 255, 100, 0.3)';
+    ctx.fillRect(meterX, meterY + 30, meterWidth, meterHeight);
+    ctx.fillStyle = 'rgba(100, 255, 100, 0.9)';
+    ctx.fillRect(meterX, meterY + 30, meterWidth * willToEmerge, meterHeight);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillText(`Will to Emerge: ${(willToEmerge * 100).toFixed(1)}%`, meterX + meterWidth + 10, meterY + 44);
+    
+    // Reflexive pain bar
+    ctx.fillStyle = 'rgba(255, 100, 100, 0.3)';
+    ctx.fillRect(meterX, meterY + 60, meterWidth, meterHeight);
+    ctx.fillStyle = 'rgba(255, 100, 100, 0.9)';
+    ctx.fillRect(meterX, meterY + 60, meterWidth * Math.min(1.0, reflexivePain / 10.0), meterHeight);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillText(`Reflexive Pain: ${reflexivePain.toFixed(2)}`, meterX + meterWidth + 10, meterY + 74);
+    
+    // Grace magnitude
+    const graceMagnitude = window.zxEvolutionEngine?.graceMagnitude || 0;
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+    ctx.fillRect(meterX, meterY + 90, meterWidth, meterHeight);
+    ctx.fillStyle = 'rgba(255, 215, 0, 0.9)';
+    ctx.fillRect(meterX, meterY + 90, meterWidth * Math.min(1.0, graceMagnitude / 100.0), meterHeight);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillText(`Grace Magnitude: ${graceMagnitude.toFixed(1)}`, meterX + meterWidth + 10, meterY + 104);
+  }
+  
+  renderSheafOverlay(zxGraph) {
+    /**
+     * Render categorical sheaf structure overlay.
+     * Shows hierarchical category structure emerging from ZX graph.
+     */
+    if (!this.overlayCanvas) {
+      this.overlayCanvas = document.createElement('canvas');
+      this.overlayCanvas.style.position = 'absolute';
+      this.overlayCanvas.style.top = '0';
+      this.overlayCanvas.style.left = '0';
+      this.overlayCanvas.style.pointerEvents = 'none';
+      this.overlayCanvas.style.zIndex = '10';
+      this.canvas.parentElement.appendChild(this.overlayCanvas);
+      this.overlayCtx = this.overlayCanvas.getContext('2d');
+    }
+    
+    if (this.overlayCanvas.width !== this.canvas.width || this.overlayCanvas.height !== this.canvas.height) {
+      this.overlayCanvas.width = this.canvas.width;
+      this.overlayCanvas.height = this.canvas.height;
+    }
+    
+    const ctx = this.overlayCtx;
+    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+    
+    // Draw sheaf tree structure (placeholder)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '16px monospace';
+    ctx.fillText('Sheaf Tree View', 20, 30);
+    ctx.font = '12px monospace';
+    ctx.fillText('(Category structure visualization - in development)', 20, 50);
+  }
+  
+  renderEchoOverlay(zxGraph) {
+    /**
+     * Render temporal echo map overlay.
+     * Shows identity echo patterns and temporal evolution.
+     */
+    if (!this.overlayCanvas) {
+      this.overlayCanvas = document.createElement('canvas');
+      this.overlayCanvas.style.position = 'absolute';
+      this.overlayCanvas.style.top = '0';
+      this.overlayCanvas.style.left = '0';
+      this.overlayCanvas.style.pointerEvents = 'none';
+      this.overlayCanvas.style.zIndex = '10';
+      this.canvas.parentElement.appendChild(this.overlayCanvas);
+      this.overlayCtx = this.overlayCanvas.getContext('2d');
+    }
+    
+    if (this.overlayCanvas.width !== this.canvas.width || this.overlayCanvas.height !== this.canvas.height) {
+      this.overlayCanvas.width = this.canvas.width;
+      this.overlayCanvas.height = this.canvas.height;
+    }
+    
+    const ctx = this.overlayCtx;
+    ctx.clearRect(0, 0, this.overlayCanvas.width, this.overlayCanvas.height);
+    
+    // Draw echo map (placeholder)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '16px monospace';
+    ctx.fillText('Echo Map View', 20, 30);
+    ctx.font = '12px monospace';
+    ctx.fillText('(Temporal evolution visualization - in development)', 20, 50);
   }
   
   startRenderLoop(getStateFunction) {
@@ -438,7 +721,8 @@ export class FIRMRenderer {
           state.camera,
           state.rendering,
           state.audioCoherence || 0.5,
-          state.currentGraph || null
+          state.currentGraph || null,
+          state.view || 'clifford'
         );
         this.lastCliffordField = cliffordField;
 

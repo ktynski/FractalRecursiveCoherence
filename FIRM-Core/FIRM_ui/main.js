@@ -695,6 +695,67 @@ const initializeFIRM = async () => {
                   position: [6, 2, 4],
                   target: [0, 0, 0],
                   up: [0, 1, 0]
+                },
+                // Physics Perspectives (10 additional views)
+                scalar_field: {
+                  position: [0, 0, 12],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'Scalar field (grade-0): Mass/Higgs VEV'
+                },
+                vector_field: {
+                  position: [10, 10, 0],
+                  target: [0, 0, 0],
+                  up: [0, 0, 1],
+                  description: 'Vector field (grade-1): E-field/Momentum'
+                },
+                bivector_field: {
+                  position: [8, 0, 8],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'Bivector field (grade-2): B-field/Angular momentum'
+                },
+                qft_perspective: {
+                  position: [15, 5, 10],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'QFT view: Quantum field excitations'
+                },
+                gr_perspective: {
+                  position: [20, 10, 15],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'GR view: Spacetime curvature sources'
+                },
+                qm_perspective: {
+                  position: [12, 12, 12],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'QM view: Wave function nodes/orbitals'
+                },
+                lattice_gauge: {
+                  position: [5, 15, 5],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'Lattice gauge: Discretized field theory'
+                },
+                emergence_view: {
+                  position: [0, 8, 20],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'Emergence: Bootstrap phase evolution'
+                },
+                interference_view: {
+                  position: [10, 0, 10],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'Interference: Standing wave patterns'
+                },
+                topology_view: {
+                  position: [18, 12, 8],
+                  target: [0, 0, 0],
+                  up: [0, 1, 0],
+                  description: 'Topology: Manifold boundary structure'
                 }
               };
 
@@ -704,7 +765,8 @@ const initializeFIRM = async () => {
                 systemState.camera.target = [...preset.target];
                 systemState.camera.up = [...preset.up];
                 theoryControls.observationDistance = Math.sqrt(preset.position[0]**2 + preset.position[1]**2 + preset.position[2]**2);
-                console.log(`📷 Vantage preset '${mode}' applied with distance ${theoryControls.observationDistance.toFixed(2)}`);
+                const description = preset.description ? ` - ${preset.description}` : '';
+                console.log(`📷 Vantage preset '${mode}' applied with distance ${theoryControls.observationDistance.toFixed(2)}${description}`);
               }
             }
           });

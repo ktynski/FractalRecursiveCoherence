@@ -126,10 +126,11 @@ class CoherenceDeltaScaffold:
         # Degree contribution: higher degree spiders have more impact when flipped
         degree_impact = math.log(1 + degree)
         
-        # Type-specific contribution: Z→X vs X→Z have different coherence effects
-        type_factor = 1.0 if spider_type == "Z" else -1.0
-        
-        return type_factor * phase_stability * degree_impact
+        # THEORY FIX: Remove arbitrary type factor asymmetry
+        # ZX calculus is symmetric under bireflection (Z and X are dual bases)
+        # Color flip coherence depends only on phase stability and connectivity
+        # Reference: ZX_Calculus_Formalism.md lines 50-60 (Hadamard duality)
+        return abs(phase_stability) * degree_impact
     
     def schedule_rewrites_by_delta_c(self, candidate_rewrites: List[dict]) -> List[dict]:
         """Schedule rewrites by ΔC in descending order.
