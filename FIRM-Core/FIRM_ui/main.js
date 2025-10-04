@@ -220,13 +220,25 @@ const highContrast = document.getElementById('highContrast');
   handleResize() {
     const canvas = document.getElementById('canvas');
     const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
     
-    // Update canvas size
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    // Compute CSS size with mobile-safe fallbacks
+    let cssWidth = rect.width || window.innerWidth || 300;
+    let cssHeight = rect.height || Math.floor(window.innerHeight * 0.6);
+    if (cssHeight < 2) {
+      // Mobile init race: fallback to 60vh of viewport height
+      cssHeight = Math.floor(window.innerHeight * 0.6);
+      console.debug('[FIRM] Canvas height fallback applied:', cssHeight);
+    }
     
-    // Update camera aspect ratio
-    this.state.camera.aspect_ratio = rect.width / rect.height;
+    // Apply devicePixelRatio scaling for crisp rendering
+    canvas.width = Math.max(1, Math.floor(cssWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(cssHeight * dpr));
+    canvas.style.width = `${Math.floor(cssWidth)}px`;
+    canvas.style.height = `${Math.floor(cssHeight)}px`;
+    
+    // Update camera aspect ratio using CSS size
+    this.state.camera.aspect_ratio = Math.max(0.0001, cssWidth / cssHeight);
   }
   
   validateCameraState() {

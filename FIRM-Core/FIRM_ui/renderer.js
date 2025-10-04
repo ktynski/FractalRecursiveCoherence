@@ -106,23 +106,19 @@ export class FIRMRenderer {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     
-    // Upload as 4x1 RGBA texture (WebGL1/WebGL2 compatible)
+    // Upload as 4x1 RGBA texture with universally compatible parameters
     const isWebGL2 = gl instanceof WebGL2RenderingContext;
-    const internalFormat = isWebGL2 ? gl.RGBA32F : gl.RGBA;
-    const type = isWebGL2 && gl.getExtension('EXT_color_buffer_float') ? gl.FLOAT : gl.UNSIGNED_BYTE;
+    const internalFormat = isWebGL2 ? gl.RGBA8 : gl.RGBA; // Sized format for WebGL2, base for WebGL1
+    const format = gl.RGBA;
+    const type = gl.UNSIGNED_BYTE; // Always use byte textures for widest compatibility
     
-    if (type === gl.UNSIGNED_BYTE) {
-      // Convert float data to byte data for WebGL1
-      const byteData = new Uint8Array(16);
-      for (let i = 0; i < 16; i++) {
-        byteData[i] = Math.max(0, Math.min(255, Math.floor((textureData[i] + 10) * 12.75))); // Map [-10,10] to [0,255]
-      }
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, 4, 1, 0, gl.RGBA, type, byteData);
-      console.log('🎮 Using WebGL1 byte texture format');
-    } else {
-      gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, 4, 1, 0, gl.RGBA, type, textureData);
-      console.log('🎮 Using WebGL2 float texture format');
+    // Convert float data to byte data (map [-10,10] -> [0,255])
+    const byteData = new Uint8Array(16);
+    for (let i = 0; i < 16; i++) {
+      byteData[i] = Math.max(0, Math.min(255, Math.floor((textureData[i] + 10) * 12.75)));
     }
+    gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, 4, 1, 0, format, type, byteData);
+    console.log('🎮 Using RGBA8/UNSIGNED_BYTE texture format');
     
     // Check for WebGL errors
     const error = gl.getError();
@@ -164,20 +160,13 @@ export class FIRMRenderer {
     // Bind existing texture and update data only
     gl.bindTexture(gl.TEXTURE_2D, this.fieldTexture);
     
-    // Update texture data without recreating texture object
-    const isWebGL2 = gl instanceof WebGL2RenderingContext;
-    const internalFormat = isWebGL2 ? gl.RGBA32F : gl.RGBA;
-    const type = isWebGL2 && gl.getExtension('EXT_color_buffer_float') ? gl.FLOAT : gl.UNSIGNED_BYTE;
-    
-    if (type === gl.UNSIGNED_BYTE) {
-      const byteData = new Uint8Array(16);
-      for (let i = 0; i < 16; i++) {
-        byteData[i] = Math.max(0, Math.min(255, Math.floor((textureData[i] + 10) * 12.75)));
-      }
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 1, gl.RGBA, type, byteData);
-    } else {
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 1, gl.RGBA, type, textureData);
+    // Update texture data without recreating texture object (byte path for compatibility)
+    const type = gl.UNSIGNED_BYTE;
+    const byteData = new Uint8Array(16);
+    for (let i = 0; i < 16; i++) {
+      byteData[i] = Math.max(0, Math.min(255, Math.floor((textureData[i] + 10) * 12.75)));
     }
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 4, 1, gl.RGBA, type, byteData);
   }
   
   setupRaymarchingProgram(pipeline) {
