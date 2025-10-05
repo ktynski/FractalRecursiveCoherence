@@ -283,34 +283,27 @@ def run_long_evolution(num_steps=1000, checkpoint_interval=100, output_file="evo
         ratio = final_emergence['locality']['locality_ratio']
         print(f"  ✓ Emergent locality (ratio={ratio:.2f})")
     
-    # Dimensionless ratios
+    # Dimensionless ratios (comprehensive measurement)
     print(f"\n" + "-"*70)
-    print("DIMENSIONLESS RATIOS")
+    print("DIMENSIONLESS RATIOS (Comprehensive)")
     print("-"*70)
     
-    edge_node_ratio = len(graph.edges) / len(graph.nodes) if len(graph.nodes) > 0 else 0
-    phi = (1 + np.sqrt(5)) / 2
+    # Import ratio measurement
+    sys.path.insert(0, os.path.dirname(__file__))
+    from measure_dimensionless_ratios import measure_all_ratios, find_alpha_candidates, print_ratio_report
     
-    print(f"  Edge/Node ratio: {edge_node_ratio:.4f}")
-    print(f"  φ (golden ratio): {phi:.4f}")
-    print(f"  Ratio / φ: {edge_node_ratio / phi:.4f}")
+    # Count grace events (estimate from event sizes)
+    grace_events_estimate = sum(1 for e in data["event_sizes"] if e > 0)
+    total_rewrites_estimate = len(data["event_sizes"])
     
-    if abs(edge_node_ratio - phi) < 0.1:
-        print(f"  ✓ RATIO CLOSE TO φ")
-        ratio_status = "MATCHES_PHI"
-    elif abs(edge_node_ratio - np.pi) < 0.1:
-        print(f"  ✓ RATIO CLOSE TO π")
-        ratio_status = "MATCHES_PI"
-    else:
-        print(f"  ~ Ratio doesn't match known constants")
-        ratio_status = "NO_MATCH"
+    ratios_data = measure_all_ratios(graph, grace_events_estimate, total_rewrites_estimate)
+    print_ratio_report(ratios_data)
     
-    data["dimensionless_ratios"] = {
-        "edge_node_ratio": edge_node_ratio,
-        "phi": phi,
-        "ratio_over_phi": edge_node_ratio / phi,
-        "status": ratio_status
-    }
+    data["dimensionless_ratios"] = ratios_data
+    
+    # Check for α
+    alpha_candidates = find_alpha_candidates(ratios_data, threshold=0.01)
+    ratio_status = "MATCHES_ALPHA" if alpha_candidates else "NO_ALPHA_MATCH"
     
     # Overall assessment
     print(f"\n" + "="*70)
@@ -325,9 +318,12 @@ def run_long_evolution(num_steps=1000, checkpoint_interval=100, output_file="evo
         print(f"  ✓ Lorentz invariance")
     
     # Add dimensionless ratios if matched
-    if ratio_status in ["MATCHES_PHI", "MATCHES_PI"]:
+    if ratio_status == "MATCHES_ALPHA":
         phenomena_count += 1
-        print(f"  ✓ Dimensionless ratios")
+        print(f"  ✓ Dimensionless ratios (α found!)")
+    elif alpha_candidates:
+        phenomena_count += 1
+        print(f"  ✓ Dimensionless ratios (α candidates: {len(alpha_candidates)})")
     
     print(f"\nTotal profound phenomena: {phenomena_count}/6")
     
