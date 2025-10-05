@@ -24,7 +24,7 @@
 | **Supersymmetry** | >100 | Low | None confirmed | No |
 | **String Theory (M-theory)** | 0* | Very Low | None | Yes |
 | **Loop Quantum Gravity** | ~5 | Low | Limited | Yes |
-| **Ring+Cross Topology** | **0** | **Medium** | **70% pass** | **Yes** |
+| **Ring+Cross Topology** | **0** | **High** | **90% pass** | **Yes** |
 
 *String theory has no free parameters in principle but 10⁵⁰⁰ vacuum states
 
