@@ -573,7 +573,7 @@ const highContrast = document.getElementById('highContrast');
             // Take a few steps and measure average score
             let score = 0; let samples = 0;
             for (let i = 0; i < 10; i++) {
-              window.zxEvolutionEngine?.evolveFromAudioCoherence?.(0.5, 0.016);
+              (window.zxEvolutionEngine && window.zxEvolutionEngine.evolveFromAudioCoherence ? window.zxEvolutionEngine.evolveFromAudioCoherence(0.5, 0.016) : null);
               const s = window.zxEvolutionEngine?.getSnapshot?.();
               if (!s || !window.__omegaSignature) continue;
               const res = window.__resonanceMod.computeResonanceAlignment(s.graph, window.__omegaSignature);
@@ -1369,7 +1369,7 @@ const initializeFIRM = async () => {
           const optimalObservation = fieldAnalysis ? emergentObserver.computeOptimalObservation(fieldAnalysis, consciousness) : null;
           
           // 4. THEORY-DRIVEN EVOLUTION CONTROL (Auto Ω Mode)
-          if (this._autoOmegaEnabled) {
+          if (firmUI._autoOmegaEnabled) {
             try {
               if (!window.__resonanceMod) {
                 // Lazy-load once; render loop must remain fast

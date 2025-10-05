@@ -378,6 +378,20 @@ export class FIRMRenderer {
         // Default: 3D raymarched Clifford field
         this.renderCliffordView(cameraState, renderingParams, audioCoherence);
         break;
+      case 'e8':
+        // E8 Topology visualization
+        console.log('E8 view mode selected');
+        // For now, use clifford mode with E8 overlay
+        // TODO: Implement full E8 renderer
+        this.currentViewMode = 'clifford';  // Fallback for now
+        if (typeof window.E8WebGLRenderer !== 'undefined') {
+          if (!this.e8Renderer) {
+            this.e8Renderer = new window.E8WebGLRenderer(this.gl, this.shaderProgram);
+          }
+          this.e8Renderer.updateUniforms(true, 0);
+        }
+        break;
+
         
       case 'zx':
         // ZX Graph: Render Clifford base + 2D graph overlay

@@ -139,6 +139,10 @@ const PHYSICS = {
   }
 };
 
+// Make globally accessible
+window.PHYSICS = PHYSICS;
+
+
 // Validation Functions
 const validateE8 = () => {
   const dim = PHYSICS.N * 12 - 4;

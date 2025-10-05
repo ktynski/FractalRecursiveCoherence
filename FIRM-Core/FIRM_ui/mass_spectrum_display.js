@@ -3,7 +3,7 @@
  * Displays the derived particle masses from E8 topology
  */
 
-export class MassSpectrumDisplay {
+window.MassSpectrumDisplay = class {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     this.N = 21;  // E8 encoding

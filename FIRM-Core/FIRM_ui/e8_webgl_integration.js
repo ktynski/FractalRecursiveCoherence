@@ -5,7 +5,7 @@
  * Integrates E8 topology directly into the raymarching pipeline
  */
 
-export class E8WebGLRenderer {
+window.E8WebGLRenderer = class {
   constructor(gl, shaderProgram) {
     this.gl = gl;
     this.shaderProgram = shaderProgram;
@@ -316,7 +316,7 @@ export class E8WebGLRenderer {
 }
 
 // Multi-sector universe controller
-export class MultiSectorController {
+window.MultiSectorController = class {
   constructor(e8Renderer) {
     this.e8Renderer = e8Renderer;
     this.currentSector = 0;  // 0=EM, 1=DM, 2=DE
@@ -422,4 +422,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-export { E8WebGLRenderer, MultiSectorController };
+// Exported via window.E8WebGLRenderer
+// export { E8WebGLRenderer, MultiSectorController };
