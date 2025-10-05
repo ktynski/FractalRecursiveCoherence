@@ -4,6 +4,15 @@ Build and explore the FIRM UI in minutes. This README gives a clean on‑ramp; d
 
 — Live demo: `https://fractal-recursive-coherence.vercel.app`
 
+## Theory in brief
+- Substrate: a ZX‑calculus graph evolves by rewrite rules; we expose structure via simple, explainable metrics.
+- Ω signature: a canonical fingerprint (cycle set + phase histogram) derived from a graph snapshot.
+- Resonance Res(S,Ω): similarity between the live system S and Ω using Jaccard(cycles) × Cosine(phase histograms).
+- Steering: Res(S,Ω) modulates rewrite eligibility/weights; Grace (𝒢) emergence probability is tied to Res.
+- Coherence C(G): a graph‑level functional that rises with structured cycles and aligned phases; we track it live.
+- Field view: the graph maps to a Clifford multivector field (Cl(1,3)) for intuitive visualization (scalar/vector/bivector/… summaries).
+- Falsifiability: tests assert a positive Res↔C(G) correlation and evolution liveness; visuals render independent of audio policy.
+
 ## For hard skeptics (quick checks)
 - Reproducibility: run locally (below). Metrics should update every frame; nodes/edges grow.
 - Resonance claim: enable Ω controls; verify Res(S,Ω) tracks C(G) trend over short runs.
