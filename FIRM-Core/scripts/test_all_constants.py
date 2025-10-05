@@ -278,7 +278,7 @@ def test_lorentz_gauge():
     graph = build_graph(N)
     
     # Test gauge invariance
-    C_original = coherence_gauge_invariant(graph)
+    C_original = compute_coherence_gauge_invariant(graph)
     
     # Apply global phase shift (gauge transformation)
     shifted_labels = {}
@@ -286,7 +286,7 @@ def test_lorentz_gauge():
     for node_id, label in graph.labels.items():
         new_phase = (label.phase_numer + global_shift) % 100
         shifted_labels[node_id] = make_node_label(
-            label.kind, new_phase, 100, label.name
+            label.kind, new_phase, 100, label.monadic_id
         )
     
     graph_shifted = ObjectG(
@@ -294,7 +294,7 @@ def test_lorentz_gauge():
         edges=graph.edges,
         labels=shifted_labels
     )
-    C_shifted = coherence_gauge_invariant(graph_shifted)
+    C_shifted = compute_coherence_gauge_invariant(graph_shifted)
     
     gauge_error = abs(C_shifted - C_original) / C_original * 100 if C_original > 0 else 0
     
@@ -315,7 +315,7 @@ def test_lorentz_gauge():
     for node_id, label in graph.labels.items():
         new_phase = int(label.phase_numer * boost_factor) % 100
         boosted_labels[node_id] = make_node_label(
-            label.kind, new_phase, 100, label.name
+            label.kind, new_phase, 100, label.monadic_id
         )
     
     graph_boosted = ObjectG(
@@ -444,7 +444,7 @@ def test_advanced_properties():
     
     for param in phase_params:
         graph = build_graph(N, seed=int(param*100))
-        C = coherence_gauge_invariant(graph)
+        C = compute_coherence_gauge_invariant(graph)
         coherences.append(C)
         print(f"    param={param:.1f}: C = {C:.6f}")
     
