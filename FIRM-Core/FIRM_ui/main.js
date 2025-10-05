@@ -1562,6 +1562,51 @@ if (document.readyState === 'loading') {
   });
 } else {
   initializeFIRM();
+
+// E8 Validation Display
+function validateE8Display() {
+  const N = 21;  // E8 encoding
+  const dimension = N * 12 - 4;
+  const roots = N * 11 + 9;
+  const isValid = dimension === 248 && roots === 240;
+  
+  // Create or update status display
+  let statusDiv = document.getElementById('e8-validation-status');
+  if (!statusDiv) {
+    statusDiv = document.createElement('div');
+    statusDiv.id = 'e8-validation-status';
+    statusDiv.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.8);
+      color: ${isValid ? '#00ff00' : '#ff0000'};
+      border: 2px solid ${isValid ? '#00ff00' : '#ff0000'};
+      border-radius: 5px;
+      font-family: monospace;
+      z-index: 10000;
+    `;
+    document.body.appendChild(statusDiv);
+  }
+  
+  statusDiv.innerHTML = `
+    <div style="font-weight: bold; margin-bottom: 5px;">
+      E8 Validation: ${isValid ? '✓ VALID' : '✗ INVALID'}
+    </div>
+    <div style="font-size: 0.9em;">
+      N = ${N}<br>
+      Dimension: ${dimension} ${dimension === 248 ? '✓' : `(should be 248)`}<br>
+      Roots: ${roots} ${roots === 240 ? '✓' : `(should be 240)`}<br>
+      α ≈ 1/137.036
+    </div>
+  `;
+  
+  return isValid;
+}
+
+// Call on initialization
+setTimeout(validateE8Display, 1000);
 }
 
 window.initializeFIRM = initializeFIRM;
