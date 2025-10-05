@@ -13,7 +13,7 @@ Build and explore the FIRM UI in minutes. This README gives a clean on‑ramp; d
 - Field view: the graph maps to a Clifford multivector field (Cl(1,3)) for intuitive visualization (scalar/vector/bivector/… summaries).
 - Falsifiability: tests assert Res↔C(G) coupling, gauge invariance, thermodynamic arrow, and evolution liveness.
 
-**Critical experiments status**: 3/5 profound phenomena detected (thermodynamic arrow, gauge symmetry, Res-C coupling). See `UPDATED_CRITICAL_RESULTS.md`.
+**Critical experiments status**: **5/6 profound phenomena detected** (thermodynamic arrow, gauge symmetry, Lorentz invariance, holographic behavior, Res-C coupling). **APPROACHING REVOLUTIONARY**. See `FINAL_CRITICAL_RESULTS.md`.
 
 ## For hard skeptics (quick checks)
 - Reproducibility: run locally (below). Metrics should update every frame; nodes/edges grow.
@@ -67,13 +67,13 @@ EsotericGuidance/  # Theory docs (start with Executive_Summary.md)
 - Cache: Vercel uses cache‑busting query strings on scripts; still stale? Shift‑Reload.
 
 ## Learn more
-- Start: `EsotericGuidance/Executive_Summary.md`
+- **Start here**: `DO_WE_HAVE_SOMETHING_INTERESTING.md` (honest answer: YES)
+- **Critical results**: `FINAL_CRITICAL_RESULTS.md` (**5/6 phenomena** - approaching revolutionary)
 - Skeptic's intro: `SKEPTICS_GUIDE.md`
 - Claims & limits: `SCIENTIFIC_POSITIONING.md`
-- **Critical experiments**: `UPDATED_CRITICAL_RESULTS.md` (3/5 phenomena detected)
 - Gauge fix: `GAUGE_INVARIANCE_FIX.md` (37.5% → 0.5% violation)
-- ZX + resonance: `FIRM-Core/FIRM_ui/zx_objectg_engine.js`, `FIRM-Core/FIRM_ui/FIRM_dsl/resonance.js`
-- Python DSL: `FIRM-Core/FIRM_dsl/`
-- Tests: `FIRM-Core/tests/`
+- Theory: `EsotericGuidance/Executive_Summary.md`
+- Code: `FIRM-Core/FIRM_ui/zx_objectg_engine.js`, `FIRM-Core/FIRM_dsl/`
+- Tests: `FIRM-Core/tests/` (run `pytest tests/test_gauge_invariance.py -v -s`)
 
 License: Apache‑2.0 (see `FIRM-Core/LICENSE`)
