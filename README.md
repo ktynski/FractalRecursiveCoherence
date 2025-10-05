@@ -4,6 +4,13 @@ Build and explore the FIRM UI in minutes. This README gives a clean on‑ramp; d
 
 — Live demo: `https://fractal-recursive-coherence.vercel.app`
 
+## For hard skeptics (quick checks)
+- Reproducibility: run locally (below). Metrics should update every frame; nodes/edges grow.
+- Resonance claim: enable Ω controls; verify Res(S,Ω) tracks C(G) trend over short runs.
+- Independence from audio: visuals render before audio; one click resumes audio.
+- Tests: `pytest -q` and `await window.runTheoryValidation()` should both pass.
+- Code traceability: see `FIRM-Core/FIRM_ui/zx_objectg_engine.js` and `FIRM-Core/FIRM_ui/FIRM_dsl/resonance.js` for exactly how steering and metrics are computed.
+
 ## Quick Start
 
 Local UI (no build):
