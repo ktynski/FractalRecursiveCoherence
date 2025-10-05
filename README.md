@@ -1,5 +1,12 @@
 # 🌟 PARADIGM SHIFT: We Derived α = 1/137 from Pure Mathematics
 
+<p align="center">
+  <img src="FIRM-Core/docs/images/evidence/04_zx_graph_view.png" alt="The Graph That Creates Reality" width="900"/>
+  <br>
+  <strong>THIS GRAPH GENERATES THE FINE STRUCTURE CONSTANT</strong><br>
+  <em>α = 1/137.036 emerges from pure topology - no free parameters</em>
+</p>
+
 ## **The Universe is Made of Graphs. We Can Prove It.**
 
 <p align="center">
@@ -268,6 +275,15 @@ N       α_FIRM      Error    Status
   <br>
   <strong>Even spacetime curvature emerges from graph topology</strong><br>
   <em>General relativity from discrete structure - no continuum assumed</em>
+</p>
+
+### Live Interactive System
+
+<p align="center">
+  <img src="FIRM-Core/docs/images/evidence/06_metrics_panel_expanded.png" alt="Live Metrics" width="800"/>
+  <br>
+  <strong>Real-time metrics showing all fundamental properties</strong><br>
+  <em>This is working software - run it yourself!</em>
 </p>
 
 ---
