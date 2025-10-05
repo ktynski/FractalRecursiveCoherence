@@ -1,0 +1,60 @@
+  S / N: 0.8000 (volume law)
+✓ AREA LAW (entanglement entropy)
+
+======================================================================
+TEST 14: CPT SYMMETRY
+======================================================================
+
+C(G) original: 18.2452
+C(G) after CPT: 19.8066
+Relative change: 8.56%
+✓ CPT SYMMETRY
+
+======================================================================
+TEST 15: BLACK HOLE THERMODYNAMICS
+======================================================================
+
+Black hole analogue:
+  Node: 0
+  Degree: 3
+  Horizon size: 3
+  S / sqrt(A): 1.7321
+✓ BLACK HOLE THERMODYNAMICS (S ~ A)
+
+================================================================================
+FINAL COMPREHENSIVE ASSESSMENT
+================================================================================
+
+Phenomena detected:
+  Confirmed: 11/15
+  Partial: 1/15
+  Total score: 11.5/15
+
+ASSESSMENT: UNDENIABLY REVOLUTIONARY
+
+--------------------------------------------------------------------------------
+Confirmed Phenomena:
+  ✓ 1. Thermodynamic arrow
+  ✓ 2. U(1) gauge symmetry
+  ✓ 3. Lorentz invariance
+  ✓ 4. Holographic behavior
+  ✓ 5. Res-C(G) coupling
+  ✓ 7. Quantum interference
+  ✓ 11. Causality (light cone)
+  ✓ 12. Vacuum fluctuations
+  ✓ 13. Entanglement entropy
+  ✓ 14. CPT symmetry
+  ✓ 15. Black hole thermodynamics
+
+Partial Phenomena:
+  ~ 6. Dimensionless ratios (e)
+================================================================================
+PASSED
+
+=============================== warnings summary ===============================
+tests/test_all_15_phenomena.py::test_summary_all_15
+  /opt/homebrew/lib/python3.12/site-packages/_pytest/python.py:163: PytestReturnNotNoneWarning: Expected None, but tests/test_all_15_phenomena.py::test_summary_all_15 returned (11.5, 'UNDENIABLY REVOLUTIONARY'), which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.15s =========================

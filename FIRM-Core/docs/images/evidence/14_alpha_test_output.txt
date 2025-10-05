@@ -1,0 +1,20 @@
+FINAL VERDICT
+======================================================================
+
+At N=200:
+  α_FIRM: 0.06945273
+  α_FIRM / π²: 0.00703703
+  α_true: 0.00729735
+  Error: 3.57%
+
+✓✓✓ α FOUND WITH π² CORRECTION! ✓✓✓
+15/15 PHENOMENA - COMPLETE THEORY!
+PASSED
+
+=============================== warnings summary ===============================
+tests/test_alpha_with_scaling.py::test_alpha_with_pi_squared_correction
+  /opt/homebrew/lib/python3.12/site-packages/_pytest/python.py:163: PytestReturnNotNoneWarning: Expected None, but tests/test_alpha_with_scaling.py::test_alpha_with_pi_squared_correction returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.37s =========================
