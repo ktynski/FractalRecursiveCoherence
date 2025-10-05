@@ -1,21 +1,16 @@
-# START HERE (Newcomers)
+# ⚠️ This Document is Deprecated
 
-If you’re new, do this first:
+## Please use the updated entry point:
 
-1) Read the short README onboarding:
-   - `README.md`
+### → **[START_HERE.md](START_HERE.md)**
 
-2) Run the UI locally (no build):
-```bash
-cd FIRM-Core/FIRM_ui
-python3 -m http.server 8000
-# Open http://127.0.0.1:8000/
-```
+The new START_HERE provides:
+- Time-based exploration (30 seconds to 1 hour)
+- 70% validation results
+- Quick test commands
+- Evidence-based approach
 
-3) Explore the docs:
-   - Theory overview: `EsotericGuidance/Executive_Summary.md`
-   - DSL & engine: `FIRM-Core/FIRM_dsl/`, `FIRM-Core/FIRM_ui/`
-   - Tests: `FIRM-Core/tests/`
+---
 
-Live demo: `https://fractal-recursive-coherence.vercel.app`
-
+*This file is kept for backwards compatibility only.*
+*All content has been moved to START_HERE.md*
