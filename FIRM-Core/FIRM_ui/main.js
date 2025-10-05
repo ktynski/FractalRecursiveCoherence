@@ -139,6 +139,7 @@ class FIRMUIController {
           const labels = {
             clifford: 'Clifford Field (Spacetime)',
             zx: 'ZX Graph (Quantum)',
+            e8: 'E8 Topology (α=1/137)',
             consciousness: 'Consciousness View',
             sheaf: 'Sheaf Tree Observer',
             echo: 'Echo Map Resonance'
@@ -227,7 +228,7 @@ class FIRMUIController {
   }
   
   switchView(viewName) {
-    if (!['clifford', 'zx', 'sheaf', 'echo', 'consciousness'].includes(viewName)) {
+    if (!['clifford', 'zx', 'e8', 'sheaf', 'echo', 'consciousness'].includes(viewName)) {
       throw new Error(`Invalid view: ${viewName}`);
     }
     
@@ -249,12 +250,44 @@ class FIRMUIController {
       case 'zx':
         console.log('🔗 ZX View: Tensor network evolution');
         break;
+      case 'e8':
+        console.log('🌟 E8 View: Ring+Cross topology generating α=1/137');
+        this.initE8Visualization();
+        break;
       case 'sheaf':
         console.log('🌳 Sheaf View: Category tree visualization');
         break;
       case 'echo':
         console.log('🔊 Echo View: Identity echo time τ');
         break;
+    }
+  }
+  
+  initE8Visualization() {
+    // Initialize E8 visualizer if not already created
+    if (!this.e8Visualizer) {
+      const canvas = document.getElementById('canvas');
+      if (canvas) {
+        // Create E8 visualizer instance
+        if (typeof E8Visualizer !== 'undefined') {
+          this.e8Visualizer = new E8Visualizer(canvas, '2d');
+          console.log('✨ E8 Visualizer initialized');
+          console.log(`  N=${PHYSICS.N} encodes E8: ${PHYSICS.E8.check() ? '✓' : '✗'}`);
+          console.log(`  α = 1/${1/PHYSICS.ALPHA.calculate()}`);
+        } else {
+          console.error('E8Visualizer not loaded. Check e8_visualizer.js');
+        }
+      }
+    }
+    
+    // Draw E8 visualization
+    if (this.e8Visualizer) {
+      this.e8Visualizer.draw();
+      
+      // Start animation if enabled
+      if (this.state.animating) {
+        this.e8Visualizer.start();
+      }
     }
   }
   
