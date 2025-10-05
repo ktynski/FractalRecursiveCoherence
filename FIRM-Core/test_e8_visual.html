@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E8 Visualizer Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            color: white;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        canvas {
+            border: 1px solid #333;
+            box-shadow: 0 0 50px rgba(138, 43, 226, 0.3);
+        }
+        .controls {
+            margin: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #4a0080;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        button:hover {
+            background: #6a00b0;
+        }
+        .info {
+            margin: 20px;
+            padding: 20px;
+            background: rgba(20, 20, 30, 0.8);
+            border-radius: 10px;
+            max-width: 800px;
+        }
+        .formula {
+            color: gold;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>E8 → Ring+Cross → α = 1/137 Visualization</h1>
+    
+    <canvas id="e8Canvas" width="800" height="600"></canvas>
+    
+    <div class="controls">
+        <button id="startBtn">Start Animation</button>
+        <button id="stopBtn">Stop Animation</button>
+        <button id="toggleE8">Toggle E8 Overlay</button>
+        <button id="toggleMass">Toggle Mass Display</button>
+    </div>
+    
+    <div class="info">
+        <div class="formula">α = 3g/(4π⁴k) = 1/137.036</div>
+        <p>N=21 nodes encode E8's 248 dimensions exactly:</p>
+        <ul>
+            <li>21 × 12 - 4 = 248 (E8 dimension) ✓</li>
+            <li>21 × 11 + 9 = 240 (E8 root vectors) ✓</li>
+            <li>Proton/electron = 21×100-264 = 1836 ✓</li>
+            <li>Muon/electron = 10×21-3 = 207 ✓</li>
+        </ul>
+    </div>
+    
+    <!-- Load physics constants -->
+    <script src="FIRM_ui/physics_constants.js"></script>
+    <!-- Load E8 visualizer -->
+    <script src="FIRM_ui/e8_visualizer.js"></script>
+    
+    <script>
+        // Initialize visualizer
+        const canvas = document.getElementById('e8Canvas');
+        const viz = new E8Visualizer(canvas, '2d');
+        
+        // Initial draw
+        viz.draw();
+        
+        // Controls
+        document.getElementById('startBtn').addEventListener('click', () => {
+            viz.start();
+        });
+        
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            viz.stop();
+        });
+        
+        document.getElementById('toggleE8').addEventListener('click', () => {
+            viz.showE8Projection = !viz.showE8Projection;
+            viz.draw();
+        });
+        
+        document.getElementById('toggleMass').addEventListener('click', () => {
+            viz.showMassGeneration = !viz.showMassGeneration;
+            viz.draw();
+        });
+        
+        // Mouse interaction
+        let mouseDown = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        canvas.addEventListener('mousedown', (e) => {
+            mouseDown = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!mouseDown) return;
+            
+            const deltaX = e.clientX - lastX;
+            const deltaY = e.clientY - lastY;
+            
+            viz.rotation.y += deltaX * 0.01;
+            viz.rotation.x += deltaY * 0.01;
+            
+            lastX = e.clientX;
+            lastY = e.clientY;
+            
+            viz.draw();
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            mouseDown = false;
+        });
+        
+        // Zoom with wheel
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            viz.zoom *= (1 - e.deltaY * 0.001);
+            viz.zoom = Math.max(0.5, Math.min(3, viz.zoom));
+            viz.draw();
+        });
+    </script>
+</body>
+</html>
