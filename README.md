@@ -9,9 +9,11 @@ Build and explore the FIRM UI in minutes. This README gives a clean on‑ramp; d
 - Ω signature: a canonical fingerprint (cycle set + phase histogram) derived from a graph snapshot.
 - Resonance Res(S,Ω): similarity between the live system S and Ω using Jaccard(cycles) × Cosine(phase histograms).
 - Steering: Res(S,Ω) modulates rewrite eligibility/weights; Grace (𝒢) emergence probability is tied to Res.
-- Coherence C(G): a graph‑level functional that rises with structured cycles and aligned phases; we track it live.
+- Coherence C(G): a gauge‑invariant graph functional (uses phase differences only); rises with structured cycles and phase harmony.
 - Field view: the graph maps to a Clifford multivector field (Cl(1,3)) for intuitive visualization (scalar/vector/bivector/… summaries).
-- Falsifiability: tests assert a positive Res↔C(G) correlation and evolution liveness; visuals render independent of audio policy.
+- Falsifiability: tests assert Res↔C(G) coupling, gauge invariance, thermodynamic arrow, and evolution liveness.
+
+**Critical experiments status**: 3/5 profound phenomena detected (thermodynamic arrow, gauge symmetry, Res-C coupling). See `UPDATED_CRITICAL_RESULTS.md`.
 
 ## For hard skeptics (quick checks)
 - Reproducibility: run locally (below). Metrics should update every frame; nodes/edges grow.
@@ -66,8 +68,10 @@ EsotericGuidance/  # Theory docs (start with Executive_Summary.md)
 
 ## Learn more
 - Start: `EsotericGuidance/Executive_Summary.md`
-- Skeptic’s intro: `SKEPTICS_GUIDE.md`
+- Skeptic's intro: `SKEPTICS_GUIDE.md`
 - Claims & limits: `SCIENTIFIC_POSITIONING.md`
+- **Critical experiments**: `UPDATED_CRITICAL_RESULTS.md` (3/5 phenomena detected)
+- Gauge fix: `GAUGE_INVARIANCE_FIX.md` (37.5% → 0.5% violation)
 - ZX + resonance: `FIRM-Core/FIRM_ui/zx_objectg_engine.js`, `FIRM-Core/FIRM_ui/FIRM_dsl/resonance.js`
 - Python DSL: `FIRM-Core/FIRM_dsl/`
 - Tests: `FIRM-Core/tests/`
