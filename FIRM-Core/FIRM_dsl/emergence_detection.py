@@ -98,7 +98,8 @@ def detect_holographic_behavior(graph: ObjectG) -> Dict[str, float]:
     bulk_nodes = []
     
     for node_id in graph.nodes:
-        degree = len(list(graph.neighbors(node_id)))
+        # Count degree from edge list
+        degree = sum(1 for u, v in graph.edges if u == node_id or v == node_id)
         if degree <= 2:
             boundary_nodes.append(node_id)
         else:
@@ -109,7 +110,17 @@ def detect_holographic_behavior(graph: ObjectG) -> Dict[str, float]:
     
     # Compute entropy (Shannon entropy of phase distribution)
     def phase_entropy(node_ids):
-        phases = [graph.nodes[nid]['phase'] for nid in node_ids]
+        import math
+        phases = []
+        for nid in node_ids:
+            if nid in graph.labels:
+                label = graph.labels[nid]
+                phase_rad = math.pi * label.phase_numer / label.phase_denom
+                phases.append(phase_rad)
+        
+        if not phases:
+            return 0
+        
         # Bin phases into 10 bins
         hist, _ = np.histogram(phases, bins=10, range=(0, 2*np.pi))
         probs = hist / np.sum(hist) if np.sum(hist) > 0 else hist
@@ -201,8 +212,18 @@ def detect_emergent_locality(graph: ObjectG,
     if len(graph.nodes) < 10:
         return {"has_locality": False, "reason": "Graph too small"}
     
+    # Build adjacency list
+    adj = {node: [] for node in graph.nodes}
+    for u, v in graph.edges:
+        if u not in adj:
+            adj[u] = []
+        if v not in adj:
+            adj[v] = []
+        adj[u].append(v)
+        adj[v].append(u)
+    
     # Compute shortest paths (BFS)
-    def shortest_path_length(g, start, end, max_depth=10):
+    def shortest_path_length(start, end, max_depth=10):
         if start == end:
             return 0
         visited = {start}
@@ -213,7 +234,7 @@ def detect_emergent_locality(graph: ObjectG,
             if depth >= max_depth:
                 return None
             
-            for neighbor in g.neighbors(node):
+            for neighbor in adj.get(node, []):
                 if neighbor == end:
                     return depth + 1
                 if neighbor not in visited:
@@ -223,7 +244,7 @@ def detect_emergent_locality(graph: ObjectG,
         return None  # No path found
     
     # Sample node pairs
-    node_ids = list(graph.nodes.keys())
+    node_ids = list(graph.nodes)
     if len(node_ids) < 4:
         return {"has_locality": False, "reason": "Too few nodes"}
     
@@ -232,15 +253,21 @@ def detect_emergent_locality(graph: ObjectG,
     
     for _ in range(min(sample_pairs, len(node_ids) * (len(node_ids) - 1) // 2)):
         n1, n2 = np.random.choice(node_ids, 2, replace=False)
-        dist = shortest_path_length(graph, n1, n2)
+        dist = shortest_path_length(n1, n2)
         
         if dist is None:
             continue
         
         # Phase correlation (cosine of phase difference)
-        phase1 = graph.nodes[n1]['phase']
-        phase2 = graph.nodes[n2]['phase']
-        correlation = np.cos(phase1 - phase2)
+        import math
+        if n1 in graph.labels and n2 in graph.labels:
+            label1 = graph.labels[n1]
+            label2 = graph.labels[n2]
+            phase1 = math.pi * label1.phase_numer / label1.phase_denom
+            phase2 = math.pi * label2.phase_numer / label2.phase_denom
+            correlation = np.cos(phase1 - phase2)
+        else:
+            continue
         
         if dist <= 2:
             near_correlations.append(correlation)

@@ -1,0 +1,82 @@
+======================================================================
+LONG-RUN EVOLUTION: 1000 steps
+======================================================================
+Checkpoint interval: 200
+Output file: evolution_data.json
+
+Vacuum coherence (baseline): 23.7057
+
+
+Step 200/1000 (2289.4 steps/sec)
+  Nodes: 20, Edges: 34
+  C(G): 60.5555, Res(S,Ω): 0.2263
+  Emergence: PROMISING
+  Profound phenomena: 1/4
+
+Step 400/1000 (2445.8 steps/sec)
+  Nodes: 25, Edges: 45
+  C(G): 83.1237, Res(S,Ω): 0.1367
+  Lorentz test: 4.75% violation
+    ✓ Lorentz invariant
+  Emergence: PROMISING
+  Profound phenomena: 1/4
+
+Step 600/1000 (2324.8 steps/sec)
+  Nodes: 26, Edges: 48
+  C(G): 90.7794, Res(S,Ω): 0.1210
+  Emergence: PROMISING
+  Profound phenomena: 1/4
+
+Step 800/1000 (2212.5 steps/sec)
+  Nodes: 29, Edges: 52
+  C(G): 95.4596, Res(S,Ω): 0.1119
+  Lorentz test: 4.86% violation
+    ✓ Lorentz invariant
+  Emergence: PROMISING
+  Profound phenomena: 1/4
+
+======================================================================
+FINAL RESULTS
+======================================================================
+
+Final state:
+  Nodes: 31
+  Edges: 60
+  C(G): 112.0896 (Δ from vacuum: 88.3839)
+  Res(S,Ω): 0.0874
+
+----------------------------------------------------------------------
+LORENTZ INVARIANCE TEST (Final)
+----------------------------------------------------------------------
+  C(G) before boost: 112.0896
+  C(G) after boost (γ=1.5): 106.3894
+  Relative change: 5.09%
+  ✓ LORENTZ INVARIANCE DETECTED
+
+----------------------------------------------------------------------
+EMERGENCE DETECTION (Final)
+----------------------------------------------------------------------
+
+Emergence Assessment: PROMISING
+Profound phenomena detected: 1/4
+  ✓ Holographic behavior
+
+----------------------------------------------------------------------
+DIMENSIONLESS RATIOS
+----------------------------------------------------------------------
+  Edge/Node ratio: 1.9355
+  φ (golden ratio): 1.6180
+  Ratio / φ: 1.1962
+  ~ Ratio doesn't match known constants
+
+======================================================================
+OVERALL ASSESSMENT
+======================================================================
+  ✓ Lorentz invariance
+
+Total profound phenomena: 2/6
+FINAL ASSESSMENT: PROMISING
+
+Data saved to: evolution_data.json
+Total time: 0.5 seconds
+======================================================================
