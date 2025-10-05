@@ -13,7 +13,7 @@ Build and explore the FIRM UI in minutes. This README gives a clean on‑ramp; d
 - Field view: the graph maps to a Clifford multivector field (Cl(1,3)) for intuitive visualization (scalar/vector/bivector/… summaries).
 - Falsifiability: tests assert Res↔C(G) coupling, gauge invariance, thermodynamic arrow, and evolution liveness.
 
-**Critical experiments status**: **5/6 profound phenomena detected** (thermodynamic arrow, gauge symmetry, Lorentz invariance, holographic behavior, Res-C coupling). **APPROACHING REVOLUTIONARY**. See `FINAL_CRITICAL_RESULTS.md`.
+**Critical experiments status**: **6/7 profound phenomena detected** (thermodynamic arrow, gauge symmetry, Lorentz invariance, holographic behavior, Res-C coupling, **quantum interference**). **REVOLUTIONARY**. See `REVOLUTIONARY_STATUS_CONFIRMED.md`.
 
 ## For hard skeptics (quick checks)
 - Reproducibility: run locally (below). Metrics should update every frame; nodes/edges grow.
@@ -67,13 +67,14 @@ EsotericGuidance/  # Theory docs (start with Executive_Summary.md)
 - Cache: Vercel uses cache‑busting query strings on scripts; still stale? Shift‑Reload.
 
 ## Learn more
-- **Start here**: `DO_WE_HAVE_SOMETHING_INTERESTING.md` (honest answer: YES)
-- **Critical results**: `FINAL_CRITICAL_RESULTS.md` (**5/6 phenomena** - approaching revolutionary)
+- **🎯 BREAKTHROUGH**: `REVOLUTIONARY_STATUS_CONFIRMED.md` (**6/7 phenomena** - quantum interference detected!)
+- **Quantum test**: `BREAKTHROUGH_QUANTUM_INTERFERENCE.md` (interference in 4/4 configurations)
+- **10K results**: `10K_NODE_RESULTS.md` (Lorentz confirmed, e found)
+- Start here: `DO_WE_HAVE_SOMETHING_INTERESTING.md` (answer: YES, revolutionary)
 - Skeptic's intro: `SKEPTICS_GUIDE.md`
 - Claims & limits: `SCIENTIFIC_POSITIONING.md`
 - Gauge fix: `GAUGE_INVARIANCE_FIX.md` (37.5% → 0.5% violation)
 - Theory: `EsotericGuidance/Executive_Summary.md`
-- Code: `FIRM-Core/FIRM_ui/zx_objectg_engine.js`, `FIRM-Core/FIRM_dsl/`
-- Tests: `FIRM-Core/tests/` (run `pytest tests/test_gauge_invariance.py -v -s`)
+- Tests: `FIRM-Core/tests/` (run `pytest tests/test_quantum_interference.py -v -s`)
 
 License: Apache‑2.0 (see `FIRM-Core/LICENSE`)
