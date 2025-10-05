@@ -15,10 +15,9 @@ Each test is designed to be falsifiable and to distinguish between
 import pytest
 import numpy as np
 from collections import defaultdict
-from FIRM_dsl.core import ObjectG, Morphism
+from FIRM_dsl.core import ObjectG
 from FIRM_dsl.coherence import compute_coherence
 from FIRM_dsl.resonance import derive_omega_signature, compute_resonance_alignment
-from FIRM_zx.rules import apply_spider_fusion, apply_color_flip
 
 
 class TestPhaseTransitions:
@@ -51,19 +50,23 @@ class TestPhaseTransitions:
             coh = compute_coherence(graph)
             coherence_history.append(coh)
             
-            # Simple evolution: random spider fusion or color flip
-            if len(graph.nodes) > 2 and np.random.random() < 0.3:
+            # Simple evolution: add nodes and edges
+            if np.random.random() < 0.3:
+                new_id = max(graph.nodes.keys()) + 1
+                node_type = 'Z' if np.random.random() > 0.5 else 'X'
+                phase = np.random.random() * 2 * np.pi
+                graph.add_node(new_id, node_type=node_type, phase=phase)
+                
+                # Connect to existing node
+                existing = np.random.choice(list(graph.nodes.keys())[:-1])
+                graph.add_edge(existing, new_id)
+            
+            # Occasionally add cross-links
+            if len(graph.nodes) > 4 and np.random.random() < 0.2:
                 nodes = list(graph.nodes.keys())
                 n1, n2 = np.random.choice(nodes, 2, replace=False)
-                if graph.has_edge(n1, n2):
-                    apply_spider_fusion(graph, n1, n2)
-            
-            # Add new nodes occasionally (growth)
-            if np.random.random() < 0.2:
-                new_id = max(graph.nodes.keys()) + 1
-                graph.add_node(new_id, node_type='Z', phase=np.random.random() * 2 * np.pi)
-                existing = np.random.choice(list(graph.nodes.keys()))
-                graph.add_edge(existing, new_id)
+                if not graph.has_edge(n1, n2):
+                    graph.add_edge(n1, n2)
         
         # Analyze for plateaus: compute local variance
         window = 10
