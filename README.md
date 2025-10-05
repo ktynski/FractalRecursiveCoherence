@@ -51,6 +51,7 @@ EsotericGuidance/  # Theory docs (start with Executive_Summary.md)
 ## Learn more
 - Start: `EsotericGuidance/Executive_Summary.md`
 - Skeptic’s intro: `SKEPTICS_GUIDE.md`
+- Claims & limits: `SCIENTIFIC_POSITIONING.md`
 - ZX + resonance: `FIRM-Core/FIRM_ui/zx_objectg_engine.js`, `FIRM-Core/FIRM_ui/FIRM_dsl/resonance.js`
 - Python DSL: `FIRM-Core/FIRM_dsl/`
 - Tests: `FIRM-Core/tests/`
