@@ -22,9 +22,22 @@ export class WebGLShaderRuntime {
   
   initialize() {
     // Try WebGL2 first, fallback to WebGL1 (theory-preserving)
-    this.gl = this.canvas.getContext('webgl2') || this.canvas.getContext('webgl');
+    // Mobile-friendly: allow without major performance caveat
+    const contextOptions = {
+      alpha: false,
+      depth: false,
+      antialias: false,
+      powerPreference: 'high-performance',
+      failIfMajorPerformanceCaveat: false  // Critical for mobile devices
+    };
+    
+    this.gl = this.canvas.getContext('webgl2', contextOptions) || 
+              this.canvas.getContext('webgl', contextOptions) ||
+              this.canvas.getContext('experimental-webgl', contextOptions);  // Old mobile browsers
+    
     if (!this.gl) {
-      throw new Error("WebGL not supported - hardware acceleration required");
+      this.showWebGLError();
+      return false;  // Signal initialization failure instead of throwing
     }
     
     // Log which version we're using
@@ -194,6 +207,51 @@ export class WebGPUShaderRuntime {
     
     this.initialized = true;
     return true;
+  }
+  
+  showWebGLError() {
+    /**
+     * Display user-friendly WebGL error message instead of throwing.
+     * Critical for mobile devices where WebGL may be unavailable.
+     */
+    const errorHTML = `
+      <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  background: rgba(0,0,0,0.9); color: #fff; padding: 2rem;
+                  border-radius: 8px; max-width: 90%; text-align: center; z-index: 10000;">
+        <h2 style="color: #ff5555; margin-top: 0;">⚠️ WebGL Not Available</h2>
+        <p style="margin: 1rem 0;">This visualization requires WebGL, which is not available on your device.</p>
+        
+        <div style="text-align: left; margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 4px;">
+          <p style="margin: 0.5rem 0;"><strong>Possible causes:</strong></p>
+          <ul style="margin: 0.5rem 0;">
+            <li>Hardware acceleration is disabled</li>
+            <li>Battery saver mode is active</li>
+            <li>Your browser doesn't support WebGL</li>
+            <li>WebGL is blocked by security settings</li>
+          </ul>
+          
+          <p style="margin: 1rem 0 0.5rem 0;"><strong>Try this:</strong></p>
+          <ul style="margin: 0.5rem 0;">
+            <li>Disable battery saver mode</li>
+            <li>Use Chrome, Firefox, or Safari</li>
+            <li>Enable "Use hardware acceleration" in browser settings</li>
+            <li>Try on a desktop/laptop computer</li>
+          </ul>
+        </div>
+        
+        <p style="margin-top: 1.5rem; font-size: 0.9em; color: #888;">
+          Check your browser's console for technical details.
+        </p>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', errorHTML);
+    console.error('❌ WebGL initialization failed');
+    console.error('Device info:', {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      vendor: navigator.vendor
+    });
   }
   
   createComputePipeline(shaderSource, pipelineName = 'default') {
