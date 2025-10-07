@@ -3,7 +3,7 @@
  * Default view is the raymarched Clifford field (per spec). Rendering pipeline
  * wiring will be added after golden references exist; no visual guesses now.
  */
-import { Analytics } from '@vercel/analytics/next';
+
 // FEATURE FLAGS - Enable advanced features incrementally without breaking current visualization
 const FIRM_FEATURES = {
   zx_scheduling: true,         // Dynamic ZX rewrite scheduling (ENABLED)
