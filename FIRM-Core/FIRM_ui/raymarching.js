@@ -153,69 +153,58 @@ uniform sampler2D uCliffordField;
 #define MAX_STEPS 64   // Reduced for smooth performance
 
 float sampleCliffordField(vec3 pos) {
-    // BOOTSTRAP-DRIVEN GEOMETRY EMERGENCE
-    // Sample field components once
-    vec4 comp0 = texture2D(uCliffordField, vec2(0.125, 0.5));
-    vec4 comp1 = texture2D(uCliffordField, vec2(0.375, 0.5));
-    vec4 comp2 = texture2D(uCliffordField, vec2(0.625, 0.5));
-    vec4 comp3 = texture2D(uCliffordField, vec2(0.875, 0.5));
-    
-    // Bootstrap coherence from PURE COMPONENT EVOLUTION (no radial bias)
+    // PROPER CLIFFORD FIELD SAMPLING - All 16 components
+    // Sample field components properly across 16 texture slots
+    vec4 comp0 = texture2D(uCliffordField, vec2(0.0625, 0.5));  // Components 0-3: scalar, e1, e2, e3
+    vec4 comp1 = texture2D(uCliffordField, vec2(0.1875, 0.5));  // Components 4-7: e01, e02, e03, e12
+    vec4 comp2 = texture2D(uCliffordField, vec2(0.3125, 0.5));  // Components 8-11: e13, e23, e012, e013
+    vec4 comp3 = texture2D(uCliffordField, vec2(0.4375, 0.5));  // Components 12-15: e023, e123, e0123, e0231
+
+    // Bootstrap coherence from ALL COMPONENT EVOLUTION (no radial bias)
     // Use L1 norm instead of L2 to avoid spherical symmetry
-    float bootstrap_coherence = abs(comp0.r) + abs(comp0.g) + abs(comp0.b) + abs(comp0.a);
-    // NO distance from origin - pure field-based emergence
-    float field_locality = abs(pos.x) + abs(pos.y) + abs(pos.z);
-    
-    // PURE MATHEMATICAL GEOMETRY EMERGENCE
-    // Let bootstrap coherence determine if geometry exists at all
-    
-    // NO VOID THRESHOLD - Pure field-based emergence only
-    // Let the field determine its own manifestation without imposed limits
-    
-    // EMERGENCE: Geometry exists only where mathematical coherence creates it
-    // Use the Clifford field components directly as the distance function
-    
-    // Extract mathematical structure from field components
-    float scalar = comp0.r;
-    vec3 vectors = comp0.gba;
-    vec3 bivectors = comp1.rgb;
-    vec4 trivectors = comp2;
-    float pseudoscalar = comp3.r;
-    
+    float bootstrap_coherence = abs(comp0.r) + abs(comp0.g) + abs(comp0.b) + abs(comp0.a) +
+                               abs(comp1.r) + abs(comp1.g) + abs(comp1.b) + abs(comp1.a) +
+                               abs(comp2.r) + abs(comp2.g) + abs(comp2.b) + abs(comp2.a) +
+                               abs(comp3.r) + abs(comp3.g) + abs(comp3.b) + abs(comp3.a);
+
+    // Extract mathematical structure from ALL field components
+    float scalar = comp0.r;                          // Component 0: scalar (grade-0)
+    vec3 vectors = comp0.gba;                        // Components 1-3: e1, e2, e3 (grade-1)
+    vec3 bivectors1 = comp1.rgb;                     // Components 4-6: e01, e02, e03 (grade-2)
+    float bivector_e12 = comp1.a;                    // Component 7: e12 (grade-2)
+    vec3 bivectors2 = comp2.rgb;                     // Components 8-10: e13, e23, e012 (grade-2)
+    float trivector_e013 = comp2.a;                  // Component 11: e013 (grade-3)
+    vec3 trivectors1 = comp3.rgb;                    // Components 12-14: e023, e123, e0123 (grade-3)
+    float pseudoscalar = comp3.a;                    // Component 15: pseudoscalar (grade-4)
+
     // PURE EX NIHILO EMERGENCE - NO IMPOSED GEOMETRY
     // Theory: Let recursive meaning create its own observable manifestation
-    
+
     // NO THRESHOLD - Pure field determines its own manifestation
-    
+
     // COMPLEX MATHEMATICAL FIELD DISTANCE
     // Use ALL active components to create rich geometric complexity
-    
-    // Extract ALL field components for maximum complexity
-    vec3 bivectors2 = comp1.gba;  // Additional bivectors
-    vec4 trivectors_full = comp2;  // Full trivector set
-    float pseudoscalar_full = comp3.r;
-    vec3 additional_vectors = comp3.gba;  // Use pseudoscalar components as vectors
-    
+
     // MULTI-SCALE FIELD INTERFERENCE (NO SPHERICAL BIAS)
     // Use Cartesian coordinates directly - no radial symmetry imposed
     float scale1 = (pos.x + pos.y + pos.z) * 0.1;    // Linear combination
     float scale2 = (pos.x * pos.y + pos.y * pos.z + pos.z * pos.x) * 0.5;    // Bilinear
     float scale3 = (pos.x * pos.y * pos.z) * 2.0;    // Trilinear
-    
-    // COMPLEX FIELD SUPERPOSITION (NO SPHERICAL BIAS)
+
+    // COMPLEX FIELD SUPERPOSITION (NO SPHERICAL BIAS) - Include ALL grades
     // Use pure Cartesian interactions - no quadratic radial terms
     float field_layer1 = scalar * cos(scale1) +
                         dot(vectors, pos) * sin(scale1) +
-                        (bivectors.x * pos.x * pos.y + bivectors.y * pos.y * pos.z + bivectors.z * pos.z * pos.x) * cos(scale1 * 1.618);
-    
+                        (bivectors1.x * pos.x * pos.y + bivectors1.y * pos.y * pos.z + bivectors1.z * pos.z * pos.x) * cos(scale1 * 1.618);
+
     float field_layer2 = dot(bivectors2, pos) * sin(scale2) +
-                        trivectors_full.x * cos(pos.x * scale2) +
-                        trivectors_full.y * sin(pos.y * scale2) +
-                        trivectors_full.z * cos(pos.z * scale2);
-    
-    float field_layer3 = pseudoscalar_full * sin(scale3) +
-                        dot(additional_vectors, pos) * cos(scale3 * 0.618) +
-                        trivectors_full.w * sin(pos.x * pos.y * scale3);
+                        trivector_e013 * cos(pos.x * scale2) +
+                        trivectors1.x * sin(pos.y * scale2) +
+                        trivectors1.y * cos(pos.z * scale2);
+
+    float field_layer3 = pseudoscalar * sin(scale3) +
+                        trivectors1.z * cos(scale3 * 0.618) +
+                        bivector_e12 * sin(pos.x * pos.y * scale3);
     
     // RECURSIVE INTERFERENCE PATTERNS
     float interference1 = field_layer1 * field_layer2;
@@ -240,33 +229,36 @@ float sampleCliffordField(vec3 pos) {
     
     // BOOTSTRAP STAGE COMPLEXITY (driven by mathematical evolution)
     // Add complexity based on actual component magnitudes (NO SPHERICAL BIAS)
-    // Use L1 norms to avoid imposing radial symmetry
-    float component_complexity = 
+    // Use L1 norms to avoid imposing radial symmetry - Include ALL grades
+    float component_complexity =
         abs(scalar) * 0.1 +
         (abs(vectors.x) + abs(vectors.y) + abs(vectors.z)) * 0.08 +
-        (abs(bivectors.x) + abs(bivectors.y) + abs(bivectors.z)) * 0.06 +
+        (abs(bivectors1.x) + abs(bivectors1.y) + abs(bivectors1.z)) * 0.06 +
+        abs(bivector_e12) * 0.05 +
         (abs(bivectors2.x) + abs(bivectors2.y) + abs(bivectors2.z)) * 0.04 +
-        abs(trivectors_full.x) * 0.03 +
-        abs(trivectors_full.y) * 0.03 +
-        abs(trivectors_full.z) * 0.03 +
-        abs(trivectors_full.w) * 0.02 +
-        abs(pseudoscalar_full) * 0.01;
+        abs(trivector_e013) * 0.03 +
+        (abs(trivectors1.x) + abs(trivectors1.y) + abs(trivectors1.z)) * 0.025 +
+        abs(pseudoscalar) * 0.01;
     
     // RECURSIVE SELF-REFERENCE PATTERNS (MAXIMUM ASYMMETRY)
     // Create complexity from component interactions (Ψ ≅ Hom(Ψ,Ψ))
-    // Add aggressive asymmetric terms to break spherical patterns
-    float self_reference = 
+    // Add aggressive asymmetric terms to break spherical patterns - Include ALL grades
+    float self_reference =
         scalar * dot(vectors, pos) * 0.01 +
-        dot(vectors, bivectors) * sin(scale2) * 0.02 +
-        trivectors_full.x * trivectors_full.y * cos(scale3) * 0.01 +
+        dot(vectors, bivectors1) * sin(scale2) * 0.02 +
+        trivector_e013 * trivectors1.x * cos(scale3) * 0.01 +
         // ASYMMETRIC FIELD BREAKING TERMS
-        bivectors.x * pos.y * pos.z * sin(scale1) * 0.03 +
-        bivectors.y * pos.z * pos.x * cos(scale2) * 0.03 +
-        bivectors.z * pos.x * pos.y * sin(scale3) * 0.03 +
-        // COMPONENT CROSS-COUPLING (breaks all symmetries)
+        bivectors1.x * pos.y * pos.z * sin(scale1) * 0.03 +
+        bivectors1.y * pos.z * pos.x * cos(scale2) * 0.03 +
+        bivectors1.z * pos.x * pos.y * sin(scale3) * 0.03 +
+        // COMPONENT CROSS-COUPLING (breaks all symmetries) - Include trivectors
         vectors.x * bivectors2.y * pos.z * 0.02 +
         vectors.y * bivectors2.z * pos.x * 0.02 +
-        vectors.z * bivectors2.x * pos.y * 0.02;
+        vectors.z * bivectors2.x * pos.y * 0.02 +
+        // TRIVECTOR CROSS-COUPLING (new grade-3 interactions)
+        trivector_e013 * bivectors2.x * sin(scale1) * 0.015 +
+        trivectors1.x * trivectors1.y * cos(scale2) * 0.015 +
+        trivectors1.z * pseudoscalar * sin(scale3) * 0.01;
     
     // GRACE OPERATOR: TRULY ACAUSAL (no thresholds)
     // Grace operates continuously based on field incoherence gradient
@@ -331,31 +323,55 @@ void main() {
             // Hit surface - create theory-compliant coloring
             float depth = totalDist / uMaxDistance;
             
-            // Color based on Clifford field components at hit point
-            vec4 comp0 = texture2D(uCliffordField, vec2(0.125, 0.5));
-            vec4 comp1 = texture2D(uCliffordField, vec2(0.375, 0.5));
-            
-            // Bootstrap coherence determines coloring (NO SPHERICAL BIAS)
-            float bootstrap_coherence = abs(comp0.r) + abs(comp0.g) + abs(comp0.b) + abs(comp0.a);
-            
-            // Extract field characteristics for coloring (pure component-based)
-            float scalar_strength = abs(comp0.r);
-            float vector_strength = abs(comp0.g) + abs(comp0.b) + abs(comp0.a);
-            float bivector_strength = abs(comp1.g) + abs(comp1.b) + abs(comp1.a);
-            
-            // BOOTSTRAP STAGE-BASED COLORING (theory-driven)
+            // Color based on ALL Clifford field components at hit point
+            vec4 comp0 = texture2D(uCliffordField, vec2(0.0625, 0.5));  // Components 0-3
+            vec4 comp1 = texture2D(uCliffordField, vec2(0.1875, 0.5));  // Components 4-7
+            vec4 comp2 = texture2D(uCliffordField, vec2(0.3125, 0.5));  // Components 8-11
+            vec4 comp3 = texture2D(uCliffordField, vec2(0.4375, 0.5));  // Components 12-15
+
+            // Extract field characteristics for coloring (ALL component grades)
+            float scalar_strength = abs(comp0.r);                          // Component 0: scalar (grade-0)
+            float vector_strength = abs(comp0.g) + abs(comp0.b) + abs(comp0.a);  // Components 1-3: vectors (grade-1)
+            float bivector_strength = abs(comp1.r) + abs(comp1.g) + abs(comp1.b) + abs(comp1.a) +  // Components 4-7: bivectors (grade-2)
+                                     abs(comp2.r) + abs(comp2.g) + abs(comp2.b);       // Components 8-10: bivectors (grade-2)
+            float trivector_strength = abs(comp2.a) + abs(comp3.r) + abs(comp3.g) + abs(comp3.b);  // Components 11-14: trivectors (grade-3)
+            float pseudoscalar_strength = abs(comp3.a);                    // Component 15: pseudoscalar (grade-4)
+
+            // BOOTSTRAP STAGE-BASED COLORING (theory-driven) - ALL GRADES
             vec3 color;
-            
+
             // PURE FIELD-BASED COLORING (No fixed thresholds - Grace compliant)
-            // Color emerges directly from field component ratios
-            float total_field_strength = scalar_strength + vector_strength + bivector_strength;
-            
-            // Continuous color evolution based on field composition
-            color = vec3(
-                0.1 + 0.9 * (scalar_strength / max(total_field_strength, 0.01)),
-                0.1 + 0.9 * (vector_strength / max(total_field_strength, 0.01)),
-                0.1 + 0.9 * (bivector_strength / max(total_field_strength, 0.01))
-            );
+            // Color emerges directly from field component ratios - Include ALL grades
+            float total_field_strength = scalar_strength + vector_strength + bivector_strength + trivector_strength + pseudoscalar_strength;
+
+            if (total_field_strength > 0.01) {
+                // Continuous color evolution based on field composition - ALL grades
+                // Theory: Higher grades contribute to more complex, emergent visual structures
+                color = vec3(
+                    0.1 + 0.9 * (scalar_strength / total_field_strength) + 0.2 * (trivector_strength / total_field_strength),  // Red: scalar + trivector influence
+                    0.1 + 0.9 * (vector_strength / total_field_strength) + 0.3 * (bivector_strength / total_field_strength),  // Green: vector + bivector influence
+                    0.1 + 0.9 * (bivector_strength / total_field_strength) + 0.4 * (trivector_strength / total_field_strength) + 0.1 * (pseudoscalar_strength / total_field_strength)  // Blue: bivector + trivector + pseudoscalar influence
+                );
+
+                // TRIVECTOR VISUAL EMPHASIS: When trivectors are significant, add distinctive coloring
+                if (trivector_strength > bivector_strength * 0.5) {
+                    // Trivectors (grade-3) create volume-filling structures - emphasize with magenta/cyan tones
+                    color.r = min(1.0, color.r + trivector_strength * 0.3);
+                    color.b = min(1.0, color.b + trivector_strength * 0.4);
+                    color.g = max(0.0, color.g - trivector_strength * 0.2);  // Reduce green to create magenta-cyan effect
+                }
+
+                // PSEUDOSCALAR VISUAL EMPHASIS: When pseudoscalar is significant, add distinctive coloring
+                if (pseudoscalar_strength > scalar_strength * 0.3) {
+                    // Pseudoscalar (grade-4) represents full spacetime volume - emphasize with bright white/yellow
+                    color.r = min(1.0, color.r + pseudoscalar_strength * 0.5);
+                    color.g = min(1.0, color.g + pseudoscalar_strength * 0.5);
+                    color.b = min(1.0, color.b + pseudoscalar_strength * 0.3);
+                }
+            } else {
+                // Fallback for very weak fields
+                color = vec3(0.1, 0.1, 0.2);
+            }
             
             // Grace operator color modulation (TRULY ACAUSAL - no thresholds)
             // Grace activates continuously based on field incoherence gradient
@@ -431,7 +447,7 @@ void main() {
       fragmentShader,
       uniforms,
       cameraConfig,
-      {field_type: "clifford", components: 16}
+      {field_type: "clifford", components: 16, grades: {scalar: 1, vector: 3, bivector: 6, trivector: 4, pseudoscalar: 1}}
     );
   }
 }

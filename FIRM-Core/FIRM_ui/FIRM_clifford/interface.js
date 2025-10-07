@@ -118,6 +118,12 @@ export function phi_zx_to_clifford(graph, rewriteHistory = []) {
       components[12] += triad.coherence * trivectorStrength * Math.cos(orientation);      // e₀₁₃
       components[13] += triad.coherence * trivectorStrength * Math.sin(orientation * 2);  // e₀₂₃
       components[14] += triad.coherence * trivectorStrength * Math.cos(orientation * 2);  // e₁₂₃
+
+      // DEBUG: Log when trivectors are being generated
+      if (trivectorStrength > 0.01) {
+        const trivectorMagnitude = Math.sqrt(components[11]**2 + components[12]**2 + components[13]**2 + components[14]**2);
+        console.log(`🔺 Setting trivectors for triad ${triad.id}: strength=${trivectorStrength.toFixed(3)}, magnitude=${trivectorMagnitude.toFixed(3)}`);
+      }
     }
   }
   

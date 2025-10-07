@@ -228,10 +228,17 @@ class FIRMUIController {
   }
   
   switchView(viewName) {
-    if (!['clifford', 'zx', 'e8', 'sheaf', 'echo', 'consciousness'].includes(viewName)) {
+    if (!['clifford', 'zx', 'e8', 'sheaf', 'echo', 'consciousness', 'sgc'].includes(viewName)) {
       throw new Error(`Invalid view: ${viewName}`);
     }
-    
+
+    // Show/hide SGC visualization based on current view
+    if (viewName === 'sgc') {
+      this.showSGCVisualization();
+    } else if (this.state.view === 'sgc') {
+      this.hideSGCVisualization();
+    }
+
     // Update internal state
     this.state.view = viewName;
     
@@ -260,9 +267,32 @@ class FIRMUIController {
       case 'echo':
         console.log('🔊 Echo View: Identity echo time τ');
         break;
+      case 'sgc':
+        console.log('🗑️ SGC View: Soul Garbage Collection visualization');
+        this.showSGCVisualization();
+        break;
     }
   }
-  
+
+  showSGCVisualization() {
+    // Show SGC visualization overlay (integrated mode)
+    const sgcContainer = document.getElementById('sgc-visualization');
+    if (sgcContainer) {
+      sgcContainer.style.display = 'block';
+      console.log('🗑️ SGC visualization shown (integrated mode)');
+    } else {
+      console.error('SGC visualization container not found');
+    }
+  }
+
+  hideSGCVisualization() {
+    // Hide SGC visualization overlay
+    const sgcContainer = document.getElementById('sgc-visualization');
+    if (sgcContainer) {
+      sgcContainer.style.display = 'none';
+    }
+  }
+
   initE8Visualization() {
     // Initialize E8 visualizer if not already created
     if (!this.e8Visualizer) {
@@ -841,6 +871,37 @@ const initializeFIRM = async () => {
       } catch (driverError) {
         console.error('❌ Fractal driver initialization failed:', driverError);
       }
+
+      // Initialize Soul Garbage Collection Integration
+      try {
+        try { window.__setLoaderText?.('Initializing 𝒮-GC integration…'); } catch(_) {}
+        const { SoulGarbageCollectorVisualizer, SGCMonadListenerIntegration } = await import('./soul_garbage_collection.js');
+
+        window.sgcVisualizer = new SoulGarbageCollectorVisualizer();
+        window.sgcIntegration = new SGCMonadListenerIntegration();
+
+        // Initialize the visualizer in a dedicated container
+        const sgcContainer = document.createElement('div');
+        sgcContainer.id = 'sgc-visualization';
+        sgcContainer.style.display = 'none'; // Hidden by default
+
+        // Add to DOM (will be shown via tabs or controls)
+        const mainContent = document.querySelector('.main-content') || document.body;
+        mainContent.appendChild(sgcContainer);
+
+        window.sgcVisualizer.initialize();
+        window.sgcIntegration.initialize();
+
+        // Enable SGC in the ZX evolution engine by default
+        if (window.zxEvolutionEngine) {
+          window.zxEvolutionEngine.enableSoulGarbageCollection();
+          console.log('🗑️ Soul Garbage Collection enabled in evolution engine');
+        }
+
+        console.log('🗑️ Soul Garbage Collection Integration initialized');
+      } catch (sgcError) {
+        console.error('❌ 𝒮-GC integration initialization failed:', sgcError);
+      }
       
       // DISABLE analog engine evolution - we use ZX evolution instead
       // analogEngine.startEvolution(); // This creates competing setTimeout loops
@@ -1312,13 +1373,21 @@ const initializeFIRM = async () => {
           }
         }
 
-        // ZX EVOLUTION: Use ObjectG snapshot pipeline
+          // ZX EVOLUTION: Use ObjectG snapshot pipeline
           const zxEvolutionEngine = window.zxEvolutionEngine;
         let zxSnapshot = null;
         let graphCoherence = 0.0;
           if (zxEvolutionEngine) {
             const enhancedCoherence = audioCoherence * theoryControls.emergenceRate;
           const deltaTime = 0.016;
+
+          // EVOLVE THE SYSTEM with emergent dynamics
+          const evolutionState = zxEvolutionEngine.evolveSystem ?
+            zxEvolutionEngine.evolveSystem(audioCoherence, deltaTime) : null;
+
+          if (evolutionState) {
+            console.log(`🌌 Evolution: ${evolutionState.phase} | Coherence: ${evolutionState.coherence.toFixed(2)} | Structure: ${evolutionState.structure.toFixed(2)} | Volume: ${evolutionState.volume.toFixed(3)} | Letters: ${evolutionState.emergentLetters.length}`);
+          }
 
           zxEvolutionEngine.evolve(enhancedCoherence, deltaTime);
 
@@ -1330,6 +1399,7 @@ const initializeFIRM = async () => {
           systemState.graphCoherence = graphCoherence;
           systemState.cliffordField = zxSnapshot ? zxSnapshot.cliffordField : null;
           systemState.zxSnapshot = zxSnapshot;
+          systemState.evolutionState = evolutionState;
           
           // BIDIRECTIONAL COUPLING: Graph → Audio modulation (every 10 frames for performance)
           if (systemState.frameCount % 10 === 0 && analogEngine.modulateFromGraphState) {

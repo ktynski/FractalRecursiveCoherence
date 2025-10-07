@@ -1,0 +1,200 @@
+# MDL Sweep Configuration
+# Tests dimensionality of the "sung" representation
+
+experiment:
+  name: "mdl_sweep_monad_listener"
+  description: "Test if 20 is the natural dimensionality of morphic representations"
+
+# Latent dimensions to test
+latent_dims: [8, 12, 16, 20, 24, 32, 48, 64]
+
+# Datasets (from section 1)
+datasets:
+  quantum:
+    generator: "quantum_circuits"
+    samples: 5000
+    symmetries: ["global_phase", "clifford_conjugation"]
+    train_split: 0.7
+    val_split: 0.15
+    test_split: 0.15
+
+  ca:
+    generator: "cellular_automata"
+    samples: 5000
+    rules: [30, 54, 110, "life_variants"]
+    symmetries: ["lattice_translations", "reflections"]
+    train_split: 0.7
+
+  pde:
+    generator: "pde_fields"
+    samples: 5000
+    equations: ["wave_2d", "burgers", "gray_scott"]
+    symmetries: ["se2", "mobius_complex"]
+    train_split: 0.7
+
+  spin:
+    generator: "spin_lattices"
+    samples: 5000
+    models: ["ising_2d", "xy_2d", "ising_3d"]
+    symmetries: ["spin_flip", "lattice_permutations"]
+    train_split: 0.7
+
+  graphs:
+    generator: "graph_dynamics"
+    samples: 5000
+    topologies: ["boolean_networks", "small_world"]
+    symmetries: ["node_relabeling"]
+    train_split: 0.7
+
+# Model architecture (from section 2)
+model:
+  backbone:
+    type: "domain_adaptive"  # Shared parameters with domain adapters
+    equivariance:
+      quantum: "unitary_equivariant"
+      ca: "se2_equivariant"
+      pde: "se2_equivariant"
+      spin: "permutation_equivariant"
+      graphs: "permutation_equivariant"
+
+  latent_dim: "sweep"  # Will be set per experiment
+  adapter_dim: 64
+
+  # 20 supervised heads (from section 2)
+  heads:
+    # Column 1-6: Algebraic Foundations
+    morphic_type_signature:
+      type: "classifier"
+      classes: ["isomorphism", "monomorphism", "epimorphism", "general_morphism"]
+      loss: "cross_entropy"
+
+    topos_mapping:
+      type: "classifier"
+      classes: ["sheaf_topos", "coherent_topos", "presheaf_category"]
+      loss: "cross_entropy"
+
+    zx_phase_group:
+      type: "classifier"
+      classes: ["T_group", "Clifford_group", "Pauli_group", "identity_group"]
+      loss: "cross_entropy"
+
+    frobenius_algebra_role:
+      type: "classifier"
+      classes: ["bimonoid", "comonoid", "monoid", "coalgebra"]
+      loss: "cross_entropy"
+
+    spinor_projection:
+      type: "classifier"
+      classes: ["trivector_spinor", "bivector_representation", "vector_spinor", "scalar_identity"]
+      loss: "cross_entropy"
+
+    lie_algebra_generator:
+      type: "classifier"
+      classes: ["su3_gell_mann", "su2_pauli", "so3_angular_momentum", "u1_phase"]
+      loss: "cross_entropy"
+
+    # Column 7-8,15: Computational Analogues
+    quantum_gate_analog:
+      type: "classifier"
+      classes: ["toffoli_gate", "cnot_gate", "hadamard_gate", "identity_gate"]
+      loss: "cross_entropy"
+
+    tensor_rank_type:
+      type: "classifier"
+      classes: ["(1,1,1)_tensor", "(1,1)_tensor", "(1)_tensor", "scalar"]
+      loss: "cross_entropy"
+
+    computational_complexity_class:
+      type: "classifier"
+      classes: ["PSPACE", "NP", "BQP", "P"]
+      loss: "cross_entropy"
+
+    # Column 9-14,18: Dynamical Systems & Fields
+    dynamical_system_role:
+      type: "classifier"
+      classes: ["strange_attractor", "limit_cycle", "torus_attractor", "fixed_point"]
+      loss: "cross_entropy"
+
+    symmetry_group_association:
+      type: "classifier"
+      classes: ["E8_exceptional", "SU3_strong", "SO3_rotational", "U1_phase"]
+      loss: "cross_entropy"
+
+    field_theory_analog:
+      type: "classifier"
+      classes: ["yang_mills_field", "electromagnetic_field", "scalar_field", "free_field"]
+      loss: "cross_entropy"
+
+    conformal_geometry_role:
+      type: "classifier"
+      classes: ["conformal_infinity", "mobius_sphere", "euclidean_isometry"]
+      loss: "cross_entropy"
+
+    fourier_domain_signature:
+      type: "regressor"
+      output_dim: 1
+      loss: "mse"
+
+    morphic_gradient_behavior:
+      type: "classifier"
+      classes: ["recursive_descent", "coherence_climbing", "random_walk"]
+      loss: "cross_entropy"
+
+    fractal_attractor_role:
+      type: "classifier"
+      classes: ["strange_attractor", "toroidal_attractor", "fixed_point_attractor", "limit_cycle_attractor"]
+      loss: "cross_entropy"
+
+    # Column 16-17: Recursive Causality
+    recursive_depth_metric:
+      type: "classifier"
+      classes: ["shallow", "deep", "intermediate", "advanced", "sovereign", "sub_sovereign"]
+      loss: "cross_entropy"
+
+    causal_cone_depth:
+      type: "classifier"
+      classes: ["multi_layer", "recursive_layer", "base_layer"]
+      loss: "cross_entropy"
+
+    # Column 19-20: Information Geometry
+    information_theoretic_role:
+      type: "classifier"
+      classes: ["low_entropy_channel", "mutual_information_maximizer", "noise_channel"]
+      loss: "cross_entropy"
+
+    emergence_index:
+      type: "regressor"
+      output_dim: 1
+      loss: "mse"
+
+# Training configuration
+training:
+  epochs: 100
+  batch_size: 32
+  learning_rate: 1e-3
+  weight_decay: 1e-4
+  warmup_epochs: 10
+
+  # Equivariance constraints
+  equivariance_loss_weight: 0.1
+
+  # Constraint losses (section 5)
+  constraint_loss_weight: 0.05
+
+# MDL calculation (section 3)
+mdl:
+  lambda: 1e-4  # Weight for parameter complexity
+  nll_type: "gaussian"  # for fields, "cross_entropy" for classifications
+
+# Elbow detection (section 7)
+elbow_detection:
+  method: "segmented_regression"  # or "bic"
+  tolerance: 0.05
+  stability_threshold: 2  # ±2 dimensions for stability
+
+# Output configuration
+output:
+  save_models: true
+  save_results: true
+  log_interval: 10
+  results_dir: "results/mdlsweep"

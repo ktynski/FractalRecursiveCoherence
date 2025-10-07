@@ -16,4 +16,5 @@ __all__ = [
     "provenance",
     "resonance",
     "grace_field",
+    "soul_garbage_collection",
 ]
