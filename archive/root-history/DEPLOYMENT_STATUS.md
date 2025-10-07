@@ -88,7 +88,7 @@
 
 ### After Vercel Deploys (~2 min)
 
-1. **Visit**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+1. **Visit**: https://fractal-recursive-coherence.vercel.app/
 2. **Open DevTools Console** (F12)
 3. **Run this test**:
 

@@ -41,7 +41,7 @@
 
 ## Vercel Deployment
 
-**URL**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+**URL**: https://fractal-recursive-coherence.vercel.app/
 
 **Expected changes when live**:
 - 17 camera options (vs 7 currently)

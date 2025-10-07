@@ -3,7 +3,7 @@
 ## Immediate Actions (0-30 minutes)
 
 ### 1. Verify Vercel Deployment
-**URL**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+**URL**: https://fractal-recursive-coherence.vercel.app/
 
 **Check for new code**:
 - [ ] Hard refresh page (Cmd+Shift+R or Ctrl+Shift+R)

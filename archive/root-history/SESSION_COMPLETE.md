@@ -80,7 +80,7 @@
 ## Vercel Deployment
 
 **Status**: Building (multiple commits queued)  
-**URL**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/  
+**URL**: https://fractal-recursive-coherence.vercel.app/  
 
 **How to verify when live**:
 1. Hard refresh page

@@ -186,7 +186,7 @@ degreeDecay = φ^(-log_φ(1 + degree)) = 1/(1 + degree)
 ### 3. Vercel Deployment (Pending)
 - **Status**: Git push successful, Vercel building
 - **ETA**: 5-10 minutes from last push
-- **URL**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+- **URL**: https://fractal-recursive-coherence.vercel.app/
 
 ---
 

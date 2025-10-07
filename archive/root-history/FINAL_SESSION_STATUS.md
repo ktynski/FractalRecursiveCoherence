@@ -194,7 +194,7 @@ All changes pushed successfully
 
 ### Vercel: ⏳ Building
 ```
-URL: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+URL: https://fractal-recursive-coherence.vercel.app/
 Status: Deploying new code (4 commits)
 ETA: 5-10 minutes from last push
 ```

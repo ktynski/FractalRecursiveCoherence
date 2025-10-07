@@ -103,7 +103,7 @@ python3 -m http.server 8765
 
 ### Vercel Testing (When Deployed)
 
-**URL**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+**URL**: https://fractal-recursive-coherence.vercel.app/
 
 **Verification steps**:
 1. Open DevTools Console

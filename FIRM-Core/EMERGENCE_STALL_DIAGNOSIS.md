@@ -247,7 +247,7 @@ git push origin main
 
 After Vercel auto-deploys (~1 min), open:
 ```
-https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+https://fractal-recursive-coherence.vercel.app/
 ```
 
 Open DevTools Console (F12) and run:

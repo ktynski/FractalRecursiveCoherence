@@ -227,7 +227,7 @@ Test: 595 nodes in 30 sec ✅
 
 ### Vercel: ⏳ PENDING
 ```
-URL: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+URL: https://fractal-recursive-coherence.vercel.app/
 Status: Old code visible (building)
 ETA: Check tomorrow morning
 ```
@@ -301,7 +301,7 @@ python3 -m http.server 8765
 See everything working immediately.
 
 ### Option 2: Wait for Vercel
-Check https://fractal-recursive-coherence-h9f2v88ft.vercel.app/ tomorrow morning.
+Check https://fractal-recursive-coherence.vercel.app/ tomorrow morning.
 
 ### Option 3: Continue Development
 Pick up remaining TODOs (sacred geometry thresholds, transfer entropy, etc.)

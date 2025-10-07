@@ -370,7 +370,7 @@ I searched all theory documents (`EsotericGuidance/`, `FIRM_theory/`) for specif
 
 ### Test Series 1: Baseline Stall
 
-**URL**: https://fractal-recursive-coherence-h9f2v88ft.vercel.app/  
+**URL**: https://fractal-recursive-coherence.vercel.app/  
 **Code**: Production (pre-fix)  
 **Duration**: 10 minutes
 

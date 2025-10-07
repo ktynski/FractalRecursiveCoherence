@@ -166,7 +166,7 @@ Each preset:
 
 1. **Navigate to live deployment**:
    ```
-   https://fractal-recursive-coherence-h9f2v88ft.vercel.app/
+   https://fractal-recursive-coherence.vercel.app/
    ```
 
 2. **Open Chrome DevTools**:
