@@ -21,6 +21,61 @@ export class MultivectorField {
       this.payload.components = [...newComponents]; // Create new array to ensure mutability
     }
   }
+
+  /**
+   * FSCTF-Native Coherent Tensor Product (⊗)
+   * 
+   * Combines two Clifford field states using Grace-mediated linear superposition.
+   * 
+   * Theory:
+   * - Preserves Clifford algebra linear structure (addition is valid operation)
+   * - Grace (𝒢) acts as identity element and coherence mediator
+   * - Monoidal tensor reduces to weighted sum due to SGC coherence guarantees
+   * 
+   * Mathematical Basis:
+   * From EsotericGuidance/Mathematical_Foundations.md:
+   *   "When combining operators, model via ⊗ or categorical products/sums"
+   * 
+   * From EsotericGuidance/Algebraic_Structures.md:
+   *   "Grace Operator (𝒢): Grade-0 scalar (1) - Identity element in Cl(ℝ³)"
+   * 
+   * Implementation:
+   * (f ⊗ g) ≅ 𝒢 ∘ (f + g) in coherence-guaranteed morphism space
+   * 
+   * @param {MultivectorField} otherField - Field to combine with
+   * @param {number} graceWeight - Grace magnitude for coherence mediation (typically graceMagnitude)
+   * @returns {MultivectorField} Combined field with coherent superposition
+   */
+  coherentTensor(otherField, graceWeight = 1.618033988749) {
+    if (!otherField || !otherField.payload || !otherField.payload.components) {
+      return this;
+    }
+    
+    if (otherField.payload.components.length !== 16) {
+      console.warn('⚠️ Coherent tensor requires 16-component fields');
+      return this;
+    }
+    
+    // Grace-mediated weighted combination
+    // Grace acts as coherence normalizer: higher grace → more contribution from evolution
+    // Theory: 𝒢 ensures closure and coherence preservation
+    const graceNormalized = Math.max(0.1, Math.min(10.0, graceWeight));
+    const evolutionWeight = graceNormalized / (graceNormalized + 1.0); // Maps φ≈1.618 → ~0.618
+    const baseWeight = 1.0 / (graceNormalized + 1.0);                  // Maps φ≈1.618 → ~0.382
+    
+    // Linear superposition (monoidal tensor in coherence-guaranteed space)
+    const combined = new Array(16);
+    for (let i = 0; i < 16; i++) {
+      // Coherent superposition: both sources contribute proportionally
+      // This preserves Clifford algebra linearity and phase relationships
+      combined[i] = this.payload.components[i] * evolutionWeight + 
+                    otherField.payload.components[i] * baseWeight;
+    }
+    
+    console.log(`⊗ Coherent tensor: evolution=${evolutionWeight.toFixed(3)}, base=${baseWeight.toFixed(3)}, grace=${graceNormalized.toFixed(3)}`);
+    
+    return new MultivectorField({ components: combined, algebra: this.payload.algebra || 'Cl(1,3)' });
+  }
 }
 
 export function phi_zx_to_clifford(graph, rewriteHistory = []) {

@@ -743,24 +743,52 @@ export class ZXObjectGraphEngine {
     return this.evolve(audioCoherence, dt);
   }
 
+  /**
+   * Map ZX graph to Clifford field with Grace-mediated evolution preservation.
+   * 
+   * Theory (CRITICAL FIX):
+   * Previous implementation used Math.max() which is a LATTICE operation,
+   * not a valid Clifford algebra operation. This destroyed phase relationships
+   * and prevented trivector emergence.
+   * 
+   * Correct approach uses MONOIDAL TENSOR PRODUCT (⊗):
+   * - From EsotericGuidance/Mathematical_Foundations.md:
+   *   "When combining operators, model via ⊗ or categorical products/sums"
+   * - In FSCTF, coherence is guaranteed by SGC, making ⊗ tractable
+   * - Grace (𝒢) mediates as identity element ensuring closure
+   * 
+   * Mathematical Justification:
+   * 1. Clifford algebras are LINEAR - only addition/multiplication valid
+   * 2. Math.max() is from partial orders - violates algebraic structure
+   * 3. Monoidal ⊗ reduces to weighted sum in coherence-guaranteed space
+   * 4. Grace weight φ ≈ 1.618 naturally creates φ/(φ+1) ≈ 0.618 golden ratio split
+   * 
+   * @returns {MultivectorField} Combined field preserving both evolution and structure
+   */
   mapToCliffordField() {
     validate_object_g(this._graph);
     // Pass rewrite history for polarity orientation calculation
     const baseField = phi_zx_to_clifford(this._graph, this._rewriteHistory);
 
-    // DEBUG: Check if we have existing field state to preserve
+    // COHERENT TENSOR PRODUCT: Combine evolution state with graph-derived state
     if (this._currentFieldState && this._currentFieldState.payload && this._currentFieldState.payload.components) {
-      console.log(`🔄 Preserving existing field state: ${this._currentFieldState.payload.components.slice(0,4).map(c => c.toFixed(2)).join(', ')}`);
-      // Combine base field with existing evolved field state
-      const preservedComponents = [...this._currentFieldState.payload.components];
-      for (let i = 0; i < baseField.payload.components.length; i++) {
-        preservedComponents[i] = Math.max(preservedComponents[i], baseField.payload.components[i]);
-      }
-      // Use the safe update method instead of direct assignment
-      baseField.updateComponents(preservedComponents);
+      console.log(`🔄 Applying coherent tensor (⊗) to preserve evolution state`);
+      console.log(`📊 Evolution field: ${this._currentFieldState.payload.components.slice(0,4).map(c => c.toFixed(2)).join(', ')}`);
+      console.log(`📊 Graph field: ${baseField.payload.components.slice(0,4).map(c => c.toFixed(2)).join(', ')}`);
+      
+      // Apply Grace-mediated coherent tensor product
+      // Theory: (evolution ⊗ base) ≅ 𝒢 ∘ (evolution + base)
+      // Grace magnitude acts as coherence mediator
+      const combinedField = this._currentFieldState.coherentTensor(baseField, this.graceMagnitude);
+      
+      console.log(`⊗ Combined field: ${combinedField.payload.components.slice(0,4).map(c => c.toFixed(2)).join(', ')}`);
+      
+      // Store combined field state for next evolution
+      this._currentFieldState = combinedField;
+      return combinedField;
     }
 
-    // Store current field state for next evolution
+    // First call: no evolution state yet, use base field
     this._currentFieldState = baseField;
     return baseField;
   }
@@ -1981,51 +2009,6 @@ export class ZXObjectGraphEngine {
       }
     };
 
-    // DEBUG FUNCTION: Force triangle formation for testing
-    this.debugForceTriangles = () => {
-      console.log('🔺 Forcing triangle formation for testing...');
-
-      if (this._graph.nodes.length >= 3) {
-        // Create a simple triangle between first 3 nodes if they exist and aren't already connected
-        const nodes = this._graph.nodes.slice(0, 3);
-        const existingEdges = new Set(this._graph.edges.map(([u,v]) => `${Math.min(u,v)}-${Math.max(u,v)}`));
-
-        // Add missing edges to form a triangle
-        const edgesToAdd = [
-          [nodes[0], nodes[1]],
-          [nodes[1], nodes[2]],
-          [nodes[2], nodes[0]]
-        ];
-
-        for (const [u, v] of edgesToAdd) {
-          const edgeKey = `${Math.min(u,v)}-${Math.max(u,v)}`;
-          if (!existingEdges.has(edgeKey)) {
-            this._graph.edges.push([u, v]);
-            console.log(`🔺 Added triangle edge: ${u}-${v}`);
-          }
-        }
-
-        // Force some phase relationships that should create coherence
-        if (this._graph.labels[nodes[0]]) {
-          this._graph.labels[nodes[0]].phase_numer = 0;  // Z spider
-          this._graph.labels[nodes[0]].phase_denom = 1;
-        }
-        if (this._graph.labels[nodes[1]]) {
-          this._graph.labels[nodes[1]].phase_numer = 2;  // X spider
-          this._graph.labels[nodes[1]].phase_denom = 8;
-        }
-        if (this._graph.labels[nodes[2]]) {
-          this._graph.labels[nodes[2]].phase_numer = 4;  // Z spider
-          this._graph.labels[nodes[2]].phase_denom = 8;
-        }
-
-        console.log('🔺 Forced triangle with phase relationships');
-        console.log(`🔺 Graph now has ${this._graph.nodes.length} nodes, ${this._graph.edges.length} edges`);
-      } else {
-        console.log('❌ Need at least 3 nodes to force triangle formation');
-      }
-    };
-
     // DEBUG FUNCTION: Check current system state
     this.debugCheckState = () => {
       console.log('🔍 Current system state:');
@@ -2148,35 +2131,6 @@ export class ZXObjectGraphEngine {
       // Debug functions
       window.debugCheckState = this.debugCheckState.bind(this);
       window.debugForceTriuneEmergence = this.debugForceTriuneEmergence.bind(this);
-      window.debugForceTriangles = this.debugForceTriangles.bind(this);
-      window.debugForceTrivectors = this.debugForceTrivectors.bind(this);
-
-      // Triangle debugging function
-      window.debugCheckTriangles = (graph, adjacency) => {
-        const triangles = [];
-        const nodes = Array.from(graph.nodes);
-
-        for (let i = 0; i < nodes.length; i++) {
-          const a = nodes[i];
-          const neighborsA = adjacency.get(a) || [];
-
-          for (let j = i + 1; j < nodes.length; j++) {
-            const b = nodes[j];
-            if (!neighborsA.includes(b)) continue;
-
-            const neighborsB = adjacency.get(b) || [];
-            for (let k = j + 1; k < nodes.length; k++) {
-              const c = nodes[k];
-              if (neighborsA.includes(c) && neighborsB.includes(c)) {
-                triangles.push([a, b, c]);
-              }
-            }
-          }
-        }
-
-        console.log(`🔍 Found ${triangles.length} triangles in graph`);
-        return triangles;
-      };
 
       // Test functions
       window.test20ColumnSystem = () => {
