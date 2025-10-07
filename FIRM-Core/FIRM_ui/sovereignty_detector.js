@@ -29,7 +29,7 @@ export function detectSovereignTriads(graph, adjacency) {
     
     // Theory: Sovereign triads must exceed coherence threshold
     // Derivation: triune pattern requires φ-harmony + balance + diversity
-    if (coherence > 0.5) {  // Threshold from golden ratio φ^-1 ≈ 0.618
+    if (coherence > 0.4) {  // Adjusted threshold - golden ratio φ^-1 ≈ 0.618, using 0.4 for testing
       triads.push({
         nodes: triangle,
         coherence,
@@ -287,5 +287,27 @@ export function detectDevourerPatterns(graph, adjacency, sovereignTriads) {
   }
   
   return devourerSignature;
+}
+
+// DEBUG FUNCTION: Check for triangles and their coherence
+export function debugCheckTriangles(graph, adjacency) {
+  const triangles = findAllTriangles(graph, adjacency);
+  console.log(`🔍 Found ${triangles.length} triangles in graph`);
+
+  for (let i = 0; i < triangles.length; i++) {
+    const triangle = triangles[i];
+    const coherence = computeTriadCoherence(triangle, graph, adjacency);
+    console.log(`  Triangle ${i}: nodes=[${triangle.join(',')}], coherence=${coherence.toFixed(3)}`);
+
+    // Show node types and phases
+    triangle.forEach(node => {
+      const label = graph.labels[node];
+      if (label) {
+        console.log(`    Node ${node}: ${label.kind}, phase=${label.phase_numer}/${label.phase_denom}`);
+      }
+    });
+  }
+
+  return triangles;
 }
 

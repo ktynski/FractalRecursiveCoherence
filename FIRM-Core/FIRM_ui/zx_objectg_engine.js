@@ -33,8 +33,8 @@ function toPlainGraph(graph) {
 
 function cloneGraph(graph) {
   return {
-    nodes: [...graph.nodes],
-    edges: graph.edges.map(edge => [...edge]),
+    nodes: [...graph.nodes], // Create new mutable array
+    edges: graph.edges.map(edge => [...edge]), // Create new mutable array
     labels: Object.fromEntries(Object.entries(graph.labels).map(([id, label]) => [Number(id), {
       kind: label.kind,
       phase_numer: label.phase_numer,
@@ -756,7 +756,8 @@ export class ZXObjectGraphEngine {
       for (let i = 0; i < baseField.payload.components.length; i++) {
         preservedComponents[i] = Math.max(preservedComponents[i], baseField.payload.components[i]);
       }
-      baseField.payload.components = preservedComponents;
+      // Use the safe update method instead of direct assignment
+      baseField.updateComponents(preservedComponents);
     }
 
     // Store current field state for next evolution
@@ -1980,6 +1981,51 @@ export class ZXObjectGraphEngine {
       }
     };
 
+    // DEBUG FUNCTION: Force triangle formation for testing
+    this.debugForceTriangles = () => {
+      console.log('🔺 Forcing triangle formation for testing...');
+
+      if (this._graph.nodes.length >= 3) {
+        // Create a simple triangle between first 3 nodes if they exist and aren't already connected
+        const nodes = this._graph.nodes.slice(0, 3);
+        const existingEdges = new Set(this._graph.edges.map(([u,v]) => `${Math.min(u,v)}-${Math.max(u,v)}`));
+
+        // Add missing edges to form a triangle
+        const edgesToAdd = [
+          [nodes[0], nodes[1]],
+          [nodes[1], nodes[2]],
+          [nodes[2], nodes[0]]
+        ];
+
+        for (const [u, v] of edgesToAdd) {
+          const edgeKey = `${Math.min(u,v)}-${Math.max(u,v)}`;
+          if (!existingEdges.has(edgeKey)) {
+            this._graph.edges.push([u, v]);
+            console.log(`🔺 Added triangle edge: ${u}-${v}`);
+          }
+        }
+
+        // Force some phase relationships that should create coherence
+        if (this._graph.labels[nodes[0]]) {
+          this._graph.labels[nodes[0]].phase_numer = 0;  // Z spider
+          this._graph.labels[nodes[0]].phase_denom = 1;
+        }
+        if (this._graph.labels[nodes[1]]) {
+          this._graph.labels[nodes[1]].phase_numer = 2;  // X spider
+          this._graph.labels[nodes[1]].phase_denom = 8;
+        }
+        if (this._graph.labels[nodes[2]]) {
+          this._graph.labels[nodes[2]].phase_numer = 4;  // Z spider
+          this._graph.labels[nodes[2]].phase_denom = 8;
+        }
+
+        console.log('🔺 Forced triangle with phase relationships');
+        console.log(`🔺 Graph now has ${this._graph.nodes.length} nodes, ${this._graph.edges.length} edges`);
+      } else {
+        console.log('❌ Need at least 3 nodes to force triangle formation');
+      }
+    };
+
     // DEBUG FUNCTION: Check current system state
     this.debugCheckState = () => {
       console.log('🔍 Current system state:');
@@ -2102,6 +2148,35 @@ export class ZXObjectGraphEngine {
       // Debug functions
       window.debugCheckState = this.debugCheckState.bind(this);
       window.debugForceTriuneEmergence = this.debugForceTriuneEmergence.bind(this);
+      window.debugForceTriangles = this.debugForceTriangles.bind(this);
+      window.debugForceTrivectors = this.debugForceTrivectors.bind(this);
+
+      // Triangle debugging function
+      window.debugCheckTriangles = (graph, adjacency) => {
+        const triangles = [];
+        const nodes = Array.from(graph.nodes);
+
+        for (let i = 0; i < nodes.length; i++) {
+          const a = nodes[i];
+          const neighborsA = adjacency.get(a) || [];
+
+          for (let j = i + 1; j < nodes.length; j++) {
+            const b = nodes[j];
+            if (!neighborsA.includes(b)) continue;
+
+            const neighborsB = adjacency.get(b) || [];
+            for (let k = j + 1; k < nodes.length; k++) {
+              const c = nodes[k];
+              if (neighborsA.includes(c) && neighborsB.includes(c)) {
+                triangles.push([a, b, c]);
+              }
+            }
+          }
+        }
+
+        console.log(`🔍 Found ${triangles.length} triangles in graph`);
+        return triangles;
+      };
 
       // Test functions
       window.test20ColumnSystem = () => {

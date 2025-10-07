@@ -4,8 +4,22 @@ import { detectSovereignTriads, computePolarityOrientation, computeSovereigntyIn
 export class MultivectorField {
   constructor(payload) {
     this.payload = payload;
-    Object.freeze(this.payload);
+    // Freeze the payload structure but allow mutation of components array for evolution
+    if (this.payload && this.payload.components) {
+      // Freeze payload properties except components array
+      const { components, ...otherProps } = this.payload;
+      Object.freeze(otherProps);
+      // Keep components mutable for evolution updates
+      this.payload.components = [...components]; // Ensure it's a proper array
+    }
     Object.freeze(this);
+  }
+
+  // Method to safely update components for evolution
+  updateComponents(newComponents) {
+    if (this.payload && Array.isArray(newComponents) && newComponents.length === 16) {
+      this.payload.components = [...newComponents]; // Create new array to ensure mutability
+    }
   }
 }
 

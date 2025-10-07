@@ -16,9 +16,10 @@ export class ObjectG {
     this.nodes = Array.from(nodes || []);
     this.edges = Array.from(edges || []);
     this.labels = { ...labels };
-    Object.freeze(this.nodes);
-    Object.freeze(this.edges);
-    Object.freeze(this.labels);
+    // Keep arrays mutable for evolution but freeze the overall object structure
+    // Object.freeze(this.nodes);  // Removed to allow evolution modifications
+    // Object.freeze(this.edges);  // Removed to allow evolution modifications
+    // Object.freeze(this.labels); // Removed to allow evolution modifications
     Object.freeze(this);
   }
 }

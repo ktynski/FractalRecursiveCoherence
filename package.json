@@ -4,7 +4,7 @@
   "description": "FIRM: Theory-first framework for recursive emergence and consciousness bootstrapping",
   "type": "module",
   "scripts": {
-    "dev": "cd FIRM-Core/FIRM_ui && python3 -m http.server 8000",
+    "dev": "cd FIRM_ui && python3 -m http.server 8080",
     "test": "cd FIRM-Core && pytest -q"
   },
   "keywords": [
