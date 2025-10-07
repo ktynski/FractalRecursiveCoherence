@@ -46,14 +46,6 @@
 
 ---
 
-## 🗂️ Archived Documents
-
-**[archive/historical_docs/](archive/historical_docs/)** - 40+ historical files
-- Journey from skepticism to proof
-- Old validation results (70%, 90%)
-- Session summaries and planning docs
-- Superseded theoretical work
-
 ---
 
 ## 🚀 Quick Actions
