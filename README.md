@@ -1,5 +1,7 @@
 # Physics Constants Derived From Pure Topology—With Zero Free Parameters
 
+[![Watch the Demo](https://img.youtube.com/vi/hcfZLbJ5AkM/maxresdefault.jpg)](https://www.youtube.com/watch?v=hcfZLbJ5AkM)
+
 > **For skeptics**: This is either the most important discovery in fundamental physics, or it's trivially wrong. You can verify which in 30 seconds.
 
 ---
