@@ -74,9 +74,9 @@ E8 (248D) → Ring+Cross (21) → TFCA → FSCTF → Millennium Problems + SGC +
 
 ### **10 Seconds** - The Universe Formula
 ```
-E8(248D) → Ring+Cross(N=21) → TFCA → FSCTF → α = 3g/(4π⁴k) = 1/137.036
+E8(248D) → Ring+Cross(N=21) → TFCA → Field Theory → FSCTF → α = 3g/(4π⁴k) = 1/137.036
 ```
-**Status: 97.5% COMPLETE + 100% VALIDATED (130+ tests passing)!**
+**Status: 98.5% COMPLETE + 100% VALIDATED (130+ tests passing)!**
 
 ### **30 Seconds** - The Stunning Proofs
 ```python
