@@ -182,6 +182,34 @@ export class ZXObjectGraphEngine {
     return { ...this._controlParamsProvenance };
   }
 
+  setSector(sectorName) {
+    // Set physics sector (EM, Dark Matter, or Dark Energy)
+    const sector = window.PHYSICS?.SECTORS?.[sectorName];
+    if (!sector) {
+      console.error(`Unknown sector: ${sectorName}`);
+      return;
+    }
+    
+    console.log(`🔄 Switching to ${sectorName} sector:`, sector);
+    
+    // Reset graph with sector-specific parameters
+    this.reset();
+    
+    // Log sector properties
+    console.log(`  Topology: ${sector.topology}`);
+    console.log(`  Nodes: ${sector.nodes}`);
+    console.log(`  Has loops: ${sector.hasLoops}`);
+    console.log(`  Generates α: ${sector.generatesAlpha}`);
+    
+    // Store current sector for reference
+    this._currentSector = sectorName;
+    
+    // TODO: Full sector implementation will:
+    // - Generate topology-specific initial graph
+    // - Set sector-specific evolution rules
+    // - Apply sector-specific constraints (e.g., no loops for DM)
+  }
+
   _ensureSeed() {
     if (this._graph.nodes.length === 0) {
       this._graph = this._seedBuilder();

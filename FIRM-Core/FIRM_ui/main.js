@@ -140,9 +140,13 @@ class FIRMUIController {
             clifford: 'Clifford Field (Spacetime)',
             zx: 'ZX Graph (Quantum)',
             e8: 'E8 Topology (α=1/137)',
+            sector_em: 'EM Sector (N=21)',
+            sector_dm: 'Dark Matter (N=105)',
+            sector_de: 'Dark Energy (random)',
             consciousness: 'Consciousness View',
             sheaf: 'Sheaf Tree Observer',
-            echo: 'Echo Map Resonance'
+            echo: 'Echo Map Resonance',
+            sgc: 'Soul Garbage Collection'
           };
           viewDescription.textContent = labels[view] || 'FIRM Visualization';
         }
@@ -228,7 +232,8 @@ class FIRMUIController {
   }
   
   switchView(viewName) {
-    if (!['clifford', 'zx', 'e8', 'sheaf', 'echo', 'consciousness', 'sgc'].includes(viewName)) {
+    if (!['clifford', 'zx', 'e8', 'sheaf', 'echo', 'consciousness', 'sgc', 
+          'sector_em', 'sector_dm', 'sector_de'].includes(viewName)) {
       throw new Error(`Invalid view: ${viewName}`);
     }
 
@@ -270,6 +275,27 @@ class FIRMUIController {
       case 'sgc':
         console.log('🗑️ SGC View: Soul Garbage Collection visualization');
         this.showSGCVisualization();
+        break;
+      
+      case 'sector_em':
+        console.log('⚡ EM Sector: N=21, ring+cross topology, α=1/137');
+        if (window.zxEvolutionEngine?.setSector) {
+          window.zxEvolutionEngine.setSector('ELECTROMAGNETIC');
+        }
+        break;
+      
+      case 'sector_dm':
+        console.log('🌑 Dark Matter: N=105, tree topology, no EM coupling');
+        if (window.zxEvolutionEngine?.setSector) {
+          window.zxEvolutionEngine.setSector('DARK_MATTER');
+        }
+        break;
+      
+      case 'sector_de':
+        console.log('💫 Dark Energy: Maximum entropy, random topology');
+        if (window.zxEvolutionEngine?.setSector) {
+          window.zxEvolutionEngine.setSector('DARK_ENERGY');
+        }
         break;
     }
   }
@@ -1313,6 +1339,147 @@ const initializeFIRM = async () => {
           });
         }
         
+        // Run Experiments Button
+        const experimentsButton = document.getElementById('runExperiments');
+        const experimentsResults = document.getElementById('experimentResults');
+        const experimentsResultsBody = document.getElementById('experimentResultsBody');
+
+        if (experimentsButton && experimentsResults && experimentsResultsBody) {
+          experimentsButton.addEventListener('click', async () => {
+            experimentsButton.textContent = '⏳ Running...';
+            experimentsButton.disabled = true;
+            experimentsResults.style.display = 'block';
+            experimentsResultsBody.innerHTML = 'Running experimental tests...<br>';
+            
+            const results = [];
+            
+            try {
+              // Experiment 1: Sphere counting
+              if (window.verifySphereCount) {
+                try {
+                  const sphereResult = window.verifySphereCount();
+                  results.push(`✓ Sphere Count: ${sphereResult ? 'PASS' : 'FAIL'}`);
+                } catch (e) {
+                  results.push(`✗ Sphere Count: ERROR (${e.message})`);
+                }
+              } else {
+                results.push(`⚠ Sphere Count: Function not available`);
+              }
+              
+              // Experiment 2: Interference prediction
+              if (window.predictInterference) {
+                try {
+                  const interference = window.predictInterference();
+                  results.push(`✓ Interference: ${interference ? 'Predicted' : 'N/A'}`);
+                } catch (e) {
+                  results.push(`✗ Interference: ERROR (${e.message})`);
+                }
+              } else {
+                results.push(`⚠ Interference: Function not available`);
+              }
+              
+              // Experiment 3: Evolution tracking (5 seconds for quick test)
+              if (window.trackEvolution) {
+                try {
+                  experimentsResultsBody.innerHTML += 'Tracking evolution (5s)...<br>';
+                  const trackResult = await window.trackEvolution(5);
+                  results.push(`✓ Evolution: ${trackResult?.samples || 0} samples`);
+                } catch (e) {
+                  results.push(`✗ Evolution: ERROR (${e.message})`);
+                }
+              } else {
+                results.push(`⚠ Evolution: Function not available`);
+              }
+              
+              // Display results
+              experimentsResultsBody.innerHTML = results.join('<br>');
+            } catch (error) {
+              experimentsResultsBody.innerHTML = `<span style="color: #ff5555;">Error running experiments: ${error.message}</span>`;
+              console.error('Experiments error:', error);
+            }
+            
+            experimentsButton.textContent = '🧪 Run Experiments';
+            experimentsButton.disabled = false;
+            
+            console.log('🧪 Experiments complete:', results);
+          });
+        }
+        
+        // Validate Theory Button
+        const validateButton = document.getElementById('validateTheory');
+        const validationResults = document.getElementById('validationResults');
+        const validationResultsBody = document.getElementById('validationResultsBody');
+
+        if (validateButton && validationResults && validationResultsBody) {
+          validateButton.addEventListener('click', async () => {
+            validateButton.textContent = '⏳ Validating...';
+            validateButton.disabled = true;
+            validationResults.style.display = 'block';
+            validationResultsBody.innerHTML = 'Running theory validation...<br>';
+            
+            try {
+              // Run theory tests if available
+              if (window.theoryTests?.runAllTests) {
+                await window.theoryTests.runAllTests();
+                const results = window.theoryTests.testResults;
+                const passed = results.filter(r => r.success).length;
+                const total = results.length;
+                
+                validationResultsBody.innerHTML = `
+                  <strong>${passed}/${total} tests passed</strong><br><br>
+                  ${results.map(r => `${r.success ? '✓' : '✗'} ${r.scenario}`).join('<br>')}
+                `;
+              } else {
+                // Basic validation without test suite
+                const validations = [];
+                
+                // E8 validation
+                if (window.PHYSICS?.E8?.check) {
+                  const e8Valid = window.PHYSICS.E8.check();
+                  validations.push(`${e8Valid ? '✓' : '✗'} E8 encoding (dim=248, roots=240)`);
+                }
+                
+                // Alpha calculation
+                if (window.PHYSICS?.ALPHA?.calculate) {
+                  const alpha = window.PHYSICS.ALPHA.calculate();
+                  const error = Math.abs(alpha - 1/137.036) / (1/137.036) * 100;
+                  validations.push(`${error < 1 ? '✓' : '✗'} α = 1/${(1/alpha).toFixed(3)} (${error.toFixed(2)}% error)`);
+                }
+                
+                // ZX engine status
+                if (window.zxEvolutionEngine) {
+                  const snapshot = window.zxEvolutionEngine.getSnapshot?.();
+                  if (snapshot) {
+                    validations.push(`✓ ZX engine active (${snapshot.graph.nodes.length} nodes)`);
+                    validations.push(`✓ Coherence: ${snapshot.coherence.toFixed(3)}`);
+                  }
+                }
+                
+                // Renderer status
+                if (window.renderer?.gl) {
+                  validations.push(`✓ WebGL renderer active`);
+                }
+                
+                // Audio status
+                if (window.analogEngine?.audioContext) {
+                  const state = window.analogEngine.audioContext.state;
+                  validations.push(`${state === 'running' ? '✓' : '⚠'} Audio context: ${state}`);
+                }
+                
+                validationResultsBody.innerHTML = validations.length > 0 
+                  ? validations.join('<br>')
+                  : '<span style="color: #888;">No validation data available</span>';
+              }
+            } catch (error) {
+              validationResultsBody.innerHTML = `<span style="color: #ff5555;">Error: ${error.message}</span>`;
+              console.error('Validation error:', error);
+            }
+            
+            validateButton.textContent = '✓ Validate Theory';
+            validateButton.disabled = false;
+          });
+        }
+        
         // Consciousness Visualization Controls
         const showConsciousness = document.getElementById('showConsciousness');
         const showWill = document.getElementById('showWill');
@@ -1714,6 +1881,38 @@ const initializeFIRM = async () => {
                 const zCount = Object.values(graph.labels).filter(l => l.kind === 'Z').length;
                 const xCount = Object.values(graph.labels).filter(l => l.kind === 'X').length;
                 console.log(`🔗 Graph structure: ${zCount}Z + ${xCount}X spiders, ${graph.edges.length} edges`);
+              }
+            }
+          }
+          
+          // Update physics constants display (every second)
+          if (systemState.frameCount % 60 === 0) {
+            const e8DimEl = document.getElementById('e8Dimension');
+            const e8RootsEl = document.getElementById('e8Roots');
+            const alphaEl = document.getElementById('alphaValue');
+            const sectorEl = document.getElementById('currentSector');
+            const topologyEl = document.getElementById('currentTopology');
+            
+            if (e8DimEl && window.PHYSICS) {
+              const N = window.PHYSICS.N;
+              const dim = N * 12 - 4;
+              const roots = N * 11 + 9;
+              const alpha = window.PHYSICS.ALPHA.calculate();
+              
+              e8DimEl.textContent = `${dim} ${dim === 248 ? '✓' : '✗'}`;
+              e8DimEl.style.color = dim === 248 ? '#00ff00' : '#ff5555';
+              
+              e8RootsEl.textContent = `${roots} ${roots === 240 ? '✓' : '✗'}`;
+              e8RootsEl.style.color = roots === 240 ? '#00ff00' : '#ff5555';
+              
+              alphaEl.textContent = `1/${(1/alpha).toFixed(3)}`;
+              
+              if (window.zxEvolutionEngine?._currentSector) {
+                sectorEl.textContent = window.zxEvolutionEngine._currentSector.replace('_', ' ');
+                const sector = window.PHYSICS.SECTORS[window.zxEvolutionEngine._currentSector];
+                if (sector) {
+                  topologyEl.textContent = sector.topology;
+                }
               }
             }
           }

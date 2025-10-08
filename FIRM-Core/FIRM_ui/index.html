@@ -390,6 +390,11 @@
           <option value="clifford" selected>Clifford Field (Spacetime)</option>
           <option value="zx">ZX Graph (Quantum)</option>
           <option value="e8">E8 Topology (α=1/137)</option>
+          <optgroup label="Physics Sectors">
+            <option value="sector_em">EM Sector (N=21, ring+cross)</option>
+            <option value="sector_dm">Dark Matter (N=105, tree)</option>
+            <option value="sector_de">Dark Energy (random)</option>
+          </optgroup>
           <option value="consciousness">Consciousness</option>
           <option value="sheaf">Sheaf Tree</option>
           <option value="echo">Echo Map</option>
@@ -462,6 +467,34 @@
       </div>
 
       <div class="section-card">
+        <h3>Physics Constants</h3>
+        <div id="physicsConstants" style="font-size: 11px; color: #ccc;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 2px 4px;">E8 Dimension:</td>
+              <td id="e8Dimension" style="padding: 2px 4px; text-align: right;">-</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 4px;">E8 Roots:</td>
+              <td id="e8Roots" style="padding: 2px 4px; text-align: right;">-</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 4px;">α (fine structure):</td>
+              <td id="alphaValue" style="padding: 2px 4px; text-align: right;">-</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 4px;">Current Sector:</td>
+              <td id="currentSector" style="padding: 2px 4px; text-align: right;">EM</td>
+            </tr>
+            <tr>
+              <td style="padding: 2px 4px;">Topology:</td>
+              <td id="currentTopology" style="padding: 2px 4px; text-align: right;">ring+cross</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
         <h3>Theory Exploration</h3>
         <label>Grace Coherence φ: <span id="graceValue">1.618</span>
           <input type="range" id="graceSlider" min="1.0" max="2.5" step="0.001" value="1.618">
@@ -501,6 +534,18 @@
         <button id="resetEvolution" style="margin-top: 10px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Reset to Void</button>
         <button id="autoAlignOmega" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #143b1a; color: #eaeaea; cursor: pointer;">Auto Align to Ω</button>
         <button id="autoOmegaModeToggle" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #1a233b; color: #eaeaea; cursor: pointer;">Enable Auto Ω Mode</button>
+        <button id="runExperiments" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #3b1a1a; color: #eaeaea; cursor: pointer;">🧪 Run Experiments</button>
+        <button id="validateTheory" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #1a3b1a; color: #eaeaea; cursor: pointer;">✓ Validate Theory</button>
+        
+        <div id="experimentResults" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; font-size: 11px;">
+          <div style="font-weight: bold; margin-bottom: 5px;">Experiment Results:</div>
+          <div id="experimentResultsBody" style="color: #ccc;"></div>
+        </div>
+        
+        <div id="validationResults" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; font-size: 11px;">
+          <div style="font-weight: bold; margin-bottom: 5px;">Theory Validation:</div>
+          <div id="validationResultsBody" style="color: #ccc;"></div>
+        </div>
       </div>
 
       <div class="section-card">
