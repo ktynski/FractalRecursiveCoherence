@@ -168,7 +168,8 @@ export class MorphicStructure {
                 this.resonance_cache = this.get_coherence();
             } catch (error) {
                 console.warn('Failed to compute resonance:', error.message);
-                this.resonance_cache = 0.5; // Default neutral resonance
+                // Canonical baseline: φ⁻¹ ≈ 0.618 represents natural vacuum potential
+                this.resonance_cache = 1 / 1.618033988749; // Golden ratio inverse
             }
         }
         return this.resonance_cache;

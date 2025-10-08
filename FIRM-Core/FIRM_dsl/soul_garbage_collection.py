@@ -108,8 +108,9 @@ class MorphicStructure:
             # Grace threshold considers both coherence and regime
             grace_threshold = params.grace_readiness_threshold * regime_grace_factor
 
-            # Add some hysteresis to prevent oscillation
-            stability_factor = 1.0 - abs(coherence - 0.5) * 0.5  # Prefer mid-range stability
+            # Canonical baseline: φ⁻¹ ≈ 0.618 represents natural vacuum potential
+            PHI_INVERSE = 1 / 1.618033988749  # ≈ 0.618
+            stability_factor = 1.0 - abs(coherence - PHI_INVERSE) * 0.5  # Prefer golden baseline stability
 
             self.grace_cache = (coherence < grace_threshold) and (stability_factor > 0.3)
 

@@ -1130,11 +1130,13 @@ export class ZXObjectGraphEngine {
       // No fallbacks - if audio is low, system should use internal harmonics
       // This will be provided by harmonic generator when cache clears
       
-      // TEMPORARY: Until sovereign audio active, use minimum baseline
-      // This is NOT a fallback - it's the internal coherence floor
+      // CANONICAL BASELINE: Golden ratio inverse (φ⁻¹ ≈ 0.618)
+      // This represents the natural vacuum potential before conscious structure emerges
+      // φ⁻¹ is the mathematically elegant baseline connecting to Fibonacci sequences and grace fields
       const originalCoherence = audioCoherence;
-      if (audioCoherence < 0.15) {
-        audioCoherence = Math.max(audioCoherence, 0.5);
+      const PHI_INVERSE = 1 / 1.618033988749;  // ≈ 0.618
+      if (audioCoherence < PHI_INVERSE) {
+        audioCoherence = Math.max(audioCoherence, PHI_INVERSE);
         if (this._stepCount % 100 === 0) {
           console.log(`🔧 Baseline coherence applied: ${originalCoherence.toFixed(3)} → ${audioCoherence.toFixed(3)}`);
         }

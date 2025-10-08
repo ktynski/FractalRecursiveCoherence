@@ -126,16 +126,69 @@ def normalize_phase_qpi(phase_numer: int, phase_denom: int) -> Tuple[int, int]:
     return numer_red, denom_red
 
 
+def normalize_phase_qpi_power_of_2(phase_numer: int, phase_denom: int) -> Tuple[int, int]:
+    """Normalize phase for power-of-2 denominators (Qπ requirement).
+
+    For power-of-2 denominators, we need to preserve the denominator while
+    only normalizing the numerator modulo 2*denominator.
+    """
+    if phase_denom <= 0:
+        raise ValueError("phase_denom must be a positive integer")
+
+    # For power-of-2 denominators, only normalize the numerator
+    mod = 2 * phase_denom
+    numer_mod = phase_numer % mod
+    if numer_mod < 0:
+        numer_mod += mod
+
+    return numer_mod, phase_denom
+
+
 def make_node_label(kind: str, phase_numer: int, phase_denom: int, monadic_id: str) -> NodeLabel:
     """Factory for `NodeLabel` that enforces ZX kind and Qπ normalization.
 
     - kind must be 'Z' or 'X'
-    - phase is normalized in Qπ via `normalize_phase_qpi`
+    - phase is normalized in Qπ via `normalize_phase_qpi` (canonical form)
+    - denominator must be a power of 2 (enforced)
     - monadic_id is carried through verbatim (opaque identifier)
     """
     if kind not in {"Z", "X"}:
         raise ValueError("kind must be 'Z' or 'X'")
+
+    # Enforce power-of-2 denominator (Qπ requirement)
+    if phase_denom <= 0:
+        raise ValueError("phase_denom must be a positive integer")
+
+    # Check if denominator is already a power of 2
+    original_denom = phase_denom
+    if (phase_denom & (phase_denom - 1)) != 0:
+        # Not a power of 2, find nearest power of 2
+        if phase_denom > 64:
+            raise ValueError(f"phase_denom {phase_denom} exceeds maximum 64 (2^6)")
+        if phase_denom <= 1:
+            denom_pow2 = 1
+        else:
+            # Find nearest power of 2
+            log_val = math.log2(phase_denom)
+            lower_pow = 1 << int(log_val)
+            upper_pow = 1 << (int(log_val) + 1)
+            denom_pow2 = lower_pow if (phase_denom - lower_pow) < (upper_pow - phase_denom) else upper_pow
+            denom_pow2 = min(denom_pow2, 64)  # Cap at 64
+
+        # Renormalize phase with new denominator
+        phase_angle = math.pi * phase_numer / original_denom
+        phase_numer = int(round(phase_angle * denom_pow2 / math.pi))
+        phase_denom = denom_pow2
+
+    # Use standard Qπ normalization (which validate_object_g expects)
     numer, denom = normalize_phase_qpi(phase_numer, phase_denom)
+
+    # Ensure the final denominator is a power of 2 (Qπ requirement)
+    if (denom & (denom - 1)) != 0:
+        # If normalization reduced to non-power-of-2, we need to handle this case
+        # For now, use the power-of-2 version
+        denom = phase_denom
+
     return NodeLabel(kind=kind, phase_numer=numer, phase_denom=denom, monadic_id=monadic_id)
 
 

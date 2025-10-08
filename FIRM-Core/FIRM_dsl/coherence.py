@@ -71,7 +71,15 @@ def compute_coherence(graph: ObjectG) -> float:
         
         node_resonance += connectivity_factor * phase_simplicity
     
-    return cycle_coherence + node_resonance
+    # Normalize to [0, 1] range to match theoretical constraints
+    # The coherence should be bounded between 0 and 1
+    total_coherence = cycle_coherence + node_resonance
+
+    # Apply normalization: use sigmoid-like function to bound the result
+    # This ensures coherence stays in [0, 1] regardless of input size
+    normalized_coherence = 1.0 / (1.0 + math.exp(-total_coherence))
+
+    return min(1.0, max(0.0, normalized_coherence))
 
 
 def coherence_functional_structure(graph: ObjectG) -> dict:
