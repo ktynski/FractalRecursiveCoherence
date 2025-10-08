@@ -101,6 +101,9 @@ universe_validation/
 !FIRM-Core/docs/images/03_audio_coupling.png
 !FIRM-Core/docs/images/04_sacred_network.png
 !FIRM-Core/docs/images/05_metamirror_bireflection.png
+!vercel_screens/*.png
+!vercel_screens/*.gif
+!vercel_screens/*.jpg
 
 # Node.js
 node_modules/
