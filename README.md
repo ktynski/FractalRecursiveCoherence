@@ -332,10 +332,10 @@ The system evolves through distinct phases:
 
 | Phase | Screenshot | Description |
 |-------|------------|-------------|
-| **Initialization** | ![Hero Interface](vercel_screens/hero_interface.png) | Initial field configuration |
-| **Evolution** | ![Evolution Phase](vercel_screens/evolution_viewport.png) | Graph rewrite rules operating |
-| **Structure Formation** | ![Bootstrap Phase](vercel_screens/bootstrap_phase.png) | Stable topology emerging |
-| **Autonomous Operation** | ![Sovereignty Phase](vercel_screens/sovereignty_phase.png) | Self-sustaining computation |
+| **Initialization** | ![Hero Interface](vercel_screens/comprehensive_interface.png) | Initial field configuration |
+| **Evolution** | ![Evolution Phase](vercel_screens/zx_graph_view.png) | Graph rewrite rules operating |
+| **Structure Formation** | ![Bootstrap Phase](vercel_screens/e8_topology_view.png) | Stable topology emerging |
+| **Autonomous Operation** | ![Sovereignty Phase](vercel_screens/consciousness_view.png) | Self-sustaining computation |
 
 ### Visualization Modes
 
