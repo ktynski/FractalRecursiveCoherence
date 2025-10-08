@@ -1,6 +1,6 @@
 # First-Principles Derivation of Physics Constants from Pure Topology
 
-![System Running](vercel_screens/hero_interface.png)  
+![System Running](vercel_screens/comprehensive_interface.png)  
 **↑ This system is running RIGHT NOW. Click below to interact:**
 
 ## [▶️ LIVE DEMO](https://fractlphoneroom1.github.io/FractalRecursiveCoherence/) | [📹 Watch 60s Video](#demo-video) | [🔬 Run in Browser Console](#instant-test)
@@ -511,6 +511,16 @@ All happening with **zero user input** after initialization.
 | **Evolution** | ![Evolution Phase](vercel_screens/evolution_viewport.png) | Field evolution in progress |
 | **Bootstrap** | ![Bootstrap Phase](vercel_screens/bootstrap_phase.png) | Graph structure formation |
 | **Sovereignty** | ![Sovereignty Phase](vercel_screens/sovereignty_phase.png) | Fully autonomous operation |
+
+### 🔬 Multiple Visualization Modes
+
+| View | Screenshot | Description |
+|------|------------|-------------|
+| **Clifford Field** | ![Comprehensive Interface](vercel_screens/comprehensive_interface.png) | Main spacetime field visualization |
+| **Controls Panel** | ![Controls Panel](vercel_screens/controls_panel_open.png) | Theory controls and parameters |
+| **ZX Graph** | ![ZX Graph View](vercel_screens/zx_graph_view.png) | Quantum circuit representation |
+| **E8 Topology** | ![E8 Topology](vercel_screens/e8_topology_view.png) | E8 Lie group structure |
+| **Consciousness** | ![Consciousness View](vercel_screens/consciousness_view.png) | Consciousness levels and emergence |
 
 ---
 
