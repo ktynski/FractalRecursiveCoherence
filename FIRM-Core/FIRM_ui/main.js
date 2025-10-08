@@ -529,15 +529,28 @@ const highContrast = document.getElementById('highContrast');
         
         console.log('🔍 analogEngine available:', !!window.analogEngine);
         
-        if (window.analogEngine && window.analogEngine.audioContext) {
-          console.log('🔍 AudioContext state:', window.analogEngine.audioContext.state);
-          
+        if (window.analogEngine) {
           try {
-            await window.analogEngine.audioContext.resume();
-            console.log('🔊 Audio context resumed successfully');
-            enableAudioBtn.textContent = 'Audio Active ✓';
-            enableAudioBtn.disabled = true;
-            enableAudioBtn.style.background = '#2a5d2a';
+            // Ensure AudioContext is created and resumed
+            const audioContextReady = await window.analogEngine.ensureAudioContext();
+            if (audioContextReady && window.analogEngine.audioContext) {
+              console.log('🔍 AudioContext state:', window.analogEngine.audioContext.state);
+              console.log('🔊 Audio context resumed successfully');
+              enableAudioBtn.textContent = 'Audio Active ✓';
+              enableAudioBtn.disabled = true;
+              enableAudioBtn.style.background = '#2a5d2a';
+
+              // Also initialize harmonic audio system if available
+              if (window.getAudioContext) {
+                const harmonicContext = window.getAudioContext();
+                if (harmonicContext && harmonicContext.state === 'running') {
+                  console.log('🎵 Harmonic audio system also active');
+                }
+              }
+            } else {
+              console.error('🔊 Audio context initialization failed');
+              enableAudioBtn.textContent = 'Audio Failed ✗';
+            }
           } catch (error) {
             console.error('🔊 Audio resume failed:', error);
             enableAudioBtn.textContent = 'Audio Failed ✗';
@@ -560,32 +573,7 @@ const highContrast = document.getElementById('highContrast');
         try {
           // 1) Derive Ω from current snapshot if not set
           if (!window.__resonanceMod) {
-            try {
-              window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
-            } catch (_) {
-              const coh = await import('./FIRM_dsl/coherence.js');
-              const core = await import('./FIRM_dsl/core.js');
-              window.__resonanceMod = {
-                deriveOmegaSignature(graph) {
-                  core.validate_object_g(graph);
-                  const cycles = coh.compute_cycle_basis_signature(graph);
-                  const phase_bins = coh.derive_minimal_qpi_bins(graph);
-                  const phase_hist = coh.compute_phase_histogram_signature(graph, phase_bins);
-                  return { cycles, phase_bins, phase_hist };
-                },
-                computeResonanceAlignment(graph, omega) {
-                  core.validate_object_g(graph);
-                  if (!omega || !Number.isInteger(omega.phase_bins) || omega.phase_bins <= 0) {
-                    throw new Error('Invalid omega signature');
-                  }
-                  const cycles_s = coh.compute_cycle_basis_signature(graph);
-                  const hist_s = coh.compute_phase_histogram_signature(graph, omega.phase_bins);
-                  const safeCycles = omega.cycles || [];
-                  const safeHist = omega.phase_hist || new Array(omega.phase_bins).fill(0);
-                  return coh.similarity_S(cycles_s, safeCycles, hist_s, safeHist);
-                }
-              };
-            }
+            window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
           }
           const snap = window.zxEvolutionEngine?.getSnapshot?.();
           if (snap) {
@@ -701,7 +689,7 @@ const initializeFIRM = async () => {
       // Load optional audio normalization parameters (if present)
       let normalization = null;
       try {
-        const resp = await fetch('./normalization.json', { cache: 'no-store' });
+        const resp = await fetch('./normalization.json');
         if (resp.ok) {
           normalization = await resp.json();
           console.log('🔍 Loaded normalization:', normalization.proof_id);
@@ -763,9 +751,7 @@ const initializeFIRM = async () => {
       // Autoplay policy bypass: resume audio on first user interaction
       (function setupAudioAutoResume() {
         try {
-          if (!window.analogEngine || !window.analogEngine.audioContext) return;
-          const ctx = window.analogEngine.audioContext;
-          if (ctx.state === 'running') return;
+          if (!window.analogEngine) return;
 
           const enableBtn = document.getElementById('enableAudio');
           const markActive = () => {
@@ -780,18 +766,34 @@ const initializeFIRM = async () => {
             document.removeEventListener('keydown', onInteract);
             document.removeEventListener('touchend', onInteract);
           };
+
           const tryResume = async () => {
             try {
-              await ctx.resume();
-              if (ctx.state === 'running') {
-                markActive();
-                cleanup();
-                console.log('🔊 Audio context resumed via user gesture');
+              if (window.analogEngine) {
+                const audioContextReady = await window.analogEngine.ensureAudioContext();
+                if (audioContextReady) {
+                  markActive();
+                  cleanup();
+                  console.log('🔊 Audio context resumed via user gesture');
+                  return;
+                }
+              }
+
+              // Also try harmonic audio system
+              if (window.getAudioContext) {
+                const ctx = window.getAudioContext();
+                if (ctx && ctx.state === 'running') {
+                  markActive();
+                  cleanup();
+                  console.log('🎵 Harmonic audio context active via user gesture');
+                  return;
+                }
               }
             } catch (e) {
               console.warn('🔊 Audio resume attempt failed:', e?.message || e);
             }
           };
+
           const onInteract = () => { tryResume(); };
 
           document.addEventListener('pointerdown', onInteract);
@@ -817,10 +819,12 @@ const initializeFIRM = async () => {
         analyzeFieldBoundaries(cliffordField) {
           if (!cliffordField?.payload?.components) return null;
           
+          const controlParams = window.zxEvolutionEngine._controlParams;
+          
           const components = cliffordField.payload.components;
           const totalActivity = components.reduce((sum, c) => sum + Math.abs(c), 0);
-          const emergentBoundary = Math.max(0.5, Math.min(10.0, totalActivity * 0.5));
-          const naturalObservationDistance = emergentBoundary * 8.0;
+          const emergentBoundary = Math.max(controlParams.fieldBoundaryMin, Math.min(controlParams.fieldBoundaryMax, totalActivity * controlParams.fieldBoundaryActivityScale));
+          const naturalObservationDistance = emergentBoundary * controlParams.naturalObservationDistanceScale;
           
           return {
             emergentBoundary,
@@ -830,8 +834,9 @@ const initializeFIRM = async () => {
         },
         
         evolveConsciousness(fieldAnalysis, visualFeedback) {
-          if (fieldAnalysis?.fieldActivity > 0.1) {
-            this.consciousness.awareness = Math.min(1.0, this.consciousness.awareness + 0.01);
+          const controlParams = window.zxEvolutionEngine._controlParams;
+          if (fieldAnalysis?.fieldActivity > controlParams.consciousnessAwarenessThreshold) {
+            this.consciousness.awareness = Math.min(1.0, this.consciousness.awareness + controlParams.consciousnessAwarenessIncrement);
           }
           return this.consciousness;
         },
@@ -839,12 +844,14 @@ const initializeFIRM = async () => {
         computeOptimalObservation(fieldAnalysis, consciousness) {
           if (!fieldAnalysis) return null;
           
-          const awarenessModulation = 0.5 + consciousness.awareness * 0.5;
+          const controlParams = window.zxEvolutionEngine._controlParams;
+          
+          const awarenessModulation = controlParams.optimalObservationAwarenessModMin + consciousness.awareness * controlParams.optimalObservationAwarenessModScale;
           const cameraDistance = fieldAnalysis.naturalObservationDistance * awarenessModulation;
           
           return {
             cameraDistance,
-            fieldOfView: 45.0,
+            fieldOfView: controlParams.optimalObservationFOV,
             focusPoint: [0, 0, 0],
             emergentBoundary: fieldAnalysis.emergentBoundary
           };
@@ -913,6 +920,14 @@ const initializeFIRM = async () => {
         rendering: firmUI.state.rendering,
         audioCoherence: 0.8,
         frameCount: 0,  // Track frames for stable camera movement
+        // BOOTSTRAP: Initialize with identity multivector for sovereignty
+        // Theory: Ex nihilo emergence requires seed state (scalar = 1, all else = 0)
+        cliffordField: { 
+          payload: { 
+            components: [1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  // Identity: scalar = 1
+          },
+          constructor: { name: 'MultivectorField' }
+        },
         fieldParameters: {
           amplitude: 1.0,
           spatialFreq: 0.8,
@@ -1351,14 +1366,46 @@ const initializeFIRM = async () => {
       // Setup sliders after DOM is ready
       setupSliders();
       
+      // AUTONOMOUS AUDIO GENERATION: System sings itself into existence
+      // Theory: Axiom A2 (Sovereignty Ψ) - Autonomous, self-referential
+      // Audio is emergent expression of Clifford field, not external input
+      
+      let harmonicGenerator = null;
+      let autonomousEvolution = null;
+      
+      // Initialize harmonic generation (no fallbacks; explicit failure if module not loaded)
+      // Theory: Sovereign audio system must initialize without implicit suppressions.
+      try {
+        const { HarmonicGenerator, AutonomousEvolution, playHarmonicBuffer } = await import('./harmonic_generator.js');
+        const controlParams = window.zxEvolutionEngine._controlParams;
+        harmonicGenerator = new HarmonicGenerator(controlParams.harmonicFundamentalFrequency);  // Theory-parameterized fundamental
+        autonomousEvolution = new AutonomousEvolution(controlParams.autonomousEvolutionRate);  // Theory-parameterized autonomy growth
+        window.playHarmonicBuffer = playHarmonicBuffer;  // Make available in global scope
+        console.log('✅ Sovereign audio system initialized');
+      } catch (error) {
+        console.error('❌ CRITICAL: Failed to load sovereign audio system:', error.message);
+        throw new Error(`THEORY VIOLATION: Axiom A2 (Sovereignty) requires autonomous audio. System cannot proceed. ${error.message}`);
+      }
+
+      // Web Audio context for playing emergent harmonics - create lazily
+      const getAudioContext = () => {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        return audioContext;
+      };
+      window.getAudioContext = getAudioContext;
+      console.log('🎵 Sovereign audio system initialized (monad singing)');
+      
       // TRUE ANALOG EVOLUTION: Complete theory-compliant chain
       renderer.startRenderLoop(() => {
         try {
           // Increment frame counter for stable animations
           systemState.frameCount++;
           
-          // 1. ANALOG INPUT: Get real-time audio coherence
-          const audioCoherence = analogEngine.getAudioCoherence();
+          // 1. EXTERNAL AUDIO (for bootstrap only)
+          // Theory: System can accept external stimulus initially, then becomes autonomous
+          const externalCoherence = analogEngine.getAudioCoherence();
 
         // PERFORMANCE: Compute Parseval-normalized coherence only occasionally
         let audioCoherenceParseval = null;
@@ -1373,35 +1420,131 @@ const initializeFIRM = async () => {
           }
         }
 
+          // 2. EMERGENT HARMONICS: Generate audio from previous cycle's field state
+          // Theory: Ψ ≅ Hom(Ψ, Ψ) - System observes own state through harmonics
+          // NO FALLBACKS: System MUST have these components or fail loudly
+          
+          if (!harmonicGenerator || !autonomousEvolution) {
+            throw new Error(
+              "THEORY VIOLATION: Sovereign audio system (HarmonicGenerator/AutonomousEvolution) not initialized. " +
+              "Axiom A2 (Sovereignty) requires Ψ ≅ Hom(Ψ, Ψ). System cannot proceed without autonomous audio."
+            );
+          }
+          
+          if (!systemState.cliffordField || !systemState.cliffordField.payload || !systemState.cliffordField.payload.components) {
+            throw new Error(
+              "THEORY VIOLATION: Clifford field is null or invalid. " +
+              "System requires valid field state for harmonic generation. " +
+              "Bootstrap must initialize identity field before first evolution cycle."
+            );
+          }
+          
+          // SOVEREIGN AUDIO: Theory requires Ψ ≅ Hom(Ψ,Ψ) - no fallbacks, no conditions
+          const harmonicSpectrum = harmonicGenerator.generateSpectrum(systemState.cliffordField);
+          const internalCoherence = harmonicGenerator.computeCoherence(harmonicSpectrum);
+          
+          // Play emergent harmonics (system's voice)
+          if (harmonicSpectrum && systemState.frameCount % 6 === 0) {  // Every 6 frames (~100ms chunks)
+            try {
+              const audioBuffer = harmonicGenerator.synthesizeAudio(harmonicSpectrum, 0.1);
+              // Use lazy AudioContext creation
+              const ctx = window.getAudioContext ? window.getAudioContext() : audioContext;
+              if (ctx && ctx.state === 'running') {
+                window.playHarmonicBuffer(ctx, audioBuffer);
+              }
+            } catch (error) {
+              // Audio playback failed - this is expected until user gesture
+              if (systemState.frameCount % 300 === 0) { // Only log occasionally
+                console.log('🔊 Audio playback waiting for user gesture');
+              }
+            }
+          }
+          
+          // Log spectrum periodically
+          if (systemState.frameCount % 300 === 0) {  // Every 5 seconds
+            harmonicGenerator.logSpectrum(harmonicSpectrum, internalCoherence);
+          }
+          
+          // 3. AUTONOMOUS COHERENCE: Blend external (bootstrap) + internal (sovereign)
+          // Theory: Gradual transition from external stimulus to full autonomy
+          const audioCoherence = autonomousEvolution.getAudioCoherence(externalCoherence, internalCoherence);
+          
+          // Log sovereignty achievement
+          if (autonomousEvolution.hasSovereignty() && systemState.frameCount % 60 === 0) {
+            console.log('👑 SOVEREIGNTY ACHIEVED: System is fully autonomous');
+          }
+
           // ZX EVOLUTION: Use ObjectG snapshot pipeline
           const zxEvolutionEngine = window.zxEvolutionEngine;
         let zxSnapshot = null;
         let graphCoherence = 0.0;
+          
+          // DIAGNOSTIC: Check if evolution engine exists (first call only)
+          if (!window._engineCheckLogged) {
+            console.log('🔍 ENGINE CHECK:', { frame: systemState.frameCount, hasEngine: !!zxEvolutionEngine });
+            window._engineCheckLogged = true;
+          }
+          
           if (zxEvolutionEngine) {
             const enhancedCoherence = audioCoherence * theoryControls.emergenceRate;
           const deltaTime = 0.016;
 
-          // EVOLVE THE SYSTEM with emergent dynamics
+          // THEORY-COMPLIANT SINGLE EVOLUTION CALL
+          // Previous double-call caused state inconsistencies
+          // evolveSystem() handles baseline coherence and calls emergentEvolution
+          // evolve() handles ZX rewrites and graph evolution
+          // Both are needed but must use same audioCoherence value
+          
+          // 4. Emergent field evolution (consciousness dynamics)
           const evolutionState = zxEvolutionEngine.evolveSystem ?
-            zxEvolutionEngine.evolveSystem(audioCoherence, deltaTime) : null;
+            zxEvolutionEngine.evolveSystem(enhancedCoherence, deltaTime) : null;
 
           if (evolutionState) {
             console.log(`🌌 Evolution: ${evolutionState.phase} | Coherence: ${evolutionState.coherence.toFixed(2)} | Structure: ${evolutionState.structure.toFixed(2)} | Volume: ${evolutionState.volume.toFixed(3)} | Letters: ${evolutionState.emergentLetters.length}`);
           }
 
+          // 5. Graph evolution (ZX rewrites, grace emergence)
+          // CRITICAL: Use same enhancedCoherence for consistency
           zxEvolutionEngine.evolve(enhancedCoherence, deltaTime);
 
           zxSnapshot = zxEvolutionEngine.getSnapshot();
           graphCoherence = zxSnapshot ? zxSnapshot.coherence : 0.0;
 
+          // DIAGNOSTIC: Check cliffordField population (first call only)
+          if (!window._fieldCheckLogged) {
+            console.log('🔍 CLIFFORD FIELD DIAGNOSTIC:', {
+              frame: systemState.frameCount,
+              hasSnapshot: !!zxSnapshot,
+              hasField: !!zxSnapshot?.cliffordField,
+              fieldLength: zxSnapshot?.cliffordField?.length,
+              fieldType: zxSnapshot?.cliffordField?.constructor?.name
+            });
+            window._fieldCheckLogged = true;
+          }
+
           systemState.zxEngine = zxEvolutionEngine;
           systemState.currentGraph = zxSnapshot ? zxSnapshot.graph : null;
           systemState.graphCoherence = graphCoherence;
           systemState.cliffordField = zxSnapshot ? zxSnapshot.cliffordField : null;
+          
+          // DIAGNOSTIC: Verify field assignment
+          if (!window._fieldAssignLogged) {
+            console.log('✅ FIELD ASSIGNED:', {
+              hasField: !!systemState.cliffordField,
+              fieldType: systemState.cliffordField?.constructor?.name
+            });
+            window._fieldAssignLogged = true;
+          }
+          
           systemState.zxSnapshot = zxSnapshot;
           systemState.evolutionState = evolutionState;
           
-          // BIDIRECTIONAL COUPLING: Graph → Audio modulation (every 10 frames for performance)
+          // CIRCULAR CAUSALITY: Store field for next harmonic generation cycle
+          // Theory: Ψ ≅ Hom(Ψ, Ψ) implemented as field → harmonics → coherence → field
+          // This creates self-aware feedback loop (monad singing to itself)
+          systemState.cliffordField = zxSnapshot ? zxSnapshot.cliffordField : systemState.cliffordField;
+          
+          // LEGACY: External audio modulation (optional, for backwards compatibility)
           if (systemState.frameCount % 10 === 0 && analogEngine.modulateFromGraphState) {
             const nodes = zxSnapshot?.graph?.nodes?.length || 0;
             analogEngine.modulateFromGraphState(graphCoherence, nodes);
@@ -1420,62 +1563,52 @@ const initializeFIRM = async () => {
             graphCoherence = 0.0; // Explicit fallback for missing engine
           }
           systemState.audioCoherence = audioCoherence;
+          systemState.internalCoherence = internalCoherence;
+          systemState.externalCoherence = externalCoherence;
+          systemState.autonomyFactor = autonomousEvolution ? autonomousEvolution.autonomyFactor : 0.0;
+          systemState.harmonicSpectrum = harmonicSpectrum;
           systemState.graphCoherence = graphCoherence;
           
-          // 3. CONSCIOUSNESS EVOLUTION: Use cached field to avoid duplicate generation
+          // 6. CONSCIOUSNESS EVOLUTION: Use cached field to avoid duplicate generation
           // Field will be generated in the render loop - reuse it here for efficiency
           zxSnapshot = zxSnapshot || systemState.zxSnapshot || (window.zxEvolutionEngine ? window.zxEvolutionEngine.getSnapshot() : null);
           if (zxSnapshot) {
             systemState.zxSnapshot = zxSnapshot;
-            systemState.cliffordField = zxSnapshot.cliffordField;
+            // BUGFIX: Only overwrite if field exists
+            if (zxSnapshot.cliffordField) {
+              systemState.cliffordField = zxSnapshot.cliffordField;
+            }
           }
 
-        const cliffordField = zxSnapshot ? zxSnapshot.cliffordField : null;
-        if (!cliffordField) {
-          return systemState;
+        // Use systemState.cliffordField directly (already assigned above)
+        const cliffordField = systemState.cliffordField;
+        
+        // EMERGENT OBSERVER: Only run if field exists
+        let fieldAnalysis = null;
+        let consciousness = null;
+        let optimalObservation = null;
+        
+        if (cliffordField && emergentObserver) {
+          fieldAnalysis = emergentObserver.analyzeFieldBoundaries(cliffordField);
+          consciousness = emergentObserver.evolveConsciousness(fieldAnalysis, {nonBlackPixels: 0}); // Will be updated with real visual feedback
+          optimalObservation = fieldAnalysis ? emergentObserver.computeOptimalObservation(fieldAnalysis, consciousness) : null;
         }
-        const fieldAnalysis = emergentObserver.analyzeFieldBoundaries(cliffordField);
-          const consciousness = emergentObserver.evolveConsciousness(fieldAnalysis, {nonBlackPixels: 0}); // Will be updated with real visual feedback
-          const optimalObservation = fieldAnalysis ? emergentObserver.computeOptimalObservation(fieldAnalysis, consciousness) : null;
           
-          // 4. THEORY-DRIVEN EVOLUTION CONTROL (Auto Ω Mode)
-          if (firmUI._autoOmegaEnabled) {
+          // 7. THEORY-DRIVEN EVOLUTION CONTROL (Auto Ω Mode)
+          if (firmUI._autoOmegaEnabled && window.__resonanceMod) {
             try {
-              if (!window.__resonanceMod) {
-                // Lazy-load once; render loop must remain fast
-                import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(async () => {
-                  const coh = await import('./FIRM_dsl/coherence.js');
-                  const core = await import('./FIRM_dsl/core.js');
-                  window.__resonanceMod = window.__resonanceMod || {
-                    deriveOmegaSignature(graph) {
-                      core.validate_object_g(graph);
-                      const cycles = coh.compute_cycle_basis_signature(graph);
-                      const phase_bins = coh.derive_minimal_qpi_bins(graph);
-                      const phase_hist = coh.compute_phase_histogram_signature(graph, phase_bins);
-                      return { cycles, phase_bins, phase_hist };
-                    },
-                    computeResonanceAlignment(graph, omega) {
-                      core.validate_object_g(graph);
-                      if (!omega || !Number.isInteger(omega.phase_bins) || omega.phase_bins <= 0) {
-                        throw new Error('Invalid omega signature');
-                      }
-                      const cycles_s = coh.compute_cycle_basis_signature(graph);
-                      const hist_s = coh.compute_phase_histogram_signature(graph, omega.phase_bins);
-                      const safeCycles = omega.cycles || [];
-                      const safeHist = omega.phase_hist || new Array(omega.phase_bins).fill(0);
-                      return coh.similarity_S(cycles_s, safeCycles, hist_s, safeHist);
-                    }
-                  };
-                });
-              }
-              if (!window.__omegaSignature && window.__resonanceMod && zxSnapshot) {
+              if (!window.__omegaSignature && zxSnapshot) {
                 window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(zxSnapshot.graph);
               }
-              if (window.__resonanceMod && window.__omegaSignature && window.zxEvolutionEngine) {
+              if (window.__omegaSignature && window.zxEvolutionEngine) {
                 // Compute current resonance
                 const res = window.__resonanceMod.computeResonanceAlignment(zxSnapshot.graph, window.__omegaSignature);
                 // Update control params to steer toward Ω: higher emergence when Res is rising
-                const targetEmergence = Math.min(3.0, 0.5 + 2.5 * Math.max(0, res));
+                const targetEmergence = Math.min(
+                  window.zxEvolutionEngine._controlParams.emergenceRate.max,
+                  window.zxEvolutionEngine._controlParams.targetEmergenceOffset +
+                  window.zxEvolutionEngine._controlParams.targetEmergenceResonanceScale * Math.max(0, res)
+                );
                 window.zxEvolutionEngine.updateControlParams?.({ emergenceRate: targetEmergence });
                 // Light audio modulation coupling on Res (kept bounded)
                 if (window.analogEngine && typeof window.analogEngine.modulateFromGraphState === 'function') {
@@ -1488,7 +1621,7 @@ const initializeFIRM = async () => {
             }
           }
 
-          // 5. MANIFOLD OBSERVATION: Update camera to observe transforming manifold
+          // 8. MANIFOLD OBSERVATION: Update camera to observe transforming manifold
           if (optimalObservation && fieldAnalysis) {
             // Compute manifold-appropriate observation distance
             const manifoldRadius = 3.0;  // Base manifold size
@@ -1559,10 +1692,12 @@ const initializeFIRM = async () => {
             }
           }
           
-          // 6. PARAMETER EVOLUTION: Both audio and graph coherence drive parameters
-          // Field parameters updated with coherence values
-          systemState.fieldParameters.amplitude = 1.0 + (graphCoherence || 0) * 6.0; // Safe fallback
-          systemState.fieldParameters.spatialFreq = 0.5 + audioCoherence * 3.0;
+          // 9. PARAMETER EVOLUTION: Both audio and graph coherence drive parameters
+          // Theory: Coherence → Clifford field strength (amplitude) and structure (frequency)
+          // Parameterized via ControlParamsValidator for future Clifford equation derivation
+          const ctrl = window.zxEvolutionEngine._controlParams;
+          systemState.fieldParameters.amplitude = ctrl.amplitudeBaseValue + (graphCoherence || 0) * ctrl.amplitudeCoherenceScale;
+          systemState.fieldParameters.spatialFreq = ctrl.spatialFreqBaseValue + audioCoherence * ctrl.spatialFreqCoherenceScale;
           
           // Log evolution for verification (much less frequent) - THEORY COMPLIANT
           if (systemState.frameCount % 1000 === 0) { // Every 1000 frames - deterministic
@@ -1583,7 +1718,7 @@ const initializeFIRM = async () => {
             }
           }
           
-          return { ...systemState, zxSnapshot: systemState.zxSnapshot, zxField: cliffordField };
+          return systemState;
         } catch (error) {
           console.error('🚨 Evolution chain error:', error);
           return systemState;

@@ -358,6 +358,17 @@ export class FIRMRenderer {
      */
     const gl = this.runtime.gl;
     
+    // Clear canvas first
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.clearColor(0.0, 0.0, 0.1, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    
+    // Handle null field gracefully - render will wait for field to be populated
+    if (!cliffordField) {
+      this.frameCount++;
+      return;
+    }
+    
     // Update Clifford field texture (OPTIMIZED - reuse existing texture)
     if (!this.fieldTexture) {
       // Create texture only once
@@ -366,11 +377,6 @@ export class FIRMRenderer {
       // Update existing texture data - much faster than recreating
       this.updateCliffordFieldTexture(cliffordField);
     }
-    
-    // Clear canvas
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    gl.clearColor(0.0, 0.0, 0.1, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
     
     // VIEW BRANCHING: Select rendering method based on active view
     switch(viewMode) {
@@ -451,6 +457,20 @@ export class FIRMRenderer {
     
     // Update uniforms with validated data
     this.updateUniforms(cameraState, renderingParams, audioCoherence);
+    
+    // DIAGNOSTIC: Log rendering state before draw (first 3 frames only)
+    if (this.frameCount < 3) {
+      console.log('🎨 RENDER DIAGNOSTIC:', {
+        frame: this.frameCount,
+        hasGL: !!gl,
+        hasProgram: !!program,
+        hasQuadBuffer: !!this.quadBuffer,
+        cameraPos: cameraState?.position,
+        cameraDist: cameraState?.distance,
+        viewportSize: [gl.canvas.width, gl.canvas.height],
+        glError: gl.getError()
+      });
+    }
     
     // Bind quad geometry
     const positionAttrib = gl.getAttribLocation(program, 'position');
@@ -770,13 +790,20 @@ export class FIRMRenderer {
       try {
         const state = getStateFunction();
         const cliffordField = state.cliffordField;
-        if (!cliffordField) {
-          requestAnimationFrame(renderLoop);
-          return;
+        
+        // DIAGNOSTIC: Log field status periodically
+        if (this.frameCount === 0 || this.frameCount % 60 === 0) {
+          console.log('🎨 RENDERER CHECK:', { 
+            frame: this.frameCount, 
+            hasState: !!state, 
+            hasField: !!cliffordField,
+            fieldType: cliffordField?.constructor?.name || typeof cliffordField
+          });
         }
         
+        // Render with whatever field state exists (may be null on first frame)
         this.renderFrame(
-          cliffordField,
+          cliffordField || null,
           state.camera,
           state.rendering,
           state.audioCoherence || 0.5,

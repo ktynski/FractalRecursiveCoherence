@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FIRM Core Test</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>FIRM Core Module Test</h1>
+    <div id="output"></div>
+
+    <script type="module">
+        const output = document.getElementById('output');
+
+        function log(message) {
+            output.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+
+        async function testCoreModules() {
+            try {
+                log('🔄 Testing FIRM_dsl/core.js...');
+                const coreModule = await import('./FIRM_dsl/core.js?v=2025-10-07-sovereign');
+                window.FIRM_dsl_core = coreModule;
+
+                log('✅ FIRM_dsl/core.js loaded successfully');
+
+                // Test make_node_label
+                const label = coreModule.make_node_label('Z', 0, 8, 'test');
+                log('✅ make_node_label works: ' + JSON.stringify(label));
+
+                // Test nearestPowerOf2
+                const powerOf2 = coreModule.nearestPowerOf2(12);
+                log('✅ nearestPowerOf2(12) = ' + powerOf2);
+
+                log('🔄 Testing FIRM_dsl/coherence.js...');
+                const coherenceModule = await import('./FIRM_dsl/coherence.js?v=2025-10-07-sovereign');
+                window.FIRM_dsl_coherence = coherenceModule;
+
+                log('✅ FIRM_dsl/coherence.js loaded successfully');
+
+                // Test derive_minimal_qpi_bins
+                const testGraph = {
+                    nodes: [0, 1, 2],
+                    edges: [[0, 1], [1, 2]],
+                    labels: {
+                        0: { kind: 'Z', phase_numer: 0, phase_denom: 8, monadic_id: 'test0' },
+                        1: { kind: 'X', phase_numer: 1, phase_denom: 16, monadic_id: 'test1' },
+                        2: { kind: 'Z', phase_numer: 2, phase_denom: 32, monadic_id: 'test2' }
+                    }
+                };
+
+                const bins = coherenceModule.derive_minimal_qpi_bins(testGraph);
+                log('✅ derive_minimal_qpi_bins works: ' + bins + ' bins');
+
+                log('🔄 Testing phase addition...');
+                const result = coreModule.add_phases_qpi(1, 8, 2, 16);
+                log('✅ add_phases_qpi(1/8, 2/16) = ' + result[0] + '/' + result[1]);
+
+                log('🎉 ALL CORE MODULES WORKING!');
+                log('✅ Theory fixes are functioning correctly in browser');
+
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        testCoreModules();
+    </script>
+</body>
+</html>

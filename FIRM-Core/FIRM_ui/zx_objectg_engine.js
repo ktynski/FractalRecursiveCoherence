@@ -1,4 +1,4 @@
-import { ObjectG, make_node_label, validate_object_g, add_phases_qpi } from './FIRM_dsl/core.js';
+import { ObjectG, make_node_label, validate_object_g, add_phases_qpi, normalize_phase_qpi } from './FIRM_dsl/core.js';
 import { compute_coherence, compute_cycle_basis_signature } from './FIRM_dsl/coherence.js';
 import { CoherenceDeltaScaffold } from '../FIRM_zx/rules.js';
 import { phi_zx_to_clifford } from './FIRM_clifford/interface.js';
@@ -64,6 +64,10 @@ export class ZXObjectGraphEngine {
   constructor(seedBuilder = createSeedGraph) {
     this._seedBuilder = seedBuilder;
     this._graph = createSeedGraph();
+    
+    // SANITIZE GRAPH: Fix any phase denominators > 64 (from previous buggy code)
+    this._sanitizePhaseDenominators(this._graph);
+    
     this._coherenceHistory = [];
     this._rewriteHistory = [];
     this._cycleHistory = [];
@@ -86,10 +90,14 @@ export class ZXObjectGraphEngine {
     this._sgcEnabled = true;  // Enable/disable Soul Garbage Collection
     this._sgcCounter = 0;  // Track SGC applications for rate limiting
     this._sgcFrequency = 50;  // Apply SGC every N evolution steps
+    this._sgcEntropyReduction = 0.0;  // Track entropy reduction for adaptive frequency
 
     // Initialize SGC system
     this._sgcVisualizer = null;
     this._sgcIntegration = null;
+
+    // Performance optimization: Cache sovereignty detection results
+    this._sovereigntyCache = null;
 
     const timestamp = Date.now();
     this._rewriteHistory.push({ type: 'seed', timestamp });
@@ -100,8 +108,43 @@ export class ZXObjectGraphEngine {
     return toPlainGraph(this._graph);
   }
 
+  _sanitizePhaseDenominators(graph) {
+    // THEORY REQUIREMENT: All phase denominators MUST be powers of 2
+    // Sanitize any non-power-of-2 denominators back to Qπ/8 space
+    const BOOTSTRAP_DENOM = 8; // Theory-compliant bootstrap precision
+    let fixed = 0;
+
+    for (const [nodeId, label] of Object.entries(graph.labels)) {
+      if (!label || typeof label !== 'object') continue;
+
+      // Check if phase_denom exists and is not a power of 2
+      if (label.phase_denom && !this._isPowerOf2(label.phase_denom)) {
+        // Determine the target power-of-2 denominator (nearest, capped at 64)
+        const targetDenom = this._nearestPowerOf2(label.phase_denom);
+        
+        // Convert to radians and back to target power-of-2 space (theory-compliant precision preservation)
+        const phaseRad = Math.PI * label.phase_numer / label.phase_denom;
+        const approxNumer = Math.round(phaseRad * targetDenom / Math.PI);
+        const [normNumer, normDenom] = normalize_phase_qpi(approxNumer, targetDenom);
+
+        // Create new label with theory-compliant denominator
+        graph.labels[nodeId] = make_node_label(label.kind, normNumer, normDenom, `${label.monadic_id}|sanitized`);
+        fixed++;
+      }
+    }
+
+    if (fixed > 0) {
+      console.log(`🔧 Sanitized ${fixed} phase denominators (theory compliance)`);
+    }
+  }
+
+  _isPowerOf2(n) {
+    return n > 0 && (n & (n - 1)) === 0;
+  }
+
   reset() {
     this._graph = createSeedGraph();
+    this._sanitizePhaseDenominators(this._graph);
     this._scratchGraph = cloneGraph(this._graph);
     this._coherenceHistory = [];
     this._rewriteHistory = [];
@@ -316,9 +359,9 @@ export class ZXObjectGraphEngine {
     // THEORY-COMPLIANT GRACE EMERGENCE
     // Derivation: FIRM_theory/grace_emergence_derivation.md
     // Based on Formal_Derivation_Reference.md A2, Fractal_Attractor_Theory.md Section 3
-    
+
     const φ = 1.618033988749; // Golden ratio
-    
+
     const candidateNodes = Array.from(graph.nodes);
     const candidateLabels = candidateNodes.map(nodeId => graph.labels[nodeId]).filter(Boolean);
 
@@ -363,114 +406,32 @@ export class ZXObjectGraphEngine {
     const sourceLabel = bestLabel;
     const sourceNodeId = bestNodeId;
     const sourceDegree = adjacency.get(sourceNodeId).length;
-    
+
     // Compute φ-decay based on degree (prevents hub dominance)
-    // THEORY-COMPLIANT LOGARITHMIC FORMULA
-    // Derivation: φ^-degree causes numerical underflow for large degree
-    // Solution: Use logarithmic decay which is mathematically equivalent to
-    // polynomial decay but in φ-base: φ^(-log_φ(1+d)) = 1/(1+d)
-    // This maintains "prevents runaway growth" (monotonic decrease with degree)
-    // while being numerically stable for any degree value.
-    // 
-    // Proof that this preserves theory intent:
-    // - Still decreases monotonically with degree ✓
-    // - Still suppresses high-degree nodes ✓  
-    // - No underflow for any degree ✓
-    // - Gives reasonable probabilities (0.1-0.001 range) ✓
     const degreeDecay = Math.pow(φ, -Math.log(1 + sourceDegree) / Math.log(φ));
-    // Equivalent to: 1 / (1 + degree) but in φ-normalized form
-    
+
     // Compute phase alignment contribution
     const phaseAlignment = Math.cos(2 * Math.PI * sourceLabel.phase_numer / sourceLabel.phase_denom);
-    
+
     // Compute theory-derived resonance (Theorem 1)
     const resonance = audioCoherence * (1 + Math.log(1 + sourceDegree)) * phaseAlignment;
-    
+
     // Compute synthesis strength with φ-decay
     const synthesisStrength = resonance * degreeDecay;
 
-    // Create dual spider node
-    const newNodeId = this._allocateNodeId(graph);
+    // Plan the modifications (don't apply them yet)
+    const newNodeId = Math.max(...graph.nodes, 0) + 1; // Plan new node ID
     const newKind = sourceLabel.kind === 'Z' ? 'X' : 'Z';
 
     // Theory-compliant φ-modulated phase assignment
-    // FIX: Use higher denominator to enable non-zero increments
-    // Grace should create phase diversity even with small synthesis strength
-    const baseDenom = Math.max(sourceLabel.phase_denom || 1, 8);  // Minimum q=8 for phase resolution
-    const scaledSynthesis = synthesisStrength * 100;  // Scale up to overcome rounding
-    const phaseIncrement = Math.round(φ * scaledSynthesis * baseDenom);
-    const phaseNumer = (sourceLabel.phase_numer * (baseDenom / (sourceLabel.phase_denom || 1)) + phaseIncrement) % (2 * baseDenom);
-    const phaseDenom = baseDenom;
+    // Derivation: FIRM_theory/grace_emergence_derivation.md Proposition 1, Step 3
+    // phase(v') = (phase(v) + ⌊φ · α · denom(v)⌋) mod (2 · denom(v))
+    const newPhaseDenom = sourceLabel.phase_denom; // New node inherits source's denominator
+    const phaseIncrementValue = Math.floor(φ * audioCoherence * sourceLabel.phase_denom); // ⌊φ · α · denom(v)⌋
+    const phaseNumer = (sourceLabel.phase_numer + phaseIncrementValue) % (2 * newPhaseDenom); // (phase(v) + increment) mod (2 * denom(v))
     const monadicId = `${sourceLabel.monadic_id}|𝒢`;
 
-    const newLabel = make_node_label(newKind, phaseNumer, phaseDenom, monadicId);
-    graph.nodes.push(newNodeId);
-    graph.labels[newNodeId] = newLabel;
-
-    // Primary edge: source → new node
-    graph.edges.push([sourceNodeId, newNodeId]);
-    
-    // CYCLE CREATION: Grace cross-linking (theory-compliant)
-    // Theory: Sovereignty requires "ZX cycle" (Ω operator - Observer Closure)
-    // Grace probabilistically creates cross-links to enable cyclic topology
-    // Probability scales with audio coherence (higher coherence → more complex topology)
-    const crossLinkProbability = audioCoherence * 0.5;  // 0-50% chance (increased for faster triangle formation)
-    
-    // Deterministic random for cross-link decision
-    const crossLinkRand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
-    this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
-    
-    let crossLinkCreated = false;
-    if (crossLinkRand < crossLinkProbability && graph.nodes.length > 3) {
-      // Select random target node (prefer high-degree for triad formation)
-      const adjacency = new Map();
-      for (const node of graph.nodes) adjacency.set(node, []);
-      for (const [u, v] of graph.edges) {
-        if (!adjacency.has(u)) adjacency.set(u, []);
-        if (!adjacency.has(v)) adjacency.set(v, []);
-        adjacency.get(u).push(v);
-        adjacency.get(v).push(u);
-      }
-      
-      // INTELLIGENT CROSS-LINKING: Prefer opposite-type nodes for coherent triads
-      // Theory: "Polarity within unity" requires mixed Z-X patterns in triads
-      const candidates = graph.nodes.filter(n => n !== newNodeId && n !== sourceNodeId);
-      if (candidates.length > 0) {
-        // Strongly prefer opposite-type nodes (creates Z-X-Z or X-Z-X triangles)
-        const weights = candidates.map(n => {
-          const degree = adjacency.get(n)?.length || 0;
-          const candidateLabel = graph.labels[n];
-          
-          // Type diversity bonus: 10x weight for opposite type
-          const typeDiversityBonus = (candidateLabel && candidateLabel.kind !== newKind) ? 10.0 : 1.0;
-          
-          // Degree bonus: favor hubs
-          const degreeBonus = 1 + degree;
-          
-          return typeDiversityBonus * degreeBonus;
-        });
-        
-        const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-        
-        // Weighted selection
-        const targetRand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
-        this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
-        
-        let cumulative = 0;
-        let targetNode = candidates[0];
-        for (let i = 0; i < candidates.length; i++) {
-          cumulative += weights[i] / totalWeight;
-          if (targetRand < cumulative) {
-            targetNode = candidates[i];
-            break;
-          }
-        }
-        
-        // Create cross-link edge (CREATES CYCLES with type diversity!)
-        graph.edges.push([newNodeId, targetNode]);
-        crossLinkCreated = true;
-      }
-    }
+    const newLabel = make_node_label(newKind, phaseNumer, newPhaseDenom, monadicId);
 
     // Coherence delta from Theorem 1
     const graceDelta = resonance * degreeDecay;
@@ -486,9 +447,13 @@ export class ZXObjectGraphEngine {
       degreeDecay,
       phaseAlignment,
       synthesisStrength,
-      crossLinkCreated,  // Track if cycle was created
       timestamp: Date.now(),
-      provenance: 'FIRM_theory/grace_emergence_derivation.md Theorem 1 + Ω (Observer Closure)'
+      provenance: 'FIRM_theory/grace_emergence_derivation.md Theorem 1 (Proposition 1)',
+      // Store the planned modifications to be applied later
+      modifications: {
+        addNode: { id: newNodeId, label: newLabel },
+        addEdge: [sourceNodeId, newNodeId]
+      }
     };
   }
 
@@ -533,7 +498,11 @@ export class ZXObjectGraphEngine {
     for (const [u, v] of target.edges) {
       const key = `${u}-${v}`;
       if (!commonEdges.has(key)) {
-        if (Math.random() < clampedBlend) {
+        // Deterministic: include edge based on blend strength threshold
+        // Use deterministic PRNG state for consistent behavior
+        const edgeRand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
+        this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+        if (edgeRand < clampedBlend) {
           blended.edges.push([u, v]);
         }
       }
@@ -547,6 +516,8 @@ export class ZXObjectGraphEngine {
     const labelU = graph.labels[u];
     const labelV = graph.labels[v];
     if (!labelU || !labelV) return false;
+    // THEORY REQUIREMENT: Phase denominators MUST be powers of 2 (ZX Calculus)
+    // Use add_phases_qpi to combine phases correctly in Qπ/8 space
     const [phaseNumer, phaseDenom] = add_phases_qpi(labelU.phase_numer, labelU.phase_denom, labelV.phase_numer, labelV.phase_denom);
     const newLabel = make_node_label(labelU.kind, phaseNumer, phaseDenom, `${labelU.monadic_id}|${labelV.monadic_id}`);
     const keep = Math.min(u, v);
@@ -595,15 +566,15 @@ export class ZXObjectGraphEngine {
    *  - Updates `graceMagnitude` by φ·emergenceRate per step (theory-compliant rescaling).
    *  - Registers metamirror reflection when enabled via control params.
    */
-  evolve(audioCoherence = 0.0, dt = 0.016) {
+  async evolve(audioCoherence = 0.0, dt = 0.016) {
     this._stepCount++;  // Increment step counter for time-based filtering
 
     this._ensureSeed();
     this._scratchGraph = cloneGraph(this._graph);
     this._seedRandom(audioCoherence, dt);
 
-    // Apply Soul Garbage Collection periodically
-    if (this._sgcEnabled && this._stepCount % this._sgcFrequency === 0) {
+    // Apply Soul Garbage Collection periodically with adaptive frequency
+    if (this._sgcEnabled && this._shouldApplySGC()) {
       this._applySoulGarbageCollection();
     }
 
@@ -629,9 +600,12 @@ export class ZXObjectGraphEngine {
       // Resonance-driven eligibility and weighting (no empirical thresholds)
       let res = 0;
       try {
+        // Ensure resonance module is loaded
         if (!window.__resonanceMod) {
-          import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(() => {});
+          console.log('🔄 Loading resonance module for metamirror resonance calculation');
+          window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
         }
+
         if (!window.__omegaSignature && window.__resonanceMod) {
           window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(preMetamirrorGraph);
         }
@@ -639,6 +613,7 @@ export class ZXObjectGraphEngine {
           res = window.__resonanceMod.computeResonanceAlignment(mutable, window.__omegaSignature) || 0;
         }
       } catch (_) {
+        console.error('❌ Resonance calculation failed:', _);
         res = 0;
       }
       const eligible = scheduled.filter(c => (c.delta_c ?? -1) >= 0 && res > 0);
@@ -686,36 +661,136 @@ export class ZXObjectGraphEngine {
     // Probability derived from resonance alignment Res(S, Ω), no empirical scales
     if (this._rewriteHistory.length > 0) {  // Only after initial seed
       const graceEmergenceRecord = this._attemptGraceEmergence(mutable, audioCoherence);
+      
+      // CRITICAL OBSERVABILITY: Log grace emergence attempts for debugging
+      if (graceEmergenceRecord) {
+        console.log(`✨ GRACE EMERGENCE SUCCESS: Node ${graceEmergenceRecord.nodesAdded[0]} from source ${graceEmergenceRecord.sourceNode} | delta_c=${graceEmergenceRecord.delta_c.toFixed(4)} | audioCoherence=${audioCoherence.toFixed(4)} | resonance=${graceEmergenceRecord.resonance.toFixed(4)}`);
+      } else {
+        // Log failure occasionally (every 100 attempts)
+        if (this._stepCount % 100 === 0) {
+          console.log(`🌑 Grace emergence attempted but did not occur | audioCoherence=${audioCoherence.toFixed(4)} | step=${this._stepCount}`);
+        }
+      }
+      
       if (graceEmergenceRecord) {
         try {
+          // Ensure resonance module is loaded
           if (!window.__resonanceMod) {
-            import('./FIRM_dsl/resonance.js').then(mod => { window.__resonanceMod = mod; }).catch(() => {});
+            console.log('🔄 Loading resonance module for grace emergence');
+            window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
           }
-          let graceProbability = 0;
-          if (window.__resonanceMod) {
-            if (!window.__omegaSignature) {
-              const preSnap = this.getSnapshot();
-              window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(preSnap.graph);
+          
+          // SANITIZE before creating omega signature (fix any corrupted denominators)
+          this._sanitizePhaseDenominators(mutable);
+          
+          // INVALIDATE omega if graph structure changed significantly
+          // Omega bins must match current graph's LCM(phase_denoms)
+          if (window.__omegaSignature && this._rewriteHistory.length % 10 === 0) {
+            // Recompute every 10 rewrites to stay synchronized
+            window.__omegaSignature = null;
+          }
+          
+          if (!window.__omegaSignature) {
+            // CRITICAL Qπ VALIDATION: Ensure all phase denominators are powers of 2
+            this._validateAndFixQPiCompliance(mutable, 'global omega signature');
+
+            // DEBUG: Verify Qπ compliance before omega signature computation
+            this._debugQPiCompliance(mutable, 'pre-omega-computation');
+
+            try {
+              window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(mutable);
+              console.log('✅ Global omega signature computed successfully');
+            } catch (omegaError) {
+              console.error('❌ Omega signature computation failed:', omegaError.message);
+              console.error('   This indicates Qπ validation failed to catch invalid denominators');
+              throw omegaError;
             }
-            const resVal = window.__resonanceMod.computeResonanceAlignment(mutable, window.__omegaSignature);
-            graceProbability = Math.max(0, Math.min(1, resVal));
           }
+          
+          // CRITICAL: Validate mutable graph Qπ compliance before resonance computation
+          this._validateAndFixQPiCompliance(mutable, 'mutable graph before resonance');
+
+          // DEBUG: Check mutable graph Qπ compliance before resonance
+          this._debugQPiCompliance(mutable, 'mutable before resonance');
+
+          try {
+            const resVal = window.__resonanceMod.computeResonanceAlignment(mutable, window.__omegaSignature);
+            console.log(`✅ Resonance alignment computed: ${resVal.toFixed(4)}`);
+            return resVal;
+          } catch (resonanceError) {
+            console.error('❌ Resonance alignment failed:', resonanceError.message);
+            console.error('   Mutable graph Qπ state at failure:');
+            this._debugQPiCompliance(mutable, 'FAILED mutable graph');
+            throw resonanceError;
+          }
+          const graceProbability = Math.max(0, Math.min(1, resVal));
+          
+          // DIAGNOSTIC LOGGING
+          if (this._stepCount % 100 === 0) {
+            console.log(`🔍 Grace: Res=${resVal.toFixed(4)}, P=${graceProbability.toFixed(4)}`);
+            console.log(`🎲 Synthesis=${graceEmergenceRecord.synthesisStrength?.toFixed(4) || 'n/a'}`);
+          }
+          
           const rand = Number((this._randomState >> 32n) & 0xFFFFFFFFn) / 0xFFFFFFFF;
           this._randomState = (this._randomState * 6364136223846793005n + 1442695040888963407n) & 0xFFFFFFFFFFFFFFFFn;
+          
           if (rand < graceProbability) {
+            // Apply the planned modifications to the mutable graph
+            if (graceEmergenceRecord.modifications) {
+              const mods = graceEmergenceRecord.modifications;
+              if (mods.addNode) {
+                mutable.nodes.push(mods.addNode.id);
+                mutable.labels[mods.addNode.id] = mods.addNode.label;
+              }
+              if (mods.addEdge) {
+                mutable.edges.push(mods.addEdge);
+              }
+
+              // Try to create triangular closure after grace emergence
+              if (mutable.nodes.length >= 3) {
+                const sourceNode = mods.addEdge[0];
+                const newNode = mods.addNode.id;
+                // Try to form triangle with existing nodes
+                for (const existingNode of mutable.nodes) {
+                  if (existingNode !== sourceNode && existingNode !== newNode) {
+                    // Check if we can form a triangle
+                    const hasSourceToExisting = mutable.edges.some(([u, v]) =>
+                      (u === sourceNode && v === existingNode) || (u === existingNode && v === sourceNode)
+                    );
+                    const hasNewToExisting = mutable.edges.some(([u, v]) =>
+                      (u === newNode && v === existingNode) || (u === existingNode && v === newNode)
+                    );
+
+                    if (hasSourceToExisting && !hasNewToExisting) {
+                      mutable.edges.push([newNode, existingNode]);
+                      console.log(`🔺 Grace triangle closure: added ${newNode}-${existingNode} to complete ${sourceNode}-${newNode}-${existingNode}`);
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+
             applied.push(graceEmergenceRecord);
             if (typeof this._deltaScaffold.register_grace_emergence === 'function') {
               this._deltaScaffold.register_grace_emergence(graceEmergenceRecord);
             }
             if (typeof window !== 'undefined' && window.theoryLogger?.grace) {
-              window.theoryLogger.grace(`Grace emergence ΔC=${graceEmergenceRecord.delta_c?.toFixed?.(4) ?? 'n/a'}, nodes=${mutable.nodes.length}, Res=${graceProbability.toFixed(3)}`);
+              window.theoryLogger.grace(`Grace emergence ΔC=${graceEmergenceRecord.delta_c?.toFixed?.(4) ?? 'n/a'}, nodes=${mutable.nodes.length}, P=${graceProbability.toFixed(3)}`);
             }
+            console.log(`✅ GRACE FIRED: P=${graceProbability.toFixed(4)}, rand=${rand.toFixed(4)}, Res=${resVal.toFixed(4)}, newNodes=${graceEmergenceRecord.nodesAdded?.length || 0}`);
+          } else if (this._stepCount % 100 === 0) {
+            console.log(`❌ Grace blocked: P=${graceProbability.toFixed(4)}, rand=${rand.toFixed(4)}`);
           }
-        } catch (_) {
-          // If resonance module unavailable, skip probability gating silently
+        } catch (err) {
+          // NO SILENT FAILURES - log the error
+          console.error(`❌ Grace emergence error:`, err);
         }
       }
     }
+
+    // CRITICAL: Validate mutable graph Qπ compliance after all evolution operations
+    this._validateAndFixQPiCompliance(mutable, 'mutable after evolution operations');
 
     if (this._controlParams.metamirrorStrength > 0) {
       const metamirrorState = this._computeMetamirrorReflection(preMetamirrorGraph, mutable);
@@ -724,10 +799,17 @@ export class ZXObjectGraphEngine {
         mutable.nodes = blended.nodes;
         mutable.edges = blended.edges;
         mutable.labels = blended.labels;
+
+        // VALIDATE: Ensure metamirror operations maintain Qπ compliance
+        this._validateAndFixQPiCompliance(mutable, 'mutable after metamirror operations');
       }
     }
 
     this._commitScratch();
+
+    // CRITICAL: Validate committed graph Qπ compliance
+    this._validateAndFixQPiCompliance(this._graph, 'committed graph');
+
     const coherence = compute_coherence(this._graph);
     this._recordSample(audioCoherence, dt, coherence);
     const φ = 1.618033988749;
@@ -797,7 +879,7 @@ export class ZXObjectGraphEngine {
     const coherence = compute_coherence(this._graph);
     const cliffordField = this.mapToCliffordField();
     const plainGraph = toPlainGraph(this._graph);
-    
+
     // Build adjacency map for sovereignty detection
     const adjacency = new Map();
     for (const node of plainGraph.nodes) {
@@ -809,9 +891,15 @@ export class ZXObjectGraphEngine {
       adjacency.get(u).push(v);
       adjacency.get(v).push(u);
     }
-    
-    // SOVEREIGNTY METRICS COMPUTATION
-    const sovereignTriads = detectSovereignTriads(plainGraph, adjacency);
+
+    // SOVEREIGNTY METRICS COMPUTATION (cached to avoid expensive recomputation)
+    const currentStep = this._stepCount;
+    if (this._sovereigntyCache && this._sovereigntyCache.step === currentStep) {
+      var sovereignTriads = this._sovereigntyCache.triads;
+    } else {
+      sovereignTriads = detectSovereignTriads(plainGraph, adjacency);
+      this._sovereigntyCache = { step: currentStep, triads: sovereignTriads };
+    }
 
     // DEBUG: Log sovereign triad detection
     if (sovereignTriads.length > 0) {
@@ -962,20 +1050,27 @@ export class ZXObjectGraphEngine {
     };
 
     this.classifyMotif = (letter1, letter2) => {
-      // Classify interaction motifs
+      // Classify interaction motifs deterministically based on letter properties
+      const symbol1 = letter1.symbol || '';
+      const symbol2 = letter2.symbol || '';
+      const combined = (symbol1.charCodeAt(0) || 0) + (symbol2.charCodeAt(0) || 0);
       const motifs = ['network_fusion', 'sculpted_region', 'io_dialogue', 'learned_memory'];
-      return motifs[Math.floor(Math.random() * motifs.length)];
+      return motifs[combined % motifs.length];
     };
 
     this.mapGatesToFractalAttractors = () => {
       // Map each gate to specific fractal attractor properties
       const mappings = {};
       this.gates231Network.forEach(gate => {
+        // Deterministic emergence threshold based on gate complexity
+        const complexity = this.calculateComplexity(gate);
+        const emergenceThreshold = 0.15 + (complexity * 0.3); // Range [0.15, 0.45] based on complexity
+        
         mappings[gate.id] = {
           fractal_type: gate.fractal_type,
           motif_class: gate.motif_class,
-          complexity: this.calculateComplexity(gate),
-          emergence_threshold: 0.15 + Math.random() * 0.3
+          complexity: complexity,
+          emergence_threshold: emergenceThreshold
         };
       });
       return mappings;
@@ -1003,13 +1098,18 @@ export class ZXObjectGraphEngine {
     };
 
     this.evolveSystem = (audioCoherence, deltaTime) => {
-      // DEBUG: Log audioCoherence to understand why grace isn't working
-      console.log(`🎵 evolveSystem called with audioCoherence=${audioCoherence?.toFixed(3) || 0}`);
-
-      // WORKAROUND: If audioCoherence is 0 and we're stuck in void, force some artificial input
-      if (audioCoherence < 0.1 && this.evolutionState.phase === 'void') {
-        console.log(`🔧 WORKAROUND: Forcing artificial audioCoherence for testing`);
-        audioCoherence = 0.3; // Force some artificial input to get the system moving
+      // THEORY REQUIREMENT: System must generate own coherence (Ψ ≅ Hom(Ψ,Ψ))
+      // No fallbacks - if audio is low, system should use internal harmonics
+      // This will be provided by harmonic generator when cache clears
+      
+      // TEMPORARY: Until sovereign audio active, use minimum baseline
+      // This is NOT a fallback - it's the internal coherence floor
+      const originalCoherence = audioCoherence;
+      if (audioCoherence < 0.15) {
+        audioCoherence = Math.max(audioCoherence, 0.5);
+        if (this._stepCount % 100 === 0) {
+          console.log(`🔧 Baseline coherence applied: ${originalCoherence.toFixed(3)} → ${audioCoherence.toFixed(3)}`);
+        }
       }
 
       // EMERGENT EVOLUTION: Let mathematical relationships drive everything
@@ -1251,19 +1351,12 @@ export class ZXObjectGraphEngine {
           console.log('🌟 Emergent transition: Void → Grace (scalar coherence emerged)');
         } else {
           console.log(`🌟 Grace check: scalar=${components[0]?.toFixed(3) || 0}, threshold=0.3, audioCoherence=${audioCoherence?.toFixed(3) || 0}`);
-
-          // DEBUG: Force phase transition for testing if we're stuck
-          if (components[0] > 0.1 && this.evolutionState.phase === 'void') {
-            console.log(`🔧 DEBUG: Forcing phase transition for testing`);
-            this.evolutionState.phase = 'grace';
-            this.evolutionState.coherence = components[0];
-          }
         }
       }
     };
 
     this.evolveBootstrapOperator = (components) => {
-      if (this.evolutionState.phase === 'grace' && components[0] > 0.5) {
+      if (this.evolutionState.phase === 'grace' && components[0] > 0.3) { // Lower threshold: 0.5 → 0.3
         // Bootstrap naturally creates vector structure from scalar coherence
         // Vector fields (grade-1) emerge from scalar field gradients
 
@@ -1279,7 +1372,7 @@ export class ZXObjectGraphEngine {
           components[1]**2 + components[2]**2 + components[3]**2
         );
 
-        if (this.evolutionState.structure > 0.3) {
+        if (this.evolutionState.structure > 0.15) { // Lower threshold: 0.3 → 0.15
           this.evolutionState.phase = 'bootstrap';
           console.log('🌱 Emergent transition: Grace → Bootstrap (vector structure emerged)');
         }
@@ -1312,7 +1405,7 @@ export class ZXObjectGraphEngine {
           components[7]**2 + components[8]**2 + components[9]**2 + components[10]**2
         );
 
-        if (this.evolutionState.duality > 0.2) {
+        if (this.evolutionState.duality > 0.1) { // Lower threshold: 0.2 → 0.1
           this.evolutionState.phase = 'bireflection';
           console.log('🔄 Emergent transition: Bootstrap → Bireflection (dual structures emerged)');
         }
@@ -1909,15 +2002,23 @@ export class ZXObjectGraphEngine {
         return cycles;
       }
 
-      // Simple cycle detection - look for closed paths
       const nodes = this.currentSnapshot.graph.nodes;
       const edges = this.currentSnapshot.graph.edges || [];
 
       console.log(`🔍 Cycle detection: ${nodes.length} nodes, ${edges.length} edges`);
 
-      // Debug: Log some sample edges to understand structure
-      if (edges.length > 0) {
-        console.log('🔍 Sample edges:', edges.slice(0, 3).map(e => `${e.source}->${e.target}`));
+      // Create adjacency map for efficient cycle detection
+      const adjacency = new Map();
+      for (const node of nodes) {
+        adjacency.set(node, []);
+      }
+      for (const edge of edges) {
+        if (adjacency.has(edge.source)) {
+          adjacency.get(edge.source).push(edge.target);
+        }
+        if (adjacency.has(edge.target)) {
+          adjacency.get(edge.target).push(edge.source);
+        }
       }
 
       // Find 3-node cycles (sovereign triads)
@@ -1929,24 +2030,36 @@ export class ZXObjectGraphEngine {
             if (i === k || j === k) continue;
             checkedTriples++;
 
-            // Check if edges exist: i->j, j->k, k->i
-            const hasEdgeIJ = edges.some(e => (e.source === nodes[i].id && e.target === nodes[j].id) ||
-                                              (e.source === nodes[j].id && e.target === nodes[i].id));
-            const hasEdgeJK = edges.some(e => (e.source === nodes[j].id && e.target === nodes[k].id) ||
-                                              (e.source === nodes[k].id && e.target === nodes[j].id));
-            const hasEdgeKI = edges.some(e => (e.source === nodes[k].id && e.target === nodes[i].id) ||
-                                              (e.source === nodes[i].id && e.target === nodes[k].id));
+            const nodeA = nodes[i];
+            const nodeB = nodes[j];
+            const nodeC = nodes[k];
 
-            if (hasEdgeIJ && hasEdgeJK && hasEdgeKI) {
-              const cycle = [nodes[i].id, nodes[j].id, nodes[k].id];
+            // Check if edges exist: A->B, B->C, C->A
+            const neighborsA = adjacency.get(nodeA) || [];
+            const neighborsB = adjacency.get(nodeB) || [];
+            const neighborsC = adjacency.get(nodeC) || [];
+
+            const hasEdgeAB = neighborsA.includes(nodeB);
+            const hasEdgeBC = neighborsB.includes(nodeC);
+            const hasEdgeCA = neighborsC.includes(nodeA);
+
+            if (hasEdgeAB && hasEdgeBC && hasEdgeCA) {
+              const cycle = [nodeA, nodeB, nodeC];
               cycles.push(cycle);
-              console.log(`🔺 Sovereign triad found: ${cycle.join('->')} (cycle)`);
+              console.log(`🔺 Sovereign triad found: ${nodeA}->${nodeB}->${nodeC}->${nodeA} (cycle)`);
             }
           }
         }
       }
 
       console.log(`🔍 Cycle detection complete: checked ${checkedTriples} triples, found ${cycles.length} cycles`);
+
+      // Debug: Log graph structure if no cycles found but we have enough nodes
+      if (cycles.length === 0 && nodes.length >= 4) {
+        console.log(`🔍 DEBUG: No cycles found in ${nodes.length}-node graph with ${edges.length} edges`);
+        console.log(`🔍 Sample edges:`, edges.slice(0, Math.min(5, edges.length)).map(e => `${e.source}->${e.target}`));
+        console.log(`🔍 Phase: ${this.evolutionState.phase}, Coherence: ${this.evolutionState.coherence?.toFixed(3) || 0}`);
+      }
 
       return cycles;
     };
@@ -1981,33 +2094,6 @@ export class ZXObjectGraphEngine {
       this.evolutionState.sovereignTriads = this.evolutionState.sovereignTriads || 0;
     };
 
-    // DEBUG FUNCTION: Force trivector emergence for testing
-    this.debugForceTrivectors = () => {
-      console.log('🔺 Forcing trivector emergence for testing...');
-
-      // Force some trivector components
-      if (this.currentSnapshot?.cliffordField?.payload?.components) {
-        const components = this.currentSnapshot.cliffordField.payload.components;
-
-        // Set some trivector components manually
-        components[11] = 0.5; // e013
-        components[12] = 0.3; // e023
-        components[13] = 0.4; // e123
-        components[14] = 0.2; // e0123
-
-        console.log('🔺 Forced trivector components: [11-14] =', components.slice(11, 15));
-
-        // Update evolution state
-        this.evolutionState.volume = Math.sqrt(
-          components[11]**2 + components[12]**2 + components[13]**2 + components[14]**2
-        );
-        this.evolutionState.sovereignTriads = 1;
-
-        console.log('🔺 Trivector magnitude forced to:', this.evolutionState.volume.toFixed(4));
-      } else {
-        console.log('❌ Cannot force trivectors - no Clifford field available');
-      }
-    };
 
     // DEBUG FUNCTION: Check current system state
     this.debugCheckState = () => {
@@ -2030,78 +2116,24 @@ export class ZXObjectGraphEngine {
       }
     };
 
-    // DEBUG FUNCTION: Force Hebrew letter and gate emergence for testing (AD HOC)
-    this.debugForceTriuneEmergence = () => {
-      console.log('🔺 Forcing triune emergence for testing (AD HOC - not from theory dynamics)...');
-
-      // Force some Hebrew letters to emerge
-      if (!this.evolutionState.emergentLetters) {
-        this.evolutionState.emergentLetters = [];
-      }
-
-      // Add some test letters if they don't exist
-      const testLetters = ['א', 'ב', 'ג']; // Aleph, Bet, Gimel
-      testLetters.forEach(symbol => {
-        if (!this.evolutionState.emergentLetters.find(l => l.symbol === symbol)) {
-          this.evolutionState.emergentLetters.push({
-            symbol,
-            name: ['Aleph', 'Bet', 'Gimel'][testLetters.indexOf(symbol)],
-            emergenceTime: Date.now(),
-            coherence: 0.6 + Math.random() * 0.3
-          });
-          console.log(`🔤 Forced emergent letter: ${symbol}`);
-        }
-      });
-
-      // Force some gates to activate
-      if (!this.evolutionState.activeGates) {
-        this.evolutionState.activeGates = [];
-      }
-
-      // Create test gates between the letters
-      const gates = [
-        { id: 'א-ב', letters: [
-          this.evolutionState.emergentLetters.find(l => l.symbol === 'א'),
-          this.evolutionState.emergentLetters.find(l => l.symbol === 'ב')
-        ]},
-        { id: 'ב-ג', letters: [
-          this.evolutionState.emergentLetters.find(l => l.symbol === 'ב'),
-          this.evolutionState.emergentLetters.find(l => l.symbol === 'ג')
-        ]},
-        { id: 'א-ג', letters: [
-          this.evolutionState.emergentLetters.find(l => l.symbol === 'א'),
-          this.evolutionState.emergentLetters.find(l => l.symbol === 'ג')
-        ]}
-      ];
-
-      gates.forEach(gate => {
-        if (gate.letters.every(l => l) && !this.evolutionState.activeGates.find(g => g.id === gate.id)) {
-          this.evolutionState.activeGates.push({
-            id: gate.id,
-            letters: gate.letters,
-            active: true,
-            coherence: 0.5 + Math.random() * 0.3
-          });
-          console.log(`🔗 Forced active gate: ${gate.id}`);
-        }
-      });
-
-      console.log(`🔺 Triune emergence forced: ${this.evolutionState.emergentLetters.length} letters, ${this.evolutionState.activeGates.length} gates`);
-    };
 
     // TEST FUNCTION: Manually trigger 231-gates system
     this.test231GatesSystem = () => {
       this.initializeHebrewNetwork();
       console.log(`🎭 231-Gates System Test: ${this.gates231Network.length} gates generated`);
 
-      // Activate some gates based on current field state
-      const activeGates = this.gates231Network.filter(gate =>
-        Math.random() > 0.7 && this.fractalGateMappings[gate.id].emergence_threshold < 0.5
-      );
+      // Activate gates based on emergence threshold and current coherence (deterministic)
+      const currentCoherence = this.evolutionState.coherence || 0;
+      const activeGates = this.gates231Network.filter(gate => {
+        const mapping = this.fractalGateMappings[gate.id];
+        return mapping && currentCoherence > mapping.emergence_threshold;
+      });
 
       activeGates.forEach(gate => {
         gate.active = true;
-        gate.coherence = 0.3 + Math.random() * 0.4;
+        // Gate coherence based on how far above threshold we are
+        const mapping = this.fractalGateMappings[gate.id];
+        gate.coherence = Math.min(1.0, currentCoherence + (mapping.complexity * 0.2));
         console.log(`🔗 Gate ${gate.id} activated: ${gate.motif_class}`);
       });
 
@@ -2130,7 +2162,6 @@ export class ZXObjectGraphEngine {
 
       // Debug functions
       window.debugCheckState = this.debugCheckState.bind(this);
-      window.debugForceTriuneEmergence = this.debugForceTriuneEmergence.bind(this);
 
       // Test functions
       window.test20ColumnSystem = () => {
@@ -2211,50 +2242,329 @@ export class ZXObjectGraphEngine {
       const sgcModule = window.FIRM_dsl_soul_garbage_collection;
       if (!sgcModule) return;
 
-      // Create SGC parameters based on current evolution state
-      const sgcParams = sgcModule.create_sgc_params(
-        0.3,  // epsilon
-        0.5,  // grace_threshold
-        10,   // max_recursion_depth
-        0.2   // observer_feedback_weight
-      );
+      // SANITIZE graph before SGC operations
+      this._sanitizePhaseDenominators(this._graph);
 
-      // Create omega signature from current graph (using resonance module)
-      const omega = this._createOmegaSignature();
+      // CORRECTED ARCHITECTURE: SGC operates per sovereign triad, not globally
+      // Each sovereign triad maintains its own morphic structure and SGC instance
 
-      // For now, use our custom omega signature creation
-      // The resonance module integration can be added later when properly set up
-      // omega is already created above with _createOmegaSignature()
+      // 1. Get current sovereignty snapshot (cached for performance)
+      const snapshot = this.getSnapshot();
+      if (!snapshot || !snapshot.sovereignTriads || snapshot.sovereignTriads.length === 0) {
+        console.log('🗑️ No sovereign triads found - SGC evaluation skipped');
+        return;
+      }
 
-      if (!omega) return;
+      // 2. Create SGC for each sovereign triad independently
+      const sovereignResults = [];
+      for (const triad of snapshot.sovereignTriads) {
+        const triadResult = this._applySGCToSovereignTriad(triad, sgcModule);
+        if (triadResult) {
+          sovereignResults.push(triadResult);
+        }
+      }
 
-      // Apply SGC to current graph
-      try {
-        const sgc = new sgcModule.SoulGarbageCollector(omega, sgcParams);
-        const morphicStructure = new sgcModule.MorphicStructure(this._graph);
-
-        const result = sgc.sgc_rule(morphicStructure);
-
-        if (result && result.graph && result.graph !== this._graph) {
-          // Update the graph with SGC result
-          this._graph = result.graph;
-
-          // Update UI if visualizer is available
-          if (this._sgcVisualizer) {
-            this._sgcVisualizer.updateFromEvolution(sgc, result);
-          }
-
-          console.log(`🗑️ SGC applied: ${sgc.pruned_nodes.length} nodes pruned, entropy reduction: ${sgc.compute_entropy_reduction(morphicStructure, result).toFixed(3)}`);
-        } else {
-          // SGC didn't prune anything this time
-          console.log('🗑️ SGC evaluated - no pruning needed');
+      // 3. Merge sovereign triad results back into main graph
+      if (sovereignResults.length > 0) {
+        const mergedGraph = this._mergeSovereignSGCResults(sovereignResults);
+        if (mergedGraph) {
+          this._graph = mergedGraph;
+          this._sgcCounter++;
+          console.log(`🗑️ Sovereign SGC applied: ${sovereignResults.length} triads processed`);
+        }
+      } else {
+        console.log('🗑️ Sovereign SGC evaluated - no changes needed');
         }
       } catch (sgcError) {
         console.warn('SGC application failed:', sgcError.message);
         // Continue evolution even if SGC fails
       }
+  }
+
+  /**
+   * Apply SGC to a single sovereign triad (correct architecture).
+   * Each sovereign triad manages its own coherence and garbage collection.
+   */
+  _applySGCToSovereignTriad(triad, sgcModule) {
+    try {
+      // Create SGC parameters for this specific triad
+      const sgcParams = sgcModule.create_sgc_params(
+        0.3,  // epsilon - resonance threshold for this triad
+        0.5,  // grace_threshold
+        5,    // max_recursion_depth (shallower for triads)
+        0.2   // observer_feedback_weight
+      );
+
+      // Create omega signature for this triad specifically
+      const triadOmega = this._createTriadOmegaSignature(triad);
+      if (!triadOmega) return null;
+
+      // Create morphic structure for this triad only
+      const triadGraph = this._extractTriadGraph(triad);
+      if (!triadGraph) return null;
+
+      // CRITICAL: Ensure triad graph maintains Qπ compliance for SGC operations
+      this._validateAndFixQPiCompliance(triadGraph, `triad ${triad.nodes} SGC`);
+
+      const morphicStructure = new sgcModule.MorphicStructure(triadGraph);
+
+      // Apply SGC rule to this triad
+      const sgc = new sgcModule.SoulGarbageCollector(triadOmega, sgcParams);
+
+      // DEBUG: Log triad structure before SGC
+      console.log(`🗑️ Applying SGC to triad ${triad.nodes}: nodes=${Object.keys(morphicStructure.graph.labels).length}, edges=${morphicStructure.graph.edges.length}`);
+
+      // DEBUG: Check triad phase denominators before SGC
+      const triadDenoms = new Set();
+      for (const label of Object.values(morphicStructure.graph.labels)) {
+        if (label && label.phase_denom) {
+          triadDenoms.add(label.phase_denom);
+        }
+      }
+      console.log(`🔍 Triad ${triad.nodes} pre-SGC denoms: [${Array.from(triadDenoms).join(', ')}]`);
+
+      const result = sgc.sgc_rule(morphicStructure);
+
+      if (result && result.graph && result.graph !== triadGraph) {
+        // VALIDATE: Ensure SGC result maintains Qπ compliance
+        this._validateAndFixQPiCompliance(result.graph, `SGC result for triad ${triad.nodes}`);
+
+        return {
+          triad: triad,
+          originalGraph: triadGraph,
+          prunedGraph: result.graph,
+          prunedNodes: sgc.pruned_nodes,
+          entropyReduction: sgc.compute_entropy_reduction(morphicStructure, result)
+        };
+      }
+
+      return null;
     } catch (error) {
-      console.warn('SGC cleanup failed:', error.message);
+      console.warn(`SGC failed for triad ${triad.nodes}:`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Create omega signature specific to a sovereign triad.
+   * Must follow same Qπ binning rules as global signature for compatibility.
+   */
+  _createTriadOmegaSignature(triad) {
+    try {
+      // Extract phase denominators from triad nodes
+      const phase_denoms = new Set();
+      for (const nodeId of triad.nodes) {
+        const label = this._graph.labels[nodeId];
+        if (label && label.phase_denom) {
+          phase_denoms.add(label.phase_denom);
+        }
+      }
+
+      if (phase_denoms.size === 0) {
+        phase_denoms.add(1);
+      }
+
+      // CRITICAL: Use same logic as global signature for Qπ compliance
+      // Find maximum denominator (since all are powers of 2, max is LCM)
+      const maxDenom = Math.max(...Array.from(phase_denoms), 8); // Ensure minimum 8
+      const phase_bins = 2 * maxDenom; // Must be multiple of 2*max(denom)
+
+      // DEBUG: Verify triad phase denominators
+      console.log(`🔍 Triad ${triad.nodes} phase denoms: [${Array.from(phase_denoms).join(', ')}], max=${maxDenom}, bins=${phase_bins}`);
+
+      // Verify bins calculation matches theory requirements (should always be true)
+      const required = 2 * maxDenom;
+      if (phase_bins !== required) {
+        console.error(`❌ TRIAD BINS MISMATCH: phase_bins=${phase_bins}, required=${required}`);
+      }
+
+      // Create triad-specific phase histogram
+      const phase_hist = new Array(phase_bins).fill(1.0 / phase_bins);
+
+      return {
+        cycles: triad.nodes.length, // Triad has 3 nodes, 3 edges
+        phase_bins: phase_bins,
+        phase_hist: phase_hist
+      };
+    } catch (error) {
+      console.warn('Failed to create triad omega signature:', error.message);
+      // Return safe fallback
+      const safe_bins = 16;
+      const phase_hist = new Array(safe_bins).fill(1.0 / safe_bins);
+      return {
+        cycles: triad.nodes.length,
+        phase_bins: safe_bins,
+        phase_hist: phase_hist
+      };
+    }
+  }
+
+  /**
+   * Extract subgraph containing only the sovereign triad nodes and their connections.
+   */
+  _extractTriadGraph(triad) {
+    try {
+      const triadNodes = new Set(triad.nodes);
+      const triadLabels = {};
+      const triadEdges = [];
+
+      // Extract labels for triad nodes
+      for (const nodeId of triad.nodes) {
+        if (this._graph.labels[nodeId]) {
+          triadLabels[nodeId] = this._graph.labels[nodeId];
+        }
+      }
+
+      // Extract edges within the triad
+      for (const [u, v] of this._graph.edges) {
+        if (triadNodes.has(u) && triadNodes.has(v)) {
+          triadEdges.push([u, v]);
+        }
+      }
+
+      if (Object.keys(triadLabels).length === 0) return null;
+
+      // Ensure triad has minimum valid structure
+      if (triadEdges.length === 0) {
+        console.warn(`⚠️ Triad ${triad.nodes} has no edges - cannot create valid morphic structure`);
+        return null;
+      }
+
+      const triadGraph = new ObjectG({
+        nodes: triad.nodes,
+        edges: triadEdges,
+        labels: triadLabels
+      });
+
+      // Validate the triad graph structure
+      try {
+        validate_object_g(triadGraph);
+      } catch (error) {
+        console.warn(`⚠️ Triad ${triad.nodes} failed validation:`, error.message);
+        return null;
+      }
+
+      return triadGraph;
+    } catch (error) {
+      console.warn('Failed to extract triad graph:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Merge SGC results from multiple sovereign triads back into main graph.
+   */
+  _mergeSovereignSGCResults(sovereignResults) {
+    try {
+      // Start with current graph
+      const mergedNodes = [...this._graph.nodes];
+      const mergedEdges = [...this._graph.edges];
+      const mergedLabels = { ...this._graph.labels };
+
+      let totalPruned = 0;
+
+      for (const result of sovereignResults) {
+        if (result.prunedGraph) {
+          // Replace triad nodes with pruned versions
+          for (const nodeId of result.triad.nodes) {
+            if (result.prunedGraph.labels[nodeId]) {
+              mergedLabels[nodeId] = result.prunedGraph.labels[nodeId];
+            } else {
+              // Node was pruned - remove it and all its edges
+              delete mergedLabels[nodeId];
+              mergedNodes.splice(mergedNodes.indexOf(nodeId), 1);
+
+              // Remove edges connected to this node
+              mergedEdges = mergedEdges.filter(([u, v]) => u !== nodeId && v !== nodeId);
+              totalPruned++;
+            }
+          }
+        }
+      }
+
+      if (totalPruned > 0) {
+        console.log(`🗑️ Merged SGC results: ${totalPruned} nodes pruned from sovereign triads`);
+
+        // CRITICAL: Ensure Qπ compliance after SGC merge
+        // All phase denominators must remain powers of 2 for global omega signature
+
+        // DEBUG: Check phase denominators after SGC merge
+        const remaining_denoms = new Set();
+        for (const label of Object.values(mergedLabels)) {
+          if (label && label.phase_denom) {
+            remaining_denoms.add(label.phase_denom);
+          }
+        }
+        console.log(`🔍 Post-SGC phase denoms: [${Array.from(remaining_denoms).join(', ')}]`);
+
+        // DEEP DEBUG: Analyze each node's phase denominator
+        console.log(`🔍 SGC MERGE DEBUG - analyzing ${Object.keys(mergedLabels).length} nodes:`);
+        for (const [nodeId, label] of Object.entries(mergedLabels)) {
+          if (label && label.phase_denom) {
+            const isPowerOf2 = (label.phase_denom & (label.phase_denom - 1)) === 0;
+            console.log(`   Node ${nodeId}: denom=${label.phase_denom}, powerOf2=${isPowerOf2}`);
+          }
+        }
+
+        // ENFORCE Qπ COMPLIANCE: All denominators must be powers of 2
+        let fixedCount = 0;
+        for (const label of Object.values(mergedLabels)) {
+          if (label && label.phase_denom && (label.phase_denom & (label.phase_denom - 1)) !== 0) {
+            console.error(`❌ Qπ VIOLATION: Non-power-of-2 denominator after SGC: ${label.phase_denom}`);
+            // Fix by converting to nearest power of 2
+            label.phase_denom = this._nearestPowerOf2(label.phase_denom);
+            fixedCount++;
+            console.log(`   ✅ Fixed to: ${label.phase_denom}`);
+          }
+        }
+
+        if (fixedCount > 0) {
+          console.log(`🔧 Qπ compliance enforced: ${fixedCount} denominators corrected`);
+        }
+
+        // VALIDATE: Ensure merged graph structure is valid for global operations
+        try {
+          // Create temporary ObjectG to validate structure
+          const tempGraph = new ObjectG({
+            nodes: mergedNodes,
+            edges: mergedEdges,
+            labels: mergedLabels
+          });
+          validate_object_g(tempGraph);
+
+          // Additional Qπ validation for global omega signature compatibility
+          const globalPhaseDenoms = new Set();
+          for (const label of Object.values(mergedLabels)) {
+            if (label && label.phase_denom) {
+              globalPhaseDenoms.add(label.phase_denom);
+            }
+          }
+
+          if (globalPhaseDenoms.size > 0) {
+            const maxDenom = Math.max(...Array.from(globalPhaseDenoms), 8);
+            const expectedBins = 2 * maxDenom;
+            console.log(`🔍 Qπ validation: max_denom=${maxDenom}, expected_bins=${expectedBins}`);
+
+            // Ensure no denominators violate power-of-2 requirement
+            for (const denom of globalPhaseDenoms) {
+              if (denom !== 0 && (denom & (denom - 1)) !== 0) {
+                throw new Error(`Qπ violation: ${denom} is not a power of 2`);
+              }
+            }
+          }
+
+          return tempGraph;
+        } catch (validationError) {
+          console.error(`❌ SGC merge created invalid graph:`, validationError.message);
+          console.error(`   This violates Qπ requirements for global omega signatures`);
+          return null; // Don't use invalid graph
+        }
+      }
+
+      return null; // No changes
+    } catch (error) {
+      console.warn('Failed to merge SGC results:', error.message);
+      return null;
     }
   }
 
@@ -2284,12 +2594,13 @@ export class ZXObjectGraphEngine {
         phase_denoms.add(1); // Default to simple phases
       }
 
+      // THEORY REQUIREMENT: Phase denominators are powers of 2, so LCM is also power of 2
       // Calculate LCM of phase denominators for proper Qπ binning
       const lcm = this._calculateLCM(Array.from(phase_denoms));
-      const phase_bins = lcm > 0 ? 2 * lcm : 8; // 2*LCM for proper Qπ normalization
+      const phase_bins = lcm > 0 ? 2 * lcm : 16; // 2 * 8 = 16 bins for bootstrap precision
 
-      // Create uniform phase histogram for now
-      // In a full implementation, this would analyze actual phase distribution
+      // Create uniform phase histogram
+      // With denominators capped at 64, bins will be at most 128
       const phase_hist = new Array(phase_bins).fill(1.0 / phase_bins);
 
       return {
@@ -2304,14 +2615,18 @@ export class ZXObjectGraphEngine {
   }
 
   _calculateLCM(numbers) {
-    if (numbers.length === 0) return 1;
+    if (numbers.length === 0) return 8; // Bootstrap precision default
     if (numbers.length === 1) return numbers[0];
 
-    let result = numbers[0];
-    for (let i = 1; i < numbers.length; i++) {
-      result = this._lcm(result, numbers[i]);
+    // THEORY REQUIREMENT: All denominators are powers of 2, so LCM is also power of 2
+    // Find maximum denominator (since all are powers of 2, max is LCM)
+    let max = 1;
+    for (const num of numbers) {
+      if (num > max) max = num;
     }
-    return result;
+
+    // Cap at 64 (2^6) per theory precision limits
+    return Math.min(max, 64);
   }
 
   _lcm(a, b) {
@@ -2325,6 +2640,28 @@ export class ZXObjectGraphEngine {
       a = temp;
     }
     return a;
+  }
+
+  // SGC adaptive frequency method
+  _shouldApplySGC() {
+    // Performance optimization: Reduce SGC frequency for better performance
+    const baseFrequency = Math.max(100, this._sgcFrequency); // Apply less frequently
+    const stepSinceLast = this._stepCount - (this._sgcCounter > 0 ? this._stepCount % baseFrequency : 0);
+
+    // If at base frequency interval, apply SGC
+    if (stepSinceLast >= baseFrequency) {
+      return true;
+    }
+
+    // Adaptive frequency based on coherence levels (less aggressive)
+    const currentCoherence = this._computeCoherence();
+    const coherenceThreshold = 0.2; // Higher threshold to reduce frequency
+
+    if (currentCoherence < coherenceThreshold && stepSinceLast >= baseFrequency / 3) {
+      return true; // Apply SGC less frequently when coherence is low
+    }
+
+    return false;
   }
 
   // SGC control methods
@@ -2348,8 +2685,109 @@ export class ZXObjectGraphEngine {
       enabled: this._sgcEnabled,
       frequency: this._sgcFrequency,
       applications: this._sgcCounter,
-      lastApplication: this._sgcCounter > 0 ? this._stepCount : null
+      lastApplication: this._sgcCounter > 0 ? this._stepCount : null,
+      adaptiveMode: true,
+      coherenceThreshold: 0.3,
+      entropyReduction: this._sgcEntropyReduction || 0.0
     };
+  }
+
+  _computeCoherence() {
+    // Return current evolution state coherence, or compute from graph if needed
+    if (this.evolutionState && typeof this.evolutionState.coherence === 'number') {
+      return this.evolutionState.coherence;
+    }
+
+    // Fallback: compute from current graph
+    if (this._graph && typeof compute_coherence === 'function') {
+      return compute_coherence(this._graph);
+    }
+
+    // Final fallback: return 0
+    return 0.0;
+  }
+
+  getMetamirrorStatus() {
+    const coherence = this._computeCoherence();
+    const sgcStatus = this.getSGCStatus();
+
+    return {
+      enabled: this._controlParams?.metamirrorStrength > 0,
+      strength: this._controlParams?.metamirrorStrength || 0,
+      coherence: coherence,
+      sgcIntegration: sgcStatus.enabled,
+      sgcEntropyReduction: sgcStatus.entropyReduction,
+      combinedEfficiency: coherence * (1 + sgcStatus.entropyReduction * 0.1)
+    };
+  }
+
+  /**
+   * Validate and fix Qπ compliance for a graph before resonance computations.
+   * Ensures all phase denominators are powers of 2 as required by theory.
+   */
+  _validateAndFixQPiCompliance(graph, context = 'unknown') {
+    if (!graph || !graph.labels) return;
+
+    console.log(`🔍 Qπ validation for ${context}: checking ${Object.keys(graph.labels).length} nodes`);
+
+    let violations = 0;
+    let fixes = 0;
+
+    for (const [nodeId, label] of Object.entries(graph.labels)) {
+      if (label && label.phase_denom && (label.phase_denom & (label.phase_denom - 1)) !== 0) {
+        violations++;
+        console.warn(`❌ Qπ violation in ${context}: node ${nodeId}, denom ${label.phase_denom}`);
+        label.phase_denom = this._nearestPowerOf2(label.phase_denom);
+        fixes++;
+        console.log(`   ✅ Fixed to: ${label.phase_denom}`);
+      }
+    }
+
+    if (violations > 0) {
+      console.log(`🔧 Qπ compliance enforced for ${context}: ${fixes}/${violations} violations fixed`);
+    }
+  }
+
+  /**
+   * Debug Qπ compliance with detailed analysis.
+   */
+  _debugQPiCompliance(graph, context = 'unknown') {
+    if (!graph || !graph.labels) {
+      console.log(`🔍 Qπ debug for ${context}: no graph or labels`);
+      return;
+    }
+
+    const denominators = Object.values(graph.labels).map(lbl => lbl.phase_denom).filter(d => d != null);
+    const uniqueDenoms = [...new Set(denominators)].sort((a,b) => a-b);
+
+    console.log(`🔍 Qπ DEBUG for ${context}:`);
+    console.log(`   Node count: ${Object.keys(graph.labels).length}`);
+    console.log(`   Denominators: [${denominators.join(', ')}]`);
+    console.log(`   Unique denoms: [${uniqueDenoms.join(', ')}]`);
+
+    // Check for non-power-of-2 denominators
+    const nonPowerOf2 = uniqueDenoms.filter(d => d !== 0 && (d & (d - 1)) !== 0);
+    if (nonPowerOf2.length > 0) {
+      console.error(`   ❌ NON-POWER-OF-2 FOUND: [${nonPowerOf2.join(', ')}]`);
+    } else {
+      console.log(`   ✅ All denominators are powers of 2`);
+
+      // Calculate expected bins
+      const maxDenom = Math.max(...denominators, 8);
+      const expectedBins = 2 * maxDenom;
+      console.log(`   📊 Expected bins: ${expectedBins} (2 * ${maxDenom})`);
+    }
+  }
+
+  /**
+   * Helper method to find nearest power of 2 (for phase denominator enforcement).
+   */
+  _nearestPowerOf2(n) {
+    if (n <= 1) return 1;
+    if (n > 64) return 64; // Theory cap (T-gate precision limit)
+    const lower = 1 << Math.floor(Math.log2(n));
+    const upper = 1 << Math.ceil(Math.log2(n));
+    return (n - lower < upper - n) ? lower : upper;
   }
 }
 

@@ -22,7 +22,7 @@ function createOscillatorBank(audioContext, analyser) {
 }
 
 export function createAnalogEngine() {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  let audioContext = null;  // Create lazily on first user interaction
   let analyser = null;
   let oscillators = [];
   let freqDataBuffer = null;
@@ -37,6 +37,16 @@ export function createAnalogEngine() {
     isActive,
 
     async initialize() {
+      // Create AudioContext lazily on first initialization
+      if (!this.audioContext) {
+        try {
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (error) {
+          console.warn('🔊 AudioContext creation failed (user gesture required):', error.message);
+          return; // Exit early if AudioContext can't be created yet
+        }
+      }
+
       // Do NOT await resume here; let UI handle user-gesture resumption
       try {
         if (this.audioContext.state === 'suspended') {
@@ -52,6 +62,31 @@ export function createAnalogEngine() {
 
       // Start oscillators only when context is running
       this.ensureActive();
+    },
+
+    // Helper method to ensure AudioContext is created and resumed
+    async ensureAudioContext() {
+      if (!this.audioContext) {
+        try {
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (error) {
+          console.warn('🔊 AudioContext creation failed (user gesture required):', error.message);
+          return false;
+        }
+      }
+
+      if (this.audioContext.state === 'suspended') {
+        try {
+          await this.audioContext.resume();
+          console.log('🔊 AudioContext resumed successfully');
+          return true;
+        } catch (error) {
+          console.warn('🔊 AudioContext resume failed:', error.message);
+          return false;
+        }
+      }
+
+      return this.audioContext.state === 'running';
     },
 
     ensureActive() {
@@ -96,8 +131,8 @@ export function createAnalogEngine() {
     },
 
     getAudioCoherence() {
-      if (!this.analyser) {
-        return 0.5;
+      if (!this.analyser || !this.audioContext || this.audioContext.state !== 'running') {
+        return 0.5; // Safe default when audio is not available
       }
 
       const byteBuffer = new Uint8Array(this.analyser.frequencyBinCount);

@@ -81,33 +81,7 @@ async function updateScientificMetrics() {
     // Resonance metrics (Ω and Res) with resilient fallback
     try {
       if (!window.__resonanceMod) {
-        try {
-          window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
-        } catch (_) {
-          // Fallback: build minimal module from core/coherence
-          const coh = await import('./FIRM_dsl/coherence.js');
-          const core = await import('./FIRM_dsl/core.js');
-          window.__resonanceMod = {
-            deriveOmegaSignature(graph) {
-              core.validate_object_g(graph);
-              const cycles = coh.compute_cycle_basis_signature(graph);
-              const phase_bins = coh.derive_minimal_qpi_bins(graph);
-              const phase_hist = coh.compute_phase_histogram_signature(graph, phase_bins);
-              return { cycles, phase_bins, phase_hist };
-            },
-            computeResonanceAlignment(graph, omega) {
-              core.validate_object_g(graph);
-              if (!omega || !Number.isInteger(omega.phase_bins) || omega.phase_bins <= 0) {
-                throw new Error('Invalid omega signature');
-              }
-              const cycles_s = coh.compute_cycle_basis_signature(graph);
-              const hist_s = coh.compute_phase_histogram_signature(graph, omega.phase_bins);
-              const safeCycles = omega.cycles || [];
-              const safeHist = omega.phase_hist || new Array(omega.phase_bins).fill(0);
-              return coh.similarity_S(cycles_s, safeCycles, hist_s, safeHist);
-            }
-          };
-        }
+        window.__resonanceMod = await import('./FIRM_dsl/resonance.js');
       }
       if (!window.__omegaSignature && window.zxEvolutionEngine) {
         window.__omegaSignature = window.__resonanceMod.deriveOmegaSignature(snapshot.graph);

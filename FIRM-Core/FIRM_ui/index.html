@@ -3,14 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <link rel="modulepreload" href="FIRM_dsl/resonance.js?v=2025-10-04-1" />
-    <script src="physics_constants.js?v=2025-10-06-e8"></script>
-    <script src="e8_visualizer.js?v=2025-10-06-e8"></script>
-    <script type="module" src="e8_webgl_integration.js?v=2025-10-06"></script>
-    <script src="mass_spectrum_display.js?v=2025-10-06"></script>
+    <meta http-equiv="Cache-Control" content="public, max-age=3600" />
+    <meta http-equiv="Last-Modified" content="2025-10-07" />
+    <link rel="modulepreload" href="FIRM_dsl/resonance.js" />
+    <link rel="modulepreload" href="FIRM_dsl/coherence.js" />
+    <link rel="modulepreload" href="FIRM_dsl/core.js" />
+    <script src="physics_constants.js"></script>
+    <script src="e8_visualizer.js"></script>
+    <script type="module" src="e8_webgl_integration.js"></script>
+    <script src="mass_spectrum_display.js"></script>
     <title>FIRM UI - E8 Universe Simulation</title>
     <style>
       :root {
@@ -569,19 +570,20 @@
       </div>
     </aside>
 
-    <script src="theory_logger.js?v=2025-10-04-1"></script>
-    <script type="module" src="main.js?v=2025-10-04-1"></script>
-    <script src="emergency_fix.js?v=2025-10-04-1"></script>
-    <script src="visual_debug.js?v=2025-10-04-1"></script>
-    <script src="camera_external_fix.js?v=2025-10-04-1"></script>
-    <script src="geometry_diagnostics.js?v=2025-10-04-1"></script>
-    <script type="module" src="interpretation_modal.js?v=2025-10-04-1"></script>
-    <script src="metrics_updater.js?v=2025-10-04-1"></script>
-    <script type="module" src="sacred_morphic_seeds.js?v=2025-10-04-1"></script>
-    <script type="module" src="sacred_direct_injection.js?v=2025-10-04-1"></script>
-    <script type="module" src="fractal_waveform_drivers.js?v=2025-10-04-1"></script>
-    <script type="module" src="theory_validation_tests.js?v=2025-10-04-1"></script>
-    <script type="module">import * as __res from './FIRM_dsl/resonance.js?v=2025-10-04-1'; window.__resonanceMod = __res;</script>
+    <script src="theory_logger.js?v=2025-10-07-sovereign"></script>
+    <script type="module" src="main.js?v=2025-10-07-sovereign"></script>
+    <script src="emergency_fix.js?v=2025-10-07-sovereign"></script>
+    <script src="visual_debug.js?v=2025-10-07-sovereign"></script>
+    <script src="camera_external_fix.js?v=2025-10-07-sovereign"></script>
+    <script src="geometry_diagnostics.js?v=2025-10-07-sovereign"></script>
+    <script type="module" src="interpretation_modal.js?v=2025-10-07-sovereign"></script>
+    <script src="metrics_updater.js?v=2025-10-07-sovereign"></script>
+    <script type="module" src="sacred_morphic_seeds.js?v=2025-10-07-sovereign"></script>
+    <script type="module" src="sacred_direct_injection.js?v=2025-10-07-sovereign"></script>
+    <script type="module" src="fractal_waveform_drivers.js?v=2025-10-07-sovereign"></script>
+    <script type="module" src="theory_validation_tests.js?v=2025-10-07-sovereign"></script>
+    <script type="module">import * as __res from './FIRM_dsl/resonance.js'; window.__resonanceMod = __res;</script>
+    <script type="module">import { HarmonicGenerator, AutonomousEvolution, playHarmonicBuffer } from './harmonic_generator.js?v=2025-10-07-sovereign'; window.HarmonicGenerator = HarmonicGenerator; window.AutonomousEvolution = AutonomousEvolution; window.playHarmonicBuffer = playHarmonicBuffer;</script>
     <!-- Vercel Web Analytics & Speed Insights for static sites -->
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>

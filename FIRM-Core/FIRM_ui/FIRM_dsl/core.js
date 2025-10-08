@@ -24,6 +24,16 @@ export class ObjectG {
   }
 }
 
+// Helper: Round to nearest power of 2
+// Theory requirement (bootstrap_phase_derivation.md): denominators must be 2^k
+function nearestPowerOf2(n) {
+  if (n <= 1) return 1;
+  if (n > 64) return 64; // Theory cap (T-gate precision limit)
+  const lower = 1 << Math.floor(Math.log2(n));
+  const upper = 1 << Math.ceil(Math.log2(n));
+  return (n - lower < upper - n) ? lower : upper;
+}
+
 export function normalize_phase_qpi(phaseNumer, phaseDenom) {
   if (!Number.isInteger(phaseDenom) || phaseDenom <= 0) {
     throw new Error("phase_denom must be a positive integer");
@@ -34,8 +44,8 @@ export function normalize_phase_qpi(phaseNumer, phaseDenom) {
     numerMod += mod;
   }
   const g = gcd(Math.abs(numerMod), phaseDenom);
-  const numerRed = numerMod / g;
-  const denomRed = phaseDenom / g;
+  const numerRed = Math.floor(numerMod / g);
+  const denomRed = Math.floor(phaseDenom / g);
   return [numerRed, denomRed];
 }
 
@@ -43,6 +53,18 @@ export function make_node_label(kind, phaseNumer, phaseDenom, monadicId) {
   if (kind !== "Z" && kind !== "X") {
     throw new Error("kind must be 'Z' or 'X'");
   }
+  
+  // THEORY REQUIREMENT: Denominator must be power of 2
+  const denomPow2 = nearestPowerOf2(phaseDenom);
+  if (denomPow2 !== phaseDenom) {
+    // Renormalize to nearest power of 2
+    const phaseRad = Math.PI * phaseNumer / phaseDenom;
+    const numerPow2 = Math.round(phaseRad * denomPow2 / Math.PI);
+    const [n, d] = normalize_phase_qpi(numerPow2, denomPow2);
+    console.warn(`⚠️ Phase denom ${phaseDenom} → ${d} (power-of-2 enforcement)`);
+    return new NodeLabel(kind, n, d, monadicId);
+  }
+  
   const [n, d] = normalize_phase_qpi(phaseNumer, phaseDenom);
   return new NodeLabel(kind, n, d, monadicId);
 }
@@ -74,10 +96,49 @@ export function validate_object_g(obj) {
 }
 
 export function add_phases_qpi(aNumer, aDenom, bNumer, bDenom) {
-  const l = lcm(aDenom, bDenom);
-  const an = aNumer * (l / aDenom);
-  const bn = bNumer * (l / bDenom);
-  return normalize_phase_qpi(an + bn, l);
+  // THEORY REQUIREMENT (bootstrap_phase_derivation.md Theorem 1):
+  // Denominators MUST be powers of 2: 2^k for k ∈ ℕ
+  // This ensures ZX calculus soundness (Clifford/T gate representation)
+
+  // BOOTSTRAP PRECISION: 2^3 = 8 (Clifford+T gates)
+  const BOOTSTRAP_DENOM = 8;
+
+  // MAX DENOMINATOR: 2^6 = 64 (T-gate precision limit)
+  const MAX_QPI_DENOM = 64;
+  
+  // CRITICAL: Clamp inputs to MAX first to prevent LCM explosion
+  const aSafe = Math.min(aDenom, MAX_QPI_DENOM);
+  const bSafe = Math.min(bDenom, MAX_QPI_DENOM);
+  
+  // LCM of two powers of 2 (≤64) is always ≤64 and is a power of 2
+  const commonDenom = Math.min(lcm(aSafe, bSafe), MAX_QPI_DENOM);
+
+  // Convert both phases to radians first (using clamped denominators for consistency)
+  const aPhaseRad = Math.PI * aNumer / aSafe;
+  const bPhaseRad = Math.PI * bNumer / bSafe;
+
+  // Add phases in radian space (continuous)
+  const sumPhaseRad = (aPhaseRad + bPhaseRad) % (2 * Math.PI);
+
+  // Convert back to rational representation using the common denominator
+  const finalNumer = Math.round(sumPhaseRad * commonDenom / Math.PI);
+  const finalDenom = commonDenom;
+
+  // Normalize to ensure gcd=1 and proper range
+  const [numerRed, denomRed] = normalize_phase_qpi(finalNumer, finalDenom);
+
+  // THEORY REQUIREMENT: Ensure denominator is power of 2
+  // If not, convert to nearest power of 2 (maintains phase but ensures Qπ compliance)
+  const finalDenomPowerOf2 = nearestPowerOf2(denomRed);
+
+  if (finalDenomPowerOf2 !== denomRed) {
+    // Convert back to radians and re-quantize to power-of-2 denominator
+    const phaseRad = Math.PI * numerRed / denomRed;
+    const newNumer = Math.round(phaseRad * finalDenomPowerOf2 / Math.PI);
+    return [newNumer, finalDenomPowerOf2];
+  }
+
+  return [numerRed, denomRed];
 }
 
 export function phase_to_bin_index(phaseNumer, phaseDenom, bins) {
@@ -119,5 +180,31 @@ function gcd(a, b) {
 }
 
 function lcm(a, b) {
-  return Math.abs(a * b) / gcd(a, b);
+  // THEORY REQUIREMENT: For powers of 2, LCM(2^a, 2^b) = 2^max(a,b)
+  // This avoids ALL floating-point precision issues
+  if ((a & (a - 1)) === 0 && (b & (b - 1)) === 0) {
+    // Both are powers of 2 - LCM is just the maximum
+    return Math.max(a, b);
+  }
+  
+  // Fallback for non-powers of 2 (should NEVER happen in theory-compliant system)
+  const g = gcd(a, b);
+  if (g === 0) {
+    throw new Error(`GCD is zero - invalid input to lcm: a=${a}, b=${b}`);
+  }
+  
+  // Use integer-only arithmetic: compute (a/gcd) * b to avoid intermediate overflow
+  const aReduced = Math.floor(a / g);
+  const result = aReduced * b;
+  
+  // THEORY VIOLATION CHECK: Result must be ≤ 64 and power of 2
+  if (result > 64) {
+    throw new Error(`LCM produced denominator ${result} > 64. Theory cap is 2^6 = 64. Inputs: a=${a}, b=${b}`);
+  }
+  
+  if ((result & (result - 1)) !== 0) {
+    throw new Error(`LCM produced non-power-of-2 denominator ${result}. Theory requires 2^k. Inputs: a=${a}, b=${b}`);
+  }
+  
+  return result;
 }

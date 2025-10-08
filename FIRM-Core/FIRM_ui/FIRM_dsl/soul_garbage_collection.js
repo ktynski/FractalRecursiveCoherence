@@ -49,26 +49,69 @@ export class MorphicStructure {
     }
 
     _build_children() {
-        // Simple partitioning strategy for demonstration
-        if (this.graph && this.graph.labels && Object.keys(this.graph.labels).length > 3) {
+        // CORRECTED: For sovereign triads, children represent internal structure
+        // Each triad node becomes a child structure for more granular SGC
+        if (this.graph && this.graph.labels && Object.keys(this.graph.labels).length === 3) {
+            // For triads, create child structures for each node (sovereign architecture)
             const nodeIds = Object.keys(this.graph.labels);
-            const midPoint = Math.floor(nodeIds.length / 2);
 
-            if (midPoint > 0) {
-                const child1Nodes = nodeIds.slice(0, midPoint);
-                const child2Nodes = nodeIds.slice(midPoint);
+            this.children = nodeIds.map(nodeId => {
+                const nodeGraph = this._create_node_subgraph(nodeId);
+                return nodeGraph ? new MorphicStructure(nodeGraph, this) : null;
+            }).filter(child => child !== null);
+        } else if (this.graph && this.graph.labels && Object.keys(this.graph.labels).length > 3) {
+            // For larger structures, use intelligent partitioning based on connectivity
+            const nodeIds = Object.keys(this.graph.labels);
+            const connectedComponents = this._find_connected_components();
 
-                const child1Graph = this._create_subgraph(child1Nodes);
-                const child2Graph = this._create_subgraph(child2Nodes);
+            this.children = connectedComponents.map(component => {
+                const componentGraph = this._create_subgraph(component);
+                return componentGraph ? new MorphicStructure(componentGraph, this) : null;
+            }).filter(child => child !== null);
+        }
+    }
 
-                if (child1Graph && child2Graph) {
-                    this.children = [
-                        new MorphicStructure(child1Graph, this),
-                        new MorphicStructure(child2Graph, this)
-                    ];
+    _find_connected_components() {
+        // Find connected components for intelligent partitioning
+        const visited = new Set();
+        const components = [];
+
+        for (const nodeId of Object.keys(this.graph.labels)) {
+            if (!visited.has(nodeId)) {
+                const component = this._dfs_component(nodeId, visited);
+                if (component.length > 0) {
+                    components.push(component);
                 }
             }
         }
+
+        return components;
+    }
+
+    _dfs_component(startNode, visited) {
+        const component = [];
+        const stack = [startNode];
+
+        while (stack.length > 0) {
+            const node = stack.pop();
+            if (!visited.has(node)) {
+                visited.add(node);
+                component.push(node);
+
+                // Add connected nodes to stack
+                if (this.graph.edges) {
+                    for (const [u, v] of this.graph.edges) {
+                        if (u === node && !visited.has(v)) {
+                            stack.push(v);
+                        } else if (v === node && !visited.has(u)) {
+                            stack.push(u);
+                        }
+                    }
+                }
+            }
+        }
+
+        return component;
     }
 
     _create_subgraph(nodeIds) {
@@ -101,6 +144,19 @@ export class MorphicStructure {
             nodes: nodeIds,
             edges: subgraphEdges,
             labels: subgraphLabels
+        });
+    }
+
+    _create_node_subgraph(nodeId) {
+        // Create a subgraph containing just one node (for triad internal structure)
+        if (!this.graph || !this.graph.labels || !this.graph.labels[nodeId]) {
+            return null;
+        }
+
+        return new ObjectG({
+            nodes: [nodeId],
+            edges: [], // Single node has no internal edges
+            labels: { [nodeId]: this.graph.labels[nodeId] }
         });
     }
 

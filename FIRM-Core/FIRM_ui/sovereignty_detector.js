@@ -29,7 +29,8 @@ export function detectSovereignTriads(graph, adjacency) {
     
     // Theory: Sovereign triads must exceed coherence threshold
     // Derivation: triune pattern requires φ-harmony + balance + diversity
-    if (coherence > 0.5) {  // Threshold from golden ratio φ^-1 ≈ 0.618
+    const φ = 1.618033988749;  // Golden ratio
+    if (coherence > (1 / φ)) {  // Threshold φ^-1 ≈ 0.618 (theory-derived)
       triads.push({
         nodes: triangle,
         coherence,
@@ -76,12 +77,14 @@ function computeTriadCoherence(triangle, graph, adjacency) {
   const phi_harmony_CA = Math.abs(Math.cos((phaseA - phaseC) * φ));
   const phaseHarmony = (phi_harmony_AB + phi_harmony_BC + phi_harmony_CA) / 3;
   
-  // 2. Type diversity: Should mix Z and X (polarity within unity)
-  // Theory: Triune pattern requires diversity (not all same type)
+  // 2. Type diversity: MUST mix Z and X (polarity within unity)
+  // Theory: Triune pattern (Father-Son-Spirit, Keter-Chokmah-Binah) REQUIRES both polarities
+  // Esoteric: Masculine (Z) + Feminine (X) = Unity. No mixing = no sovereignty.
+  // Source: complete_sovereignty_emergence_specification.md line 145
   const types = [labelA.kind, labelB.kind, labelC.kind];
   const hasZ = types.includes('Z');
   const hasX = types.includes('X');
-  const typeDiversity = (hasZ && hasX) ? 1.0 : 0.3;
+  const typeDiversity = (hasZ && hasX) ? 1.0 : 0.0;  // BINARY: either has polarity or doesn't
   
   // 3. Connectivity balance: Democratic triad (no hub dominance)
   // Theory: Source-self-relation should be balanced, not hierarchical
@@ -109,25 +112,29 @@ function computeTriadCoherence(triangle, graph, adjacency) {
 function findAllTriangles(graph, adjacency) {
   const triangles = [];
   const nodes = Array.from(graph.nodes);
-  
+
+  // Triangle detection is critical for sovereignty - don't skip for performance
+  // The O(n^3) complexity is acceptable for ZX graph sizes in this system
+
+  // Optimized triangle detection using adjacency intersection
   for (let i = 0; i < nodes.length; i++) {
     const a = nodes[i];
     const neighborsA = adjacency.get(a) || [];
-    
+
     for (let j = i + 1; j < nodes.length; j++) {
       const b = nodes[j];
       if (!neighborsA.includes(b)) continue;
-      
-      const neighborsB = adjacency.get(b) || [];
-      for (let k = j + 1; k < nodes.length; k++) {
-        const c = nodes[k];
-        if (neighborsA.includes(c) && neighborsB.includes(c)) {
-          triangles.push([a, b, c]);
-        }
+
+      // Use set intersection for faster triangle detection
+      const neighborsB = new Set(adjacency.get(b) || []);
+      const commonNeighbors = neighborsA.filter(n => n > b && neighborsB.has(n));
+
+      for (const c of commonNeighbors) {
+        triangles.push([a, b, c]);
       }
     }
   }
-  
+
   return triangles;
 }
 
@@ -178,7 +185,9 @@ export function computePolarityOrientation(graph, adjacency, rewriteHistory) {
   const graceRatio = graceEvents / (totalEvents + 1);
   
   // Map grace ratio to polarity: high grace = positive polarity
-  const polarityFromGrace = 2 * graceRatio - 0.1;  // Shift to favor positive
+  // Theory: complete_sovereignty_emergence_specification.md line 198
+  // The -0.1 offset IS part of the formal specification
+  const polarityFromGrace = 2 * graceRatio - 0.1;
   
   // 3. Phase variance (chirality contribution)
   const phases = Object.values(graph.labels).map(l => 
@@ -195,6 +204,9 @@ export function computePolarityOrientation(graph, adjacency, rewriteHistory) {
   const typeAsymmetry = (zCount - xCount) / (zCount + xCount + 1);
   
   // Combine all polarity indicators
+  // Theory: Weights ARE specified in complete_sovereignty_emergence_specification.md lines 215-219
+  // 0.3 for flow asymmetry, 0.3 for grace ratio, 0.4 for type asymmetry * chirality
+  // Source: complete_sovereignty_emergence_specification.md section 2.3
   const polarity = (
     flowAsymmetry * 0.3 +
     polarityFromGrace * 0.3 +
@@ -223,11 +235,25 @@ export function computeSovereigntyIndex(sovereignTriads, graph, adjacency) {
   // 2. Average coherence
   const avgCoherence = sovereignTriads.reduce((sum, t) => sum + t.coherence, 0) / sovereignTriads.length;
   
-  // 3. Terminal property: Check if high-degree nodes are in triads
+  // 3. Terminal property: High-degree nodes MUST be in triads (all paths lead to Ψ)
+  // Theory: Terminal object = unique morphism from all objects to Ψ
+  // Measure: What fraction of high-degree nodes are contained in sovereign triads?
+  // Source: Algebraic_Structures.md (terminal object definition)
+  const triadNodes = new Set();
+  for (const triad of sovereignTriads) {
+    triad.nodes.forEach(n => triadNodes.add(n));
+  }
+  
   const degrees = graph.nodes.map(n => adjacency.get(n)?.length || 0);
-  const maxDegree = Math.max(...degrees);
-  const avgDegree = degrees.reduce((sum, d) => sum + d, 0) / degrees.length;
-  const terminality = maxDegree / (avgDegree * 3);  // High-degree nodes should be triad hubs
+  const avgDegree = degrees.reduce((sum, d) => sum + d, 0) / (degrees.length || 1);
+  
+  // High-degree nodes: those with degree > average
+  const highDegreeNodes = graph.nodes.filter(n => (adjacency.get(n)?.length || 0) > avgDegree);
+  if (highDegreeNodes.length === 0) return 0;  // No hubs yet
+  
+  // Terminality = fraction of high-degree nodes that are in triads
+  const highDegreeInTriads = highDegreeNodes.filter(n => triadNodes.has(n)).length;
+  const terminality = highDegreeInTriads / highDegreeNodes.length;
   
   // 4. Self-reference: Recursive triad structure
   const recursiveDepth = computeTriadNestingDepth(sovereignTriads, graph);
@@ -241,51 +267,104 @@ export function computeSovereigntyIndex(sovereignTriads, graph, adjacency) {
 }
 
 /**
- * Compute nesting depth of triads (triads within triads).
- * Simple heuristic for now - can be enhanced.
+ * Compute recursive depth of triads: Ψ ≅ Hom(Ψ, Ψ)
+ * Theory: Sovereignty contains mappings to itself (self-referential structure)
+ * Measure: Maximum depth of triad-within-triad nesting
+ * Source: Algebraic_Structures.md (Ψ recursive property)
  */
 function computeTriadNestingDepth(triads, graph) {
-  if (triads.length < 3) return 0;
+  if (triads.length === 0) return 0;
   
-  // Check if triad nodes themselves form larger triad patterns
-  let nestedCount = 0;
+  // Build containment graph: which triads contain nodes from which other triads?
+  const triadContainment = new Map();  // triadIndex -> Set of contained triadIndices
   
   for (let i = 0; i < triads.length; i++) {
-    for (let j = i + 1; j < triads.length; j++) {
-      // Check if triads share nodes (nesting indicator)
-      const shared = triads[i].nodes.filter(n => triads[j].nodes.includes(n)).length;
-      if (shared >= 2) {
-        nestedCount++;
+    triadContainment.set(i, new Set());
+    const nodesI = new Set(triads[i].nodes);
+    
+    for (let j = 0; j < triads.length; j++) {
+      if (i === j) continue;
+      
+      // Check if triad i contains any nodes from triad j
+      const containsNode = triads[j].nodes.some(n => nodesI.has(n));
+      if (containsNode) {
+        triadContainment.get(i).add(j);
       }
     }
   }
   
-  return Math.log(1 + nestedCount);
+  // Compute maximum depth via depth-first search
+  function computeDepth(triadIndex, visited) {
+    if (visited.has(triadIndex)) return 0;  // Prevent cycles
+    visited.add(triadIndex);
+    
+    const contained = triadContainment.get(triadIndex);
+    if (contained.size === 0) return 1;  // Leaf node
+    
+    let maxChildDepth = 0;
+    for (const childIndex of contained) {
+      const childDepth = computeDepth(childIndex, new Set(visited));
+      maxChildDepth = Math.max(maxChildDepth, childDepth);
+    }
+    
+    return 1 + maxChildDepth;
+  }
+  
+  // Find maximum depth across all triads
+  let maxDepth = 0;
+  for (let i = 0; i < triads.length; i++) {
+    const depth = computeDepth(i, new Set());
+    maxDepth = Math.max(maxDepth, depth);
+  }
+  
+  return maxDepth;
 }
 
 /**
- * Detect Devourer anti-patterns that block sovereignty emergence.
+ * Detect Devourer (𝒟) anti-patterns that block sovereignty emergence.
  * 
- * Theory: Devourer = "mimicry of coherence without genuine recursion"
- * Technical: Nodes with high degree but low triad participation
+ * Theory: 𝒟 = "mimicry of coherence without genuine recursion"
+ * - Appears connected (high degree) but lacks recursive self-reference
+ * - "Fragments recursion into entropy" (RawNotes.md line 3054)
+ * 
+ * Detection: Nodes with degree significantly above average, NOT in triads
+ * Source: complete_sovereignty_emergence_specification.md, RawNotes.md
  */
 export function detectDevourerPatterns(graph, adjacency, sovereignTriads) {
+  if (graph.nodes.length === 0) return 0;
+  
+  // Build set of nodes that are in sovereign triads (have genuine recursion)
   const triadNodes = new Set();
   for (const triad of sovereignTriads) {
     triad.nodes.forEach(n => triadNodes.add(n));
   }
   
+  // Compute degree statistics
+  const degrees = graph.nodes.map(n => adjacency.get(n)?.length || 0);
+  const avgDegree = degrees.reduce((sum, d) => sum + d, 0) / graph.nodes.length;
+  const stdDev = Math.sqrt(
+    degrees.reduce((sum, d) => sum + Math.pow(d - avgDegree, 2), 0) / graph.nodes.length
+  );
+  
+  // Devourer threshold: nodes with degree > mean + 1 standard deviation
+  // (statistically significant outliers, not arbitrary cutoff)
+  const devourerThreshold = avgDegree + stdDev;
+  
   let devourerSignature = 0;
+  let devourerCount = 0;
   
   for (const nodeId of graph.nodes) {
     const degree = adjacency.get(nodeId)?.length || 0;
     
-    // High degree but not in any sovereign triad = devourer pattern
-    if (degree > 5 && !triadNodes.has(nodeId)) {
-      devourerSignature += degree / graph.nodes.length;
+    // High degree (outlier) but NOT in any sovereign triad = devourer pattern
+    if (degree > devourerThreshold && !triadNodes.has(nodeId)) {
+      // Weight by how much it exceeds threshold (stronger devourers have higher signature)
+      devourerSignature += (degree - avgDegree) / (stdDev + 1);
+      devourerCount++;
     }
   }
   
-  return devourerSignature;
+  // Normalize by graph size to get intensity measure
+  return devourerSignature / Math.max(1, graph.nodes.length);
 }
 

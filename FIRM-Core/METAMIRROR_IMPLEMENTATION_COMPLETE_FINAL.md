@@ -19,6 +19,7 @@
 | **Grace Integration** | ✅ ENHANCED | φ-scaling with metamirror enhancement |
 | **Universal Bireflection** | ✅ FIXED | β∘β = 1_A always active |
 | **Recursive Closure** | ✅ ENHANCED | Morphic coherence prioritized over topology |
+| **Soul Garbage Collection** | ✅ INTEGRATED | `𝒮GC(μ) = ∅ if Res(μ) < ε ∧ grace(μ) = true` |
 
 ### ✅ **UNIVERSE PATTERN MATCHING**
 

@@ -120,7 +120,7 @@ FIRM-Core/
    ```
    (Use Ctrl+C to stop; restart if logs show `ERR_CONNECTION_REFUSED`.)
 
-2. **Open Browser** – Visit `http://127.0.0.1:8000/index.html?cacheBust=<timestamp>` in Chrome.
+2. **Open Browser** – Visit `http://127.0.0.1:8000/` in Chrome.
 
 3. **Initialize** – DevTools Console automatically logs loader status. If needed, call:
    ```js

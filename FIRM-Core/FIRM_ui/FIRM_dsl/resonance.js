@@ -4,9 +4,16 @@ import { validate_object_g } from './core.js';
 export function deriveOmegaSignature(graph) {
   validate_object_g(graph);
   const cycles = compute_cycle_basis_signature(graph);
-  const phase_bins = derive_minimal_qpi_bins(graph);
-  const phase_hist = compute_phase_histogram_signature(graph, phase_bins);
-  return { cycles, phase_bins, phase_hist };
+  
+  // THEORY REQUIREMENT: Ω represents the omega-limit set (attractor basin) for the system
+  // As the fundamental harmonic of the whole system, it must accommodate ALL possible
+  // phase denominators the system can produce (up to 64, requiring bins = 2*64 = 128).
+  // This is NOT derived from current graph state - it's the theoretical maximum.
+  // Derivation: EsotericGuidance/Topology_and_Dynamics.md (omega-limit set definition)
+  const OMEGA_MAX_BINS = 128; // 2 * 64 (max phase denominator cap)
+  
+  const phase_hist = compute_phase_histogram_signature(graph, OMEGA_MAX_BINS);
+  return { cycles, phase_bins: OMEGA_MAX_BINS, phase_hist };
 }
 
 export function computeResonanceAlignment(graph, omega) {
