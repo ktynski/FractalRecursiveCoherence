@@ -115,38 +115,31 @@ class E8RepresentationTheory:
         
         return decomposition
     
-    def e7_to_e6_su3(self) -> Dict[str, int]:
+    def e7_to_e6_u1(self) -> Dict[str, int]:
         """
-        E7 → E6 × SU(3) decomposition.
+        E7 → E6 × U(1) decomposition.
         
         E7 (133D) decomposes as:
-        133 = (78, 1) + (27, 3) + (1, 8)
+        133 = 78 + 27 + 27̄ + 1
         
         where:
-        - (78, 1): E6 adjoint
-        - (27, 3): E6 fundamental × SU(3) triplet
-        - (1, 8): SU(3) adjoint (gluons!)
+        - 78: E6 adjoint
+        - 27: E6 fundamental representation
+        - 27̄: E6 conjugate fundamental
+        - 1: U(1) generator
         
-        Source: Slansky 1981
+        Source: Standard E7 branching rules
+        Reference: Slansky (1981) "Group Theory for Unified Model Building"
         """
         decomposition = {
             'E6_adjoint': 78,
-            'E6_27_SU3_triplet': 27 * 3,  # = 81... wait, doesn't match!
-            'SU3_adjoint': 8
+            'E6_27': 27,
+            'E6_27_bar': 27,
+            'U1': 1
         }
         
-        # Hmm: 78 + 81 + 8 = 167 ≠ 133
-        # Let me recalculate...
-        
-        # Actually: 133 = (78, 1) + (27, 3) + (27̄, 3̄) + (1, 8)
-        # But that's 78 + 27 + 27 + 8 = 140, still wrong!
-        
-        # Correct decomposition (checking Slansky again):
-        # E7 → SU(8): 133 = 63 + 70
-        # Then SU(8) → SU(3) × SU(5) or similar
-        
-        # This is getting complex - need to be more careful
-        logger.warning("E7 → E6 × SU(3) decomposition needs verification")
+        # Verify: 78 + 27 + 27 + 1 = 133 ✓
+        assert sum(decomposition.values()) == 133, "E7 decomposition must sum to 133"
         
         return decomposition
     
