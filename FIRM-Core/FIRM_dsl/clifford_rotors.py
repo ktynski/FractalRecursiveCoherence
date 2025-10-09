@@ -182,7 +182,7 @@ class Rotor:
         # Compute rotor components
         half_angle = angle / 2.0
         scalar = np.cos(half_angle)
-        bivector_part = Bivector(-np.sin(half_angle) * B_hat.components)
+        bivector_part = Bivector(np.sin(half_angle) * B_hat.components)  # POSITIVE sign!
         
         return Rotor(scalar=scalar, bivector=bivector_part)
     
@@ -328,11 +328,18 @@ class GraceRotor:
             Bivector defining Grace rotation plane
         """
         if ground_state is None:
-            # Default: rotate toward normalized state (unit sphere projection)
+            # Default: rotate toward a canonical ground state
+            # Use unit vector in direction that maximizes distance from current
             norm = np.linalg.norm(current_state)
             if norm < 1e-10:
                 return Bivector(np.zeros(3))
-            ground_state = current_state / norm
+            
+            # Ground state: unit vector in z-direction (canonical reference)
+            ground_state = np.array([0.0, 0.0, 1.0])
+            
+            # If current state is already along z, use x instead
+            if abs(np.dot(current_state / norm, ground_state)) > 0.99:
+                ground_state = np.array([1.0, 0.0, 0.0])
         
         # Rotation plane from current to ground
         B = Bivector.from_vectors(current_state, ground_state)

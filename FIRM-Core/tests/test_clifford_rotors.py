@@ -306,7 +306,7 @@ class TestRotorIntegration:
         assert love_result is not None
         assert aligned is not None
         # Both mechanisms exist and work
-        assert love_result["scalar_alignment"] is not None
+        assert love_result.scalar_part is not None
         assert np.linalg.norm(aligned) > 0
 
 
