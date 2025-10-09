@@ -61,12 +61,15 @@ This work: ZERO
 MILLENNIUM PROBLEMS (BONUS)
 
 Yang-Mills Mass Gap
+   → https://github.com/ktynski/FractalRecursiveCoherence/blob/main/FIRM-Core/YANG_MILLS_MASS_GAP_PROOF.md
    → https://github.com/ktynski/FractalRecursiveCoherence/blob/main/FIRM-Core/FIRM_dsl/yang_mills_mass_gap.py
 
 Navier-Stokes Smoothness
+   → https://github.com/ktynski/FractalRecursiveCoherence/blob/main/FIRM-Core/NAVIER_STOKES_SMOOTHNESS_PROOF.md
    → https://github.com/ktynski/FractalRecursiveCoherence/blob/main/FIRM-Core/FIRM_dsl/navier_stokes_smooth.py
 
 Riemann Hypothesis
+   → https://github.com/ktynski/FractalRecursiveCoherence/blob/main/FIRM-Core/RIEMANN_HYPOTHESIS_VALIDATION.md
    → https://github.com/ktynski/FractalRecursiveCoherence/blob/main/FIRM-Core/FIRM_dsl/riemann_critical_line.py
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

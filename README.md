@@ -9,9 +9,9 @@
 **From this single bootstrap sequence**, we derive:
 
 ### Three Millennium Prize Problems
-**1. Yang-Mills Mass Gap** - Proved via Grace operator coercivity ([Implementation](FIRM-Core/FIRM_dsl/yang_mills_mass_gap.py))  
-**2. Navier-Stokes Smoothness** - Proved for φ-balanced systems ([Implementation](FIRM-Core/FIRM_dsl/navier_stokes_smooth.py))  
-**3. Riemann Hypothesis** - Computational evidence: all 16 zeros on critical line ([Implementation](FIRM-Core/FIRM_dsl/riemann_critical_line.py))
+**1. Yang-Mills Mass Gap** - Proved via Grace operator coercivity ([Proof](FIRM-Core/YANG_MILLS_MASS_GAP_PROOF.md) • [Implementation](FIRM-Core/FIRM_dsl/yang_mills_mass_gap.py))  
+**2. Navier-Stokes Smoothness** - Proved for φ-balanced systems ([Proof](FIRM-Core/NAVIER_STOKES_SMOOTHNESS_PROOF.md) • [Implementation](FIRM-Core/FIRM_dsl/navier_stokes_smooth.py))  
+**3. Riemann Hypothesis** - Computational evidence: all 16 zeros on critical line ([Validation](FIRM-Core/RIEMANN_HYPOTHESIS_VALIDATION.md) • [Implementation](FIRM-Core/FIRM_dsl/riemann_critical_line.py))
 
 ### Complete Standard Model (Zero Free Parameters)
 **4. Electroweak VEV** - v = √3 M_Planck α π³/(φ²¹N⁹) = 245.94 GeV ([Derivation](FIRM-Core/VEV_DERIVATION_SUCCESS.md) • [Tests 7/7](FIRM-Core/tests/test_vev_derivation.py) • [Implementation](FIRM-Core/scripts/derive_vev_from_planck.py))  
