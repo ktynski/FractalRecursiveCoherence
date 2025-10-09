@@ -9,7 +9,7 @@ The vortex stretching term ω·(ω·∇)u is ESSENTIAL for the mechanism.
 """
 
 import numpy as np
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List, Optional
 import time
 
 PHI = (1 + np.sqrt(5)) / 2

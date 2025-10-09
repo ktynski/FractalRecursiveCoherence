@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-NS Test 2: Medium Duration (t=10.0)
-Grid: 64³, ν=0.005, Taylor-Green IC
+NS Test 3: Large Scale (t=20.0)
+Grid: 128³, ν=0.001, Taylor-Green IC
 
-Purpose: See if R(t) begins moving toward φ⁻²
-Expected runtime: ~30 minutes
+Purpose: Validate φ-convergence with sufficient resolution and duration
+Expected runtime: ~2-4 hours
+Memory: ~32 MB for 128³ complex arrays
 """
 
 import numpy as np
@@ -16,22 +17,23 @@ from pathlib import Path
 PHI_INV_SQ = ((np.sqrt(5) - 1) / 2)**2
 
 print('='*70)
-print('NS TEST 2: MEDIUM DURATION')
+print('NS TEST 3: LARGE SCALE VALIDATION')
 print('='*70)
 print(f'Target: R → φ⁻² ≈ {PHI_INV_SQ:.6f}')
-print('Grid: 64³, ν=0.005, t_max=10.0')
+print('Grid: 128³, ν=0.001, t_max=20.0')
 print('IC: Taylor-Green vortex')
-print('Expected runtime: ~30 minutes')
+print('Memory: ~32 MB, Runtime: ~2-4 hours')
 print('='*70)
 print()
 
-# Setup
-solver = PseudospectralNS(N=64, L=2*np.pi, nu=0.005)
+# Setup for 128³
+solver = PseudospectralNS(N=128, L=2*np.pi, nu=0.001)
 u0_hat = solver.make_taylor_green()
 
-# Run simulation
-print('Starting simulation...')
-result = solver.run_simulation(u0_hat, t_max=10.0, dt=0.002, save_interval=50)
+# Run longer simulation for convergence validation
+print('Starting large-scale simulation...')
+print('This will test φ-convergence in fully developed turbulence...')
+result = solver.run_simulation(u0_hat, t_max=20.0, dt=0.001, save_interval=100)
 
 # Extract diagnostics
 times = result['times']
@@ -39,10 +41,10 @@ R_vals = np.array([d['R'] for d in result['diagnostics']])
 E_vals = np.array([d['E'] for d in result['diagnostics']])
 kappa_vals = np.array([d['kappa'] for d in result['diagnostics']])
 
-# Analysis
+# Analysis for large-scale simulation
 print()
 print('='*70)
-print('RESULTS')
+print('LARGE-SCALE SIMULATION RESULTS')
 print('='*70)
 print(f'Initial R: {R_vals[0]:.6f}')
 print(f'Final R: {R_vals[-1]:.6f}')
@@ -50,19 +52,31 @@ print(f'Target φ⁻²: {PHI_INV_SQ:.6f}')
 print(f'Distance from target: {abs(R_vals[-1] - PHI_INV_SQ):.6f}')
 print()
 
-# Check trend
-if len(R_vals) > 10:
-    R_early = R_vals[:len(R_vals)//3].mean()
-    R_late = R_vals[2*len(R_vals)//3:].mean()
-    trend = "toward φ⁻²" if abs(R_late - PHI_INV_SQ) < abs(R_early - PHI_INV_SQ) else "away from φ⁻²"
-    print(f'Trend: {trend}')
-    print(f'  Early third: R = {R_early:.6f}')
-    print(f'  Late third: R = {R_late:.6f}')
+# Check trend over longer timescale
+if len(R_vals) > 20:
+    # Check first half vs second half
+    midpoint = len(R_vals) // 2
+    R_first_half = R_vals[:midpoint].mean()
+    R_second_half = R_vals[midpoint:].mean()
+    trend = "toward φ⁻²" if abs(R_second_half - PHI_INV_SQ) < abs(R_first_half - PHI_INV_SQ) else "away from φ⁻²"
+    print(f'Long-term trend: {trend}')
+    print(f'  First half: R = {R_first_half:.6f}')
+    print(f'  Second half: R = {R_second_half:.6f}')
     print()
 
-# Check convergence
-converged = abs(R_vals[-1] - PHI_INV_SQ) < 0.05
-print(f'Converged (within 5%): {"YES ✓" if converged else "NO ✗"}')
+    # Check if approaching target
+    approach_rate = abs(R_second_half - PHI_INV_SQ) / abs(R_first_half - PHI_INV_SQ)
+    if approach_rate < 1.0:
+        print(f'Approaching target (rate: {approach_rate:.3f})')
+    else:
+        print(f'Moving away from target (rate: {approach_rate:.3f})')
+    print()
+
+# Check convergence (tighter tolerance for large simulation)
+converged = abs(R_vals[-1] - PHI_INV_SQ) < 0.02  # 2% tolerance
+converged_strict = abs(R_vals[-1] - PHI_INV_SQ) < 0.01  # 1% tolerance
+print(f'Converged (within 2%): {"YES ✓" if converged else "NO ✗"}')
+print(f'Converged (within 1%): {"YES ✓" if converged_strict else "NO ✗"}')
 print()
 
 # Energy conservation
@@ -72,24 +86,28 @@ print()
 
 # Save results
 output_dir = Path('.')
-output_file = output_dir / 'ns_test2_medium_results.json'
+output_file = output_dir / 'ns_test3_large_scale_results.json'
 
 results_dict = {
-    'test': 'Test 2: Medium Duration',
+    'test': 'Test 3: Large Scale (128³)',
     'parameters': {
-        'N': 64,
-        'nu': 0.005,
-        't_max': 10.0,
-        'dt': 0.002,
-        'IC': 'Taylor-Green'
+        'N': 128,
+        'nu': 0.001,
+        't_max': 20.0,
+        'dt': 0.001,
+        'IC': 'Taylor-Green',
+        'memory_mb': 32,
+        'expected_runtime_hours': 3
     },
     'results': {
         'R_initial': float(R_vals[0]),
         'R_final': float(R_vals[-1]),
         'R_target': float(PHI_INV_SQ),
         'distance_from_target': float(abs(R_vals[-1] - PHI_INV_SQ)),
-        'converged': bool(converged),
-        'energy_error': float(E_error)
+        'converged_2percent': bool(converged),
+        'converged_1percent': bool(converged_strict),
+        'energy_error': float(E_error),
+        'trend_approach_rate': float(approach_rate) if 'approach_rate' in locals() else None
     },
     'timeseries': {
         'times': times.tolist(),
@@ -126,12 +144,42 @@ axes[1].legend()
 axes[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
-plot_file = output_dir / 'ns_test2_medium_plot.png'
+plot_file = output_dir / 'ns_test3_large_scale_plot.png'
 plt.savefig(plot_file, dpi=150)
 print(f'Plot saved to: {plot_file}')
 print()
 
+# Additional analysis for large-scale simulation
+print("LARGE-SCALE VALIDATION SUMMARY:")
+print("-" * 50)
+
+# Statistical analysis of convergence
+if len(R_vals) > 50:  # Sufficient data for statistics
+    R_std = np.std(R_vals[-len(R_vals)//4:])  # Last quarter
+    print(f"R(t) stability (last quarter std): {R_std:.6f}")
+
+    # Check if R is approaching target monotonically
+    distances = [abs(r - PHI_INV_SQ) for r in R_vals]
+    if len(distances) > 10:
+        early_distances = distances[:len(distances)//3]
+        late_distances = distances[2*len(distances)//3:]
+        avg_early = np.mean(early_distances)
+        avg_late = np.mean(late_distances)
+
+        if avg_late < avg_early:
+            print(f"✓ Converging toward target (early: {avg_early:.4f}, late: {avg_late:.4f})")
+        else:
+            print(f"⚠ Not converging (early: {avg_early:.4f}, late: {avg_late:.4f})")
+
+print()
+
 print('='*70)
-print('TEST 2 COMPLETE')
+print('LARGE-SCALE NS SIMULATION COMPLETE')
 print('='*70)
+print()
+print("Next steps:")
+print("- Compare with 64³ results for scaling analysis")
+print("- Run additional IC (ABC flow, random) for robustness")
+print("- Analyze spectral evolution for φ-signature")
+print("- Prepare for publication if convergence confirmed")
 
