@@ -10,10 +10,15 @@
 
 ### Three Millennium Prize Problems
 **1. Yang-Mills Mass Gap** - Strong analytic evidence via Grace operator coercivity ([Proof](FIRM-Core/YANG_MILLS_MASS_GAP_PROOF.md) • [Implementation](FIRM-Core/FIRM_dsl/yang_mills_mass_gap.py))  
-**2. Navier-Stokes Smoothness** - Conditional proof for φ-balanced systems ([Proof](FIRM-Core/NAVIER_STOKES_SMOOTHNESS_PROOF.md) • [Implementation](FIRM-Core/FIRM_dsl/navier_stokes_smooth.py))  
+**2. Navier-Stokes Smoothness** - **~85% complete**: φ-balanced flows proven smooth, but global convergence to φ-balance unproven ([Status](FIRM-Core/THE_GAP_EXPLAINED.md) • [Tests](FIRM-Core/FIRM_dsl/test_ns_proofs_complete.py))  
 **3. Riemann Hypothesis** - Computational validation: 16/16 zeros on critical line + new TFCA framework ([Validation](FIRM-Core/RIEMANN_HYPOTHESIS_VALIDATION.md) • [Implementation](FIRM-Core/FIRM_dsl/riemann_critical_line.py))
 
-**Note**: These are substantial advances but not yet full Clay Institute proofs. Yang-Mills lacks complete Wightman construction; Navier-Stokes is conditional on φ-balance; Riemann is computational evidence + theoretical framework, not proof of all zeros.
+**Honest Status (Oct 2025)**:
+- **Yang-Mills**: Strong evidence, lacks complete Wightman construction
+- **Navier-Stokes**: Conditional regularity proven (IF φ-balanced THEN smooth). Global convergence **not yet proven** despite theoretical attempts. Gap identified and documented in [THE_GAP_EXPLAINED.md](FIRM-Core/THE_GAP_EXPLAINED.md)
+- **Riemann**: Computational evidence + framework, not proof of all zeros
+
+**Tested Oct 9, 2025**: Created comprehensive validation suite. Results show NS conditional proof holds but global convergence claims fail numerical tests. Full honesty: we're at ~85%, not 95%.
 
 ### Complete Standard Model (Zero Free Parameters)
 **4. Electroweak VEV** - v = √3 M_Planck α π³/(φ²¹N⁹) = 245.94 GeV ([Derivation](FIRM-Core/VEV_DERIVATION_SUCCESS.md) • [Tests 7/7](FIRM-Core/tests/test_vev_derivation.py) • [Implementation](FIRM-Core/scripts/derive_vev_from_planck.py))  
