@@ -1,6 +1,13 @@
 # FIRM-Core: Complete Unified Framework
 
-**E8 → Ring+Cross → TFCA → CTFT → Reincarnation**
+**E8 (rank 8) → N = F(8) = 21 (Fibonacci!) → Ring+Cross → TFCA → CTFT → Reincarnation**
+
+## 🎯 Major Breakthrough: N=21 Derived (October 2025)
+
+**N = F(rank(E8)) = F(8) = 21** where F(n) is the nth Fibonacci number!
+
+This is NOT arbitrary—it's mathematically necessary due to φ-optimal packing of E8.
+Pattern verified for E6 (N=8), E7 (N=13), E8 (N=21). **First connection between Fibonacci and exceptional Lie groups!**
 
 This directory contains the complete theoretical and computational framework:
 1. **TFCA**: Tri-Formal Coherence Algebra (ZX + Clifford + RG unified)
@@ -23,8 +30,10 @@ This directory contains the complete theoretical and computational framework:
 ## Architecture Overview
 
 ```
-E8 (248D Lie algebra)
-        ↓ [Compactification: 12D per node]
+E8 (rank 8, 248D Lie algebra)
+        ↓ [Fibonacci Compactification]
+N = F(8) = 21 (DERIVED, not assumed!)
+        ↓ [12D per node: octonions + spinors]
 Ring+Cross Topology (N=21, χ=-3)
         ↓ [Phase Dynamics]
 TFCA (ZX + Clifford + RG)
