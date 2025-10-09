@@ -74,6 +74,10 @@ def compute_coherence(graph: ObjectG) -> float:
     # Normalize to [0, 1] range to match theoretical constraints
     # The coherence should be bounded between 0 and 1
     total_coherence = cycle_coherence + node_resonance
+    
+    # Special case: empty graph has zero coherence
+    if len(graph.nodes) == 0:
+        return 0.0
 
     # Apply normalization: use sigmoid-like function to bound the result
     # This ensures coherence stays in [0, 1] regardless of input size

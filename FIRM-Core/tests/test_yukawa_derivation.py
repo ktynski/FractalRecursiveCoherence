@@ -165,7 +165,9 @@ class TestMassPredictions:
             'tau': 1.77686
         }
         
-        for particle, m_pred in results['masses_GeV'].items():
+        # Only check leptons (not quarks which are also in results now)
+        for particle in ['electron', 'muon', 'tau']:
+            m_pred = results['masses_GeV'][particle]
             m_meas = measured[particle]
             error = abs(m_pred - m_meas) / m_meas
             
@@ -183,7 +185,7 @@ class TestMassRatios:
     
     def test_muon_electron_ratio(self, results):
         """Muon/electron ratio: 0.11% error."""
-        ratio = results['ratios']['muon/electron']
+        ratio = results['lepton_ratios']['muon/electron']
         measured = 206.768
         
         error = abs(ratio - measured) / measured
@@ -191,7 +193,7 @@ class TestMassRatios:
         
     def test_tau_muon_ratio(self, results):
         """Tau/muon ratio: 0.12% error."""
-        ratio = results['ratios']['tau/muon']
+        ratio = results['lepton_ratios']['tau/muon']
         measured = 16.817
         
         error = abs(ratio - measured) / measured
@@ -199,7 +201,7 @@ class TestMassRatios:
         
     def test_tau_electron_ratio(self, results):
         """Tau/electron ratio: 0.01% error."""
-        ratio = results['ratios']['tau/electron']
+        ratio = results['lepton_ratios']['tau/electron']
         measured = 3477.23
         
         error = abs(ratio - measured) / measured
@@ -252,8 +254,8 @@ class TestDerivationRigor:
         results_22 = calc_22.compute_all_yukawas()
         
         # Ratios should change according to formula
-        ratio_21 = results_21['ratios']['muon/electron']
-        ratio_22 = results_22['ratios']['muon/electron']
+        ratio_21 = results_21['lepton_ratios']['muon/electron']
+        ratio_22 = results_22['lepton_ratios']['muon/electron']
         
         # Formula: 10N - 3
         assert ratio_21 == 10 * 21 - 3  # 207
@@ -291,7 +293,7 @@ class TestConsistencyWithRGRunning:
         results = calc.compute_all_yukawas()
         
         # Check that our ratios match RG-running-validated ratios
-        assert abs(results['ratios']['muon/electron'] - 206.768) < 1.0
+        assert abs(results['lepton_ratios']['muon/electron'] - 206.768) < 1.0
         
     def test_absolute_masses_need_ewsb(self):
         """Absolute masses require EWSB (v = 246 GeV)."""
@@ -319,8 +321,8 @@ class TestConsistencyWithRGRunning:
         results = calc.compute_all_yukawas()
         
         # Topology: ratios are exact integers
-        assert results['ratios']['muon/electron'] == 207.0
-        assert results['ratios']['tau/electron'] == 3477.0
+        assert results['lepton_ratios']['muon/electron'] == 207.0
+        assert results['lepton_ratios']['tau/electron'] == 3477.0
         
         # EWSB: absolute masses involve v = 246 GeV
         v = 246.0
@@ -342,7 +344,9 @@ class TestPublicationReadiness:
         }
         
         errors = {}
-        for particle, m_pred in results['masses_GeV'].items():
+        # Only check leptons (not quarks)
+        for particle in ['electron', 'muon', 'tau']:
+            m_pred = results['masses_GeV'][particle]
             m_meas = measured[particle]
             error = abs(m_pred - m_meas) / m_meas * 100
             errors[particle] = error
@@ -381,8 +385,8 @@ class TestPublicationReadiness:
         # Only electron scale is free
         results = calc.compute_all_yukawas()
         # All ratios are derived (exact integers)
-        assert results['ratios']['muon/electron'] == 10*21-3
-        assert results['ratios']['tau/electron'] == 21*(21*8-3)+12
+        assert results['lepton_ratios']['muon/electron'] == 10*21-3
+        assert results['lepton_ratios']['tau/electron'] == 21*(21*8-3)+12
 
 
 # Run all tests

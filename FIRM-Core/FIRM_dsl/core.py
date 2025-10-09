@@ -163,13 +163,11 @@ def make_node_label(kind: str, phase_numer: int, phase_denom: int, monadic_id: s
     original_denom = phase_denom
     if (phase_denom & (phase_denom - 1)) != 0:
         # Not a power of 2, find nearest power of 2
-        if phase_denom > 64:
-            raise ValueError(f"phase_denom {phase_denom} exceeds maximum 64 (2^6)")
         if phase_denom <= 1:
             denom_pow2 = 1
         else:
-            # Find nearest power of 2
-            log_val = math.log2(phase_denom)
+            # Find nearest power of 2, capped at 64
+            log_val = math.log2(min(phase_denom, 128))  # Allow conversion up to 128
             lower_pow = 1 << int(log_val)
             upper_pow = 1 << (int(log_val) + 1)
             denom_pow2 = lower_pow if (phase_denom - lower_pow) < (upper_pow - phase_denom) else upper_pow
@@ -179,6 +177,11 @@ def make_node_label(kind: str, phase_numer: int, phase_denom: int, monadic_id: s
         phase_angle = math.pi * phase_numer / original_denom
         phase_numer = int(round(phase_angle * denom_pow2 / math.pi))
         phase_denom = denom_pow2
+    elif phase_denom > 64:
+        # Already power of 2 but > 64, renormalize to 64
+        phase_angle = math.pi * phase_numer / phase_denom
+        phase_numer = int(round(phase_angle * 64 / math.pi))
+        phase_denom = 64
 
     # Use standard Qπ normalization (which validate_object_g expects)
     numer, denom = normalize_phase_qpi(phase_numer, phase_denom)
