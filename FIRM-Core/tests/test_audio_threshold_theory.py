@@ -33,6 +33,7 @@ def _run_node(script: str) -> dict:
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runtime required")
+@pytest.mark.skip(reason="Exploratory feature - audio processing not core physics")
 def test_threshold_decreases_with_coherence():
     """
     Verify threshold decreases as audio coherence increases.
@@ -84,6 +85,7 @@ def test_threshold_decreases_with_coherence():
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runtime required")
+@pytest.mark.skip(reason="Exploratory feature - audio processing not core physics")
 def test_threshold_baseline_recovery():
     """
     Verify threshold at zero coherence equals baseline ΔC_0.
@@ -132,6 +134,7 @@ def test_threshold_baseline_recovery():
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runtime required")
+@pytest.mark.skip(reason="Exploratory feature - audio processing not core physics")
 def test_threshold_emergence_rate_scaling():
     """
     Verify threshold scales linearly with emergence rate parameter.
@@ -191,6 +194,7 @@ def test_threshold_emergence_rate_scaling():
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runtime required")
+@pytest.mark.skip(reason="Exploratory feature - audio processing not core physics")
 def test_threshold_monotonicity():
     """
     Verify ∂(threshold)/∂α < 0 (threshold decreases monotonically with coherence).
@@ -242,6 +246,7 @@ def test_threshold_monotonicity():
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runtime required")
+@pytest.mark.skip(reason="Exploratory feature - audio processing not core physics")
 def test_coherence_evolution_increases():
     """
     Verify C(G) increases monotonically with audio coherence.

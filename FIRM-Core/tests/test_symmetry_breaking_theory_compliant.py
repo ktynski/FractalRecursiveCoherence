@@ -34,7 +34,7 @@ from FIRM_dsl.symmetry_breaking import (
     compute_potential_energy,
     compute_total_energy,
     evolve_with_metropolis,
-    test_symmetry_breaking_with_potential
+    run_symmetry_breaking_with_potential
 )
 
 
@@ -107,7 +107,7 @@ def test_symmetry_breaking_cooling():
     print(f"  γ = {params.gamma} (cubic term)")
     
     # Run cooling
-    temperatures, order_params = test_symmetry_breaking_with_potential(
+    temperatures, order_params = run_symmetry_breaking_with_potential(
         params,
         initial_temperature=10.0,
         final_temperature=0.01,
@@ -154,7 +154,7 @@ def test_parameter_scan():
         params = GraceFieldParams(alpha=1.0, beta=2.0, gamma=gamma)
         
         # Quick test: 20 cooling steps
-        temps, S_values = test_symmetry_breaking_with_potential(
+        temps, S_values = run_symmetry_breaking_with_potential(
             params,
             initial_temperature=5.0,
             final_temperature=0.1,

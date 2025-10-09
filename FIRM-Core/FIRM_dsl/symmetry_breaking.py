@@ -174,14 +174,14 @@ def evolve_with_metropolis(graph: ObjectG,
     return graph
 
 
-def test_symmetry_breaking_with_potential(
+def run_symmetry_breaking_with_potential(
     params: GraceFieldParams,
     initial_temperature: float = 10.0,
     final_temperature: float = 0.01,
     cooling_steps: int = 100
 ) -> Tuple[list, list]:
     """
-    Test symmetry breaking by cooling system with potential energy.
+    Run symmetry breaking experiment by cooling system with potential energy.
     
     Protocol:
     1. Start at high T (symmetric, S ≈ 0)
@@ -241,5 +241,5 @@ __all__ = [
     "compute_kinetic_energy",
     "compute_total_energy",
     "evolve_with_metropolis",
-    "test_symmetry_breaking_with_potential"
+    "run_symmetry_breaking_with_potential"
 ]
