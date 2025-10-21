@@ -9,9 +9,6 @@
     <link rel="modulepreload" href="FIRM_dsl/coherence.js" />
     <link rel="modulepreload" href="FIRM_dsl/core.js" />
     <script src="physics_constants.js"></script>
-    <script src="e8_visualizer.js"></script>
-    <script type="module" src="e8_webgl_integration.js"></script>
-    <script src="mass_spectrum_display.js"></script>
     <title>FIRM UI - E8 Universe Simulation</title>
     <style>
       :root {
@@ -106,15 +103,6 @@
         border-color: #3b3b3b;
       }
 
-      .interpretation-btn {
-        background: #2a4a6a;
-        border-color: #2a4a6a;
-      }
-
-      .interpretation-btn:hover {
-        background: #355f89;
-        border-color: #355f89;
-      }
 
       .metrics-panel {
         position: fixed;
@@ -299,24 +287,6 @@
         margin-bottom: 12px;
       }
 
-      #driverMetrics {
-        display: none;
-        margin-top: 8px;
-        font-size: 10px;
-        background: rgba(20, 20, 20, 0.7);
-        padding: 8px;
-        border: 1px solid #333;
-        border-radius: 6px;
-      }
-
-      #driverMetrics table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      #driverMetrics td {
-        padding: 3px 0;
-      }
 
       @media (max-width: 1024px) {
         body {
@@ -374,9 +344,6 @@
         animation: none !important;
       }
     </style>
-      <script src="simple_test_shader.js"></script>
-    <script src="force_visible.js"></script>
-    <script src="progressive_shader_fix.js"></script>
 </head>
   <body>
     <header id="topBar">
@@ -387,24 +354,13 @@
       <div class="top-actions">
         <label for="viewSelector" class="sr-only">Visualization view</label>
         <select id="viewSelector">
-          <option value="clifford" selected>Clifford Field (Spacetime)</option>
-          <option value="zx">ZX Graph (Quantum)</option>
+          <option value="clifford">Clifford Field (Spacetime)</option>
+          <option value="resonance-driven" selected>Resonance-Driven (φ-Structured)</option>
           <option value="e8">E8 Topology (α=1/137)</option>
-          <optgroup label="Physics Sectors">
-            <option value="sector_em">EM Sector (N=21, ring+cross)</option>
-            <option value="sector_dm">Dark Matter (N=105, tree)</option>
-            <option value="sector_de">Dark Energy (random)</option>
-          </optgroup>
-          <option value="consciousness">Consciousness</option>
-          <option value="sheaf">Sheaf Tree</option>
-          <option value="echo">Echo Map</option>
-          <option value="sgc">𝒮-GC (Soul Garbage Collection)</option>
         </select>
         <button id="toggleControlPanel" class="top-btn" type="button">⚙️ Controls</button>
         <button id="topMetricsToggle" class="top-btn" type="button" aria-expanded="false">📊 Show Metrics</button>
         <button id="openInterpretation" class="top-btn interpretation-btn" type="button">🔬 Physics Guide</button>
-        <button id="topAutoAlignOmega" class="top-btn" type="button" title="One-shot alignment to Ω">Ω Align</button>
-        <button id="topAutoOmegaMode" class="top-btn" type="button" title="Toggle continuous Ω steering">Ω Mode</button>
       </div>
     </header>
 
@@ -469,28 +425,11 @@
       <div class="section-card">
         <h3>Physics Constants</h3>
         <div id="physicsConstants" style="font-size: 11px; color: #ccc;">
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 2px 4px;">E8 Dimension:</td>
-              <td id="e8Dimension" style="padding: 2px 4px; text-align: right;">-</td>
-            </tr>
-            <tr>
-              <td style="padding: 2px 4px;">E8 Roots:</td>
-              <td id="e8Roots" style="padding: 2px 4px; text-align: right;">-</td>
-            </tr>
-            <tr>
-              <td style="padding: 2px 4px;">α (fine structure):</td>
-              <td id="alphaValue" style="padding: 2px 4px; text-align: right;">-</td>
-            </tr>
-            <tr>
-              <td style="padding: 2px 4px;">Current Sector:</td>
-              <td id="currentSector" style="padding: 2px 4px; text-align: right;">EM</td>
-            </tr>
-            <tr>
-              <td style="padding: 2px 4px;">Topology:</td>
-              <td id="currentTopology" style="padding: 2px 4px; text-align: right;">ring+cross</td>
-            </tr>
-          </table>
+          <div class="metric-row"><span class="metric-label">α (fine structure):</span><span id="alphaValue">-</span></div>
+          <div class="metric-row"><span class="metric-label">E8 Dimension:</span><span id="e8Dimension">-</span></div>
+          <div class="metric-row"><span class="metric-label">E8 Roots:</span><span id="e8Roots">-</span></div>
+          <div class="metric-row"><span class="metric-label">Current Sector:</span><span id="currentSector">EM</span></div>
+          <div class="metric-row"><span class="metric-label">Current Topology:</span><span id="currentTopology">-</span></div>
         </div>
       </div>
 
@@ -511,126 +450,31 @@
         <label>Camera Vantage Point
           <select id="vantageSelector">
             <option value="auto">Auto (Emergent)</option>
-            <option value="void_observer">Void Observer (Outer Shell)</option>
-            <option value="phi_grace_torus">φ-Grace Torus</option>
-            <option value="bootstrap_loop">Bootstrap Loop (Bell Chain)</option>
-            <option value="sacred_axis">Sacred Axis (Aleph Flow)</option>
-            <option value="coherence_shockfront">Coherence Shockfront</option>
-            <optgroup label="Physics Perspectives">
-              <option value="scalar_field">Scalar Field (Mass/Higgs)</option>
-              <option value="vector_field">Vector Field (E-Field/Momentum)</option>
-              <option value="bivector_field">Bivector Field (B-Field/Angular Momentum)</option>
-              <option value="qft_perspective">QFT Perspective (Quantum Fields)</option>
-              <option value="gr_perspective">GR Perspective (Spacetime Curvature)</option>
-              <option value="qm_perspective">QM Perspective (Wave Functions)</option>
-              <option value="lattice_gauge">Lattice Gauge Theory</option>
-              <option value="emergence_view">Emergence View (Bootstrap Phases)</option>
-              <option value="interference_view">Interference View (Standing Waves)</option>
-              <option value="topology_view">Topology View (Manifold Structure)</option>
-            </optgroup>
+            <option value="scalar_field">Scalar Field (Mass/Higgs)</option>
+            <option value="vector_field">Vector Field (E-Field/Momentum)</option>
+            <option value="bivector_field">Bivector Field (B-Field/Angular Momentum)</option>
+            <option value="emergence_view">Emergence View (Bootstrap Phases)</option>
             <option value="custom">Custom (Preserve manual)</option>
           </select>
         </label>
         <button id="resetEvolution" style="margin-top: 10px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Reset to Void</button>
         <button id="autoAlignOmega" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #143b1a; color: #eaeaea; cursor: pointer;">Auto Align to Ω</button>
         <button id="autoOmegaModeToggle" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #1a233b; color: #eaeaea; cursor: pointer;">Enable Auto Ω Mode</button>
-        <button id="runExperiments" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #3b1a1a; color: #eaeaea; cursor: pointer;">🧪 Run Experiments</button>
-        <button id="validateTheory" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #1a3b1a; color: #eaeaea; cursor: pointer;">✓ Validate Theory</button>
-        
-        <div id="experimentResults" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; font-size: 11px;">
-          <div style="font-weight: bold; margin-bottom: 5px;">Experiment Results:</div>
-          <div id="experimentResultsBody" style="color: #ccc;"></div>
-        </div>
-        
-        <div id="validationResults" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; font-size: 11px;">
-          <div style="font-weight: bold; margin-bottom: 5px;">Theory Validation:</div>
-          <div id="validationResultsBody" style="color: #ccc;"></div>
-        </div>
       </div>
 
-      <div class="section-card">
-        <h3>Consciousness View</h3>
-        <label><input type="checkbox" id="showConsciousness" checked> Show Consciousness Levels</label>
-        <label><input type="checkbox" id="showWill" checked> Show Will to Emerge</label>
-        <label><input type="checkbox" id="showReflexivePain" checked> Show Reflexive Pain</label>
-        <label><input type="checkbox" id="showOrMakifPnimi"> Show Or Makif/Pnimi Bridge</label>
-      </div>
 
-      <div class="section-card">
-        <h3>Sacred Morphic Seeds</h3>
-        <label>Sacred Name Index: <span id="sacredNameValue">0</span>
-          <input type="range" id="sacredNameSlider" min="0" max="71" step="1" value="0">
-        </label>
-        <button id="seedSacredName" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Seed with Sacred Name</button>
-        <label style="margin-top: 10px;">Hebrew Boundary Letter
-          <select id="hebrewBoundary">
-            <option value="">None</option>
-            <option value="א">א (Aleph - Unity)</option>
-            <option value="ב">ב (Bet - House)</option>
-            <option value="ג">ג (Gimel - Flow)</option>
-            <option value="ד">ד (Dalet - Door)</option>
-            <option value="ה">ה (Heh - Breath)</option>
-            <option value="ו">ו (Vav - Connection)</option>
-            <option value="י">י (Yod - Divine Spark)</option>
-            <option value="כ">כ (Chaf - Palm)</option>
-            <option value="ל">ל (Lamed - Teaching)</option>
-            <option value="מ">מ (Mem - Water)</option>
-            <option value="נ">נ (Nun - Fish/Soul)</option>
-            <option value="פ">פ (Peh - Mouth)</option>
-            <option value="ר">ר (Resh - Head)</option>
-            <option value="ש">ש (Shin - Fire)</option>
-            <option value="ת">ת (Tav - Foundation)</option>
-          </select>
-        </label>
-        <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <button id="applySacredBoundary" style="flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Apply Boundary</button>
-          <button id="getSacredCommentary" style="flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Commentary</button>
-        </div>
-      </div>
 
-      <div class="section-card">
-        <h3>Waveform Drivers</h3>
-        <label>Driver Type
-          <select id="waveformDriver">
-            <option value="sine">Sine (Default)</option>
-            <option value="fractal">Fractal (1/f)</option>
-            <option value="phi_recursive">φ-Recursive</option>
-            <option value="hebrew_letter">Hebrew Letter</option>
-            <option value="sacred_name">Sacred Name</option>
-            <option value="quantum">Quantum Coherence</option>
-            <option value="morphic">Morphic Resonance</option>
-          </select>
-        </label>
-        <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <button id="switchWaveformDriver" style="flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Switch Driver</button>
-          <button id="testDriverEffects" style="flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Test Effects</button>
-        </div>
-        <button id="stopDriverTest" style="margin-top: 8px; padding: 6px 10px; width: 100%; border-radius: 6px; border: 1px solid #2a2a2a; background: #191919; color: #eaeaea; cursor: pointer;">Stop Test</button>
-        <div id="driverMetrics">
-          <div style="font-size: 11px; color: #ccc; margin-bottom: 4px;">📊 Driver Analysis <span id="driverMetricsStatus" style="color: #888;">Idle</span></div>
-          <table>
-            <tbody id="driverMetricsBody"></tbody>
-          </table>
-        </div>
-      </div>
+
     </aside>
 
     <script src="theory_logger.js?v=2025-10-07-sovereign"></script>
     <script type="module" src="main.js?v=2025-10-07-sovereign"></script>
-    <script src="emergency_fix.js?v=2025-10-07-sovereign"></script>
-    <script src="visual_debug.js?v=2025-10-07-sovereign"></script>
-    <script src="camera_external_fix.js?v=2025-10-07-sovereign"></script>
-    <script src="geometry_diagnostics.js?v=2025-10-07-sovereign"></script>
     <script type="module" src="interpretation_modal.js?v=2025-10-07-sovereign"></script>
     <script src="metrics_updater.js?v=2025-10-07-sovereign"></script>
-    <script type="module" src="sacred_morphic_seeds.js?v=2025-10-07-sovereign"></script>
-    <script type="module" src="sacred_direct_injection.js?v=2025-10-07-sovereign"></script>
-    <script type="module" src="fractal_waveform_drivers.js?v=2025-10-07-sovereign"></script>
-    <script type="module" src="theory_validation_tests.js?v=2025-10-07-sovereign"></script>
     <script type="module">import * as __res from './FIRM_dsl/resonance.js'; window.__resonanceMod = __res;</script>
     <script type="module">import { HarmonicGenerator, AutonomousEvolution, playHarmonicBuffer } from './harmonic_generator.js?v=2025-10-07-sovereign'; window.HarmonicGenerator = HarmonicGenerator; window.AutonomousEvolution = AutonomousEvolution; window.playHarmonicBuffer = playHarmonicBuffer;</script>
-    <!-- Vercel Web Analytics & Speed Insights for static sites -->
-    <script defer src="/_vercel/insights/script.js"></script>
-    <script defer src="/_vercel/speed-insights/script.js"></script>
+    <!-- Vercel Web Analytics & Speed Insights for static sites - DISABLED for local development -->
+    <!-- <script defer src="/_vercel/insights/script.js"></script> -->
+    <!-- <script defer src="/_vercel/speed-insights/script.js"></script> -->
   </body>
 </html>

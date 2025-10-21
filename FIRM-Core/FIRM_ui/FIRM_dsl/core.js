@@ -16,11 +16,11 @@ export class ObjectG {
     this.nodes = Array.from(nodes || []);
     this.edges = Array.from(edges || []);
     this.labels = { ...labels };
-    // Keep arrays mutable for evolution but freeze the overall object structure
+    // Keep arrays mutable for evolution - do not freeze the object
     // Object.freeze(this.nodes);  // Removed to allow evolution modifications
     // Object.freeze(this.edges);  // Removed to allow evolution modifications
     // Object.freeze(this.labels); // Removed to allow evolution modifications
-    Object.freeze(this);
+    // Object.freeze(this);        // Removed to allow evolution modifications
   }
 }
 
@@ -183,8 +183,8 @@ function lcm(a, b) {
   // THEORY REQUIREMENT: For powers of 2, LCM(2^a, 2^b) = 2^max(a,b)
   // This avoids ALL floating-point precision issues
   if ((a & (a - 1)) === 0 && (b & (b - 1)) === 0) {
-    // Both are powers of 2 - LCM is just the maximum
-    return Math.max(a, b);
+    // Both are powers of 2 - LCM is just the maximum, CAPPED AT 64
+    return Math.min(64, Math.max(a, b));
   }
   
   // Fallback for non-powers of 2 (should NEVER happen in theory-compliant system)

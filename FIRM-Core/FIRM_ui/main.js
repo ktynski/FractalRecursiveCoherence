@@ -96,22 +96,29 @@ const FIRM_FEATURES = {
 class FIRMUIController {
   constructor() {
     this.state = { 
-      view: 'clifford',
+      view: 'resonance-driven',
       camera: {
-        position: [0, 0, 8],  // Start further back
+        position: [0, 0, 12],  // Theory: manifoldRadius * 4.0 = 3.0 * 4.0 = 12.0
         target: [0, 0, 0],
         up: [0, 1, 0],
-        fov: 60,              // Wider field of view to see complete objects
+        fov: 60,              // Optimal FOV for emergent complexity observation
         aspect_ratio: 16/9
       },
       rendering: {
         max_steps: 64,        // Reduced for smooth performance
         min_distance: 0.02,   // Slightly larger for efficiency
-        max_distance: 500.0   // Reduced for better performance
+        max_distance: 50.0    // Theory: max_distance for emergent complexity viewing
       },
       accessibility: {
         no_motion: false,
         high_contrast: false
+      },
+      // THEORY: Camera lock for emergent complexity observation
+      cameraFixed: true,           // Lock camera at optimal distance
+      optimalObservation: false,   // Disable automatic observation systems
+      fieldAnalysis: null,         // No automatic field analysis
+      theoryControls: {
+        observationDistance: null  // Manual override disabled
       }
     };
     
@@ -124,8 +131,6 @@ class FIRMUIController {
     const viewSelector = document.getElementById('viewSelector');
     const viewDescription = document.getElementById('viewDescription');
     const controlToggle = document.getElementById('toggleControlPanel');
-    const topAutoAlign = document.getElementById('topAutoAlignOmega');
-    const topAutoMode = document.getElementById('topAutoOmegaMode');
     const closeControlPanel = document.getElementById('closeControlPanel');
     const metricsToggle = document.getElementById('topMetricsToggle');
     const metricsPanel = document.getElementById('metricsPanel');
@@ -138,15 +143,8 @@ class FIRMUIController {
         if (viewDescription) {
           const labels = {
             clifford: 'Clifford Field (Spacetime)',
-            zx: 'ZX Graph (Quantum)',
-            e8: 'E8 Topology (α=1/137)',
-            sector_em: 'EM Sector (N=21)',
-            sector_dm: 'Dark Matter (N=105)',
-            sector_de: 'Dark Energy (random)',
-            consciousness: 'Consciousness View',
-            sheaf: 'Sheaf Tree Observer',
-            echo: 'Echo Map Resonance',
-            sgc: 'Soul Garbage Collection'
+            'resonance-driven': 'Resonance-Driven (φ-Structured)',
+            e8: 'E8 Topology (α=1/137)'
           };
           viewDescription.textContent = labels[view] || 'FIRM Visualization';
         }
@@ -227,22 +225,13 @@ class FIRMUIController {
         if (el) el.click();
       });
     };
-    forwardClick(topAutoAlign, 'autoAlignOmega');
-    forwardClick(topAutoMode, 'autoOmegaModeToggle');
   }
   
   switchView(viewName) {
-    if (!['clifford', 'zx', 'e8', 'sheaf', 'echo', 'consciousness', 'sgc', 
-          'sector_em', 'sector_dm', 'sector_de'].includes(viewName)) {
+    if (!['clifford', 'resonance-driven', 'e8'].includes(viewName)) {
       throw new Error(`Invalid view: ${viewName}`);
     }
 
-    // Show/hide SGC visualization based on current view
-    if (viewName === 'sgc') {
-      this.showSGCVisualization();
-    } else if (this.state.view === 'sgc') {
-      this.hideSGCVisualization();
-    }
 
     // Update internal state
     this.state.view = viewName;
@@ -265,16 +254,6 @@ class FIRMUIController {
       case 'e8':
         console.log('🌟 E8 View: Ring+Cross topology generating α=1/137');
         this.initE8Visualization();
-        break;
-      case 'sheaf':
-        console.log('🌳 Sheaf View: Category tree visualization');
-        break;
-      case 'echo':
-        console.log('🔊 Echo View: Identity echo time τ');
-        break;
-      case 'sgc':
-        console.log('🗑️ SGC View: Soul Garbage Collection visualization');
-        this.showSGCVisualization();
         break;
       
       case 'sector_em':
@@ -300,24 +279,6 @@ class FIRMUIController {
     }
   }
 
-  showSGCVisualization() {
-    // Show SGC visualization overlay (integrated mode)
-    const sgcContainer = document.getElementById('sgc-visualization');
-    if (sgcContainer) {
-      sgcContainer.style.display = 'block';
-      console.log('🗑️ SGC visualization shown (integrated mode)');
-    } else {
-      console.error('SGC visualization container not found');
-    }
-  }
-
-  hideSGCVisualization() {
-    // Hide SGC visualization overlay
-    const sgcContainer = document.getElementById('sgc-visualization');
-    if (sgcContainer) {
-      sgcContainer.style.display = 'none';
-    }
-  }
 
   initE8Visualization() {
     // Initialize E8 visualizer if not already created
@@ -487,6 +448,9 @@ const highContrast = document.getElementById('highContrast');
     canvas.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
       
+      // Respect camera lock for emergent complexity observation
+      if (this.state.cameraFixed) return;
+      
       const deltaX = e.clientX - lastMouseX;
       const deltaY = e.clientY - lastMouseY;
       
@@ -508,6 +472,10 @@ const highContrast = document.getElementById('highContrast');
     
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
+      
+      // Respect camera lock for emergent complexity observation
+      if (this.state.cameraFixed) return;
+      
       cameraDistance += e.deltaY * 0.01;
       // Reduce minimum distance to allow closer view (was 2.0)
       cameraDistance = Math.max(1.0, Math.min(20.0, cameraDistance));
@@ -520,6 +488,9 @@ const highContrast = document.getElementById('highContrast');
     }, { passive: false }); // Use passive: false when preventDefault is needed
     
     document.addEventListener('keydown', (e) => {
+      // Respect camera lock for emergent complexity observation
+      if (this.state.cameraFixed) return;
+      
       if (e.key === 'r') {
         cameraDistance = 12.0; cameraTheta = 0; cameraPhi = 0;
         this.state.camera.position = [0, 0, 12];
@@ -531,7 +502,10 @@ const highContrast = document.getElementById('highContrast');
       }
     });
     
-    this.state.camera.position = [0, 0, 20]; // Pull back to see both objects
+    // Respect camera lock for emergent complexity observation
+    if (!this.state.cameraFixed) {
+      this.state.camera.position = [0, 0, 20]; // Pull back to see both objects
+    }
     console.log('📷 3D controls: drag=rotate, wheel=zoom, r=reset, f=fit');
     
     // Add audio enable button handler with proper testing
@@ -617,7 +591,8 @@ const highContrast = document.getElementById('highContrast');
             // Take a few steps and measure average score
             let score = 0; let samples = 0;
             for (let i = 0; i < 10; i++) {
-              (window.zxEvolutionEngine && window.zxEvolutionEngine.evolveFromAudioCoherence ? window.zxEvolutionEngine.evolveFromAudioCoherence(0.5, 0.016) : null);
+              // REMOVED: Duplicate evolveFromAudioCoherence() call - handled by interval loop
+              // (window.zxEvolutionEngine && window.zxEvolutionEngine.evolveFromAudioCoherence ? window.zxEvolutionEngine.evolveFromAudioCoherence(0.5, 0.016) : null);
               const s = window.zxEvolutionEngine?.getSnapshot?.();
               if (!s || !window.__omegaSignature) continue;
               const res = window.__resonanceMod.computeResonanceAlignment(s.graph, window.__omegaSignature);
@@ -692,25 +667,51 @@ const initializeFIRM = async () => {
       window.renderer = renderer;
       window.firmRenderer = renderer;
       
+      // Attach to FIRM UI controller
+      firmUI.renderer = renderer;
+      
       // Initialize rendering system
       try { window.__setLoaderText?.('Starting WebGL…'); } catch(_) {}
-      await renderer.initialize();
+      const rendererSuccess = await renderer.initialize();
       
-      // Import raymarching pipeline
-      const { RaymarchingValidator } = await import('./raymarching.js');
+      if (!rendererSuccess) {
+        console.error('❌ Renderer initialization failed - WebGL not available');
+        // Continue without rendering - system can still function for audio/theory
+        console.log('⚠️ Continuing without visual rendering...');
+      } else {
+        // Import raymarching pipeline
+        const { RaymarchingValidator } = await import('./raymarching.js');
+        
+        // Create raymarching pipeline
+        const validator = new RaymarchingValidator();
+        const pipeline = validator.createRaymarchingPipeline(null, firmUI.state.camera);
+        
+        // Set up rendering pipeline
+        renderer.setupRaymarchingProgram(pipeline);
+        
+        console.log('✅ FIRM renderer initialized');
+        console.log('✅ WebGL rendering pipeline operational');
+      }
       
-      // Create raymarching pipeline
-      const validator = new RaymarchingValidator();
-      const pipeline = validator.createRaymarchingPipeline(null, firmUI.state.camera);
+      console.log('✅ Mathematical engine connected');
+      console.log('✅ Analog audio substrate ready');
+      console.log('✅ Theory validation complete');
       
-      // Set up rendering pipeline
-      renderer.setupRaymarchingProgram(pipeline);
-      
-      console.log('FIRM renderer initialized');
-      console.log('WebGL rendering pipeline operational');
-      console.log('Mathematical engine connected');
-      console.log('Analog audio substrate ready');
-      console.log('Theory validation complete');
+      // Add diagnostic function for debugging
+      window.debugWebGL = () => {
+        const canvas = document.getElementById('canvas');
+        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const info = {
+          canvas: { width: canvas.width, height: canvas.height, clientWidth: canvas.clientWidth, clientHeight: canvas.clientHeight },
+          webgl: !!gl,
+          webglVersion: gl ? (gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1') : 'none',
+          renderer: !!window.renderer,
+          rendererInitialized: window.renderer?.runtime?.initialized || false,
+          zxEngine: !!window.zxEvolutionEngine
+        };
+        console.log('🔍 WebGL Diagnostics:', info);
+        return info;
+      };
       
       // Load optional audio normalization parameters (if present)
       let normalization = null;
@@ -727,40 +728,42 @@ const initializeFIRM = async () => {
       
       console.log('🔧 Loading theory evolution modules...');
       try { window.__setLoaderText?.('Wiring theory modules…'); } catch(_) {}
-      let TheoryComplianceIterator;
-      let ZXObjectGraphEngine;
+      let ResonanceDrivenEngine;
       try {
-        ({ TheoryComplianceIterator } = await import('./theory_iteration.js'));
+        ({ ResonanceDrivenEngine } = await import('./resonance_driven_engine.js'));
       } catch (error) {
-        console.error('❌ Failed to import theory_iteration.js', error);
-        throw error;
-      }
-      try {
-        ({ ZXObjectGraphEngine } = await import('./zx_objectg_engine.js'));
-      } catch (error) {
-        console.error('❌ Failed to import zx_objectg_engine.js', error);
+        console.error('❌ Failed to import resonance_driven_engine.js', error);
         throw error;
       }
       console.log('✅ Theory modules imported successfully');
       
       // Mathematical evolution will be handled by analog substrate
       
-      // Create theory compliance iterator and ZX evolution engine
-      let iterator;
-      try {
-        iterator = new TheoryComplianceIterator(renderer, canvas);
-      } catch (error) {
-        console.error('❌ Failed to construct TheoryComplianceIterator', error);
-        throw error;
-      }
+      // RESONANCE-DRIVEN: Create true theory-compliant engine using φ-structured resonance
       let zxEngine;
+      let resonanceDrivenEngine;
       try {
-        zxEngine = new ZXObjectGraphEngine();
-      } catch (error) {
-        console.error('❌ Failed to construct ZXObjectGraphEngine', error);
-        throw error;
+        // Create resonance-driven engine implementing true master equation via φ-structured modes
+        resonanceDrivenEngine = new ResonanceDrivenEngine();
+        
+        // Initialize the graph asynchronously
+        await resonanceDrivenEngine.initializeGraph();
+        
+        zxEngine = resonanceDrivenEngine; // Use resonance-driven engine directly
+        
+        // Make globally accessible
+        window.resonanceDrivenEngine = resonanceDrivenEngine;
+        window.zxEvolutionEngine = zxEngine; // Use resonance-driven engine
+        
+        // Attach to FIRM UI controller
+        firmUI.resonanceDrivenEngine = resonanceDrivenEngine;
+        firmUI.zxEvolutionEngine = zxEngine;
+        
+        console.log('✅ Resonance-Driven Engine constructed (true master equation via φ-structured resonance)');
+      } catch (resonanceError) {
+        console.error('❌ Resonance-driven engine failed:', resonanceError.message);
+        throw resonanceError;
       }
-      console.log('✅ ZXObjectGraphEngine constructed');
       
       // Initialize analog engine (shared AudioContext + analyser)
       try { window.__setLoaderText?.('Initializing audio…'); } catch(_) {}
@@ -828,10 +831,7 @@ const initializeFIRM = async () => {
         } catch (_) {}
       })();
       
-      // Make iterator globally accessible for theory validation
-      window.theoryIterator = iterator;
-      window.getComplianceReport = () => iterator.getComplianceReport();
-      window.getIterationStatus = () => iterator.getIterationStatus();
+      // Theory validation now handled by resonance-driven engine
       
       // Make ZX engine globally accessible immediately
       window.zxEvolutionEngine = zxEngine;
@@ -946,6 +946,11 @@ const initializeFIRM = async () => {
         rendering: firmUI.state.rendering,
         audioCoherence: 0.8,
         frameCount: 0,  // Track frames for stable camera movement
+        // THEORY: Camera lock for emergent complexity observation
+        cameraFixed: firmUI.state.cameraFixed,
+        optimalObservation: firmUI.state.optimalObservation,
+        fieldAnalysis: firmUI.state.fieldAnalysis,
+        theoryControls: firmUI.state.theoryControls,
         // BOOTSTRAP: Initialize with identity multivector for sovereignty
         // Theory: Ex nihilo emergence requires seed state (scalar = 1, all else = 0)
         cliffordField: { 
@@ -984,80 +989,9 @@ const initializeFIRM = async () => {
       
       // Setup slider event handlers
       const setupSliders = () => {
-        // Sacred Name Slider - Fixed
-        const sacredNameSlider = document.getElementById('sacredNameSlider');
-        const sacredNameValue = document.getElementById('sacredNameValue');
-        if (sacredNameSlider && sacredNameValue) {
-          sacredNameSlider.addEventListener('input', (e) => {
-            const nameIndex = parseInt(e.target.value);
-            sacredNameValue.textContent = nameIndex;
-            
-            // Use direct sacred names if available
-            if (window.sacredNames72 && window.sacredNames72[nameIndex]) {
-              const sacredName = window.sacredNames72[nameIndex];
-              console.log(`🕯️ Sacred name selected: ${sacredName.name} (${sacredName.quality}) - Power: ${sacredName.power}`);
-            } else {
-              console.log(`🕯️ Sacred name index selected: ${nameIndex}`);
-            }
-          });
-          
-          // Also add change event
-          sacredNameSlider.addEventListener('change', (e) => {
-            const nameIndex = parseInt(e.target.value);
-            sacredNameValue.textContent = nameIndex;
-          });
-        }
         
-        // Sacred Name Seeding Button
-        const seedSacredButton = document.getElementById('seedSacredName');
-        if (seedSacredButton) {
-          seedSacredButton.addEventListener('click', () => {
-            const nameIndex = parseInt(sacredNameSlider?.value || 0);
-            if (window.seedWithSacredName) {
-              const success = window.seedWithSacredName(nameIndex);
-              if (success && sacredMorphicSeeds.names72?.[nameIndex]) {
-                const sacredName = sacredMorphicSeeds.names72[nameIndex];
-                console.log(`🌟 Sacred field seeded with ${sacredName.name} - ${sacredName.consciousness_quality}`);
-              }
-            }
-          });
-        }
         
-        // Hebrew Boundary Button
-        const boundaryButton = document.getElementById('applySacredBoundary');
-        const boundarySelect = document.getElementById('hebrewBoundary');
-        if (boundaryButton && boundarySelect) {
-          boundaryButton.addEventListener('click', () => {
-            const letter = boundarySelect.value;
-            if (letter && window.applySacredBoundary) {
-              const success = window.applySacredBoundary(letter);
-              if (success) {
-                console.log(`🔤 Hebrew boundary applied: ${letter}`);
-              }
-            }
-          });
-        }
         
-        // Sacred Commentary Button
-        const commentaryButton = document.getElementById('getSacredCommentary');
-        if (commentaryButton) {
-          commentaryButton.addEventListener('click', () => {
-            if (window.getSacredCommentary) {
-              const commentary = window.getSacredCommentary();
-              console.log('📜 SACRED COMMENTARY:');
-              console.log(commentary);
-            }
-          });
-        }
-        
-        // Waveform Driver Controls
-        const driverSelect = document.getElementById('waveformDriver');
-        const switchDriverButton = document.getElementById('switchWaveformDriver');
-        const testDriverButton = document.getElementById('testDriverEffects');
-        const driverMetricsContainer = document.getElementById('driverMetrics');
-        const driverMetricsBody = document.getElementById('driverMetricsBody');
-        const driverMetricsStatus = document.getElementById('driverMetricsStatus');
-        let metricsIntervalId = null;
 
         const vantageSelector = document.getElementById('vantageSelector');
         if (vantageSelector) {
@@ -1074,31 +1008,6 @@ const initializeFIRM = async () => {
               }
             } else {
               const presets = {
-                void_observer: {
-                  position: [0, 0, 28],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0]
-                },
-                phi_grace_torus: {
-                  position: [13, 8, 13],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0]
-                },
-                bootstrap_loop: {
-                  position: [9 * Math.cos(Math.PI / 4), 9 * Math.sin(Math.PI / 4), 11],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0]
-                },
-                sacred_axis: {
-                  position: [0, 14, 0],
-                  target: [0, 0, 0],
-                  up: [0, 0, -1]
-                },
-                coherence_shockfront: {
-                  position: [6, 2, 4],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0]
-                },
                 // Physics Perspectives (10 additional views)
                 scalar_field: {
                   position: [0, 0, 12],
@@ -1118,48 +1027,12 @@ const initializeFIRM = async () => {
                   up: [0, 1, 0],
                   description: 'Bivector field (grade-2): B-field/Angular momentum'
                 },
-                qft_perspective: {
-                  position: [15, 5, 10],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0],
-                  description: 'QFT view: Quantum field excitations'
-                },
-                gr_perspective: {
-                  position: [20, 10, 15],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0],
-                  description: 'GR view: Spacetime curvature sources'
-                },
-                qm_perspective: {
-                  position: [12, 12, 12],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0],
-                  description: 'QM view: Wave function nodes/orbitals'
-                },
-                lattice_gauge: {
-                  position: [5, 15, 5],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0],
-                  description: 'Lattice gauge: Discretized field theory'
-                },
                 emergence_view: {
                   position: [0, 8, 20],
                   target: [0, 0, 0],
                   up: [0, 1, 0],
                   description: 'Emergence: Bootstrap phase evolution'
                 },
-                interference_view: {
-                  position: [10, 0, 10],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0],
-                  description: 'Interference: Standing wave patterns'
-                },
-                topology_view: {
-                  position: [18, 12, 8],
-                  target: [0, 0, 0],
-                  up: [0, 1, 0],
-                  description: 'Topology: Manifold boundary structure'
-                }
               };
 
               const preset = presets[mode];
@@ -1175,97 +1048,6 @@ const initializeFIRM = async () => {
           });
         }
         
-        if (switchDriverButton && driverSelect) {
-          switchDriverButton.addEventListener('click', () => {
-            const driverType = driverSelect.value;
-            if (window.switchToFractalDriver) {
-              const driver = window.switchToFractalDriver(driverType);
-              if (driver) {
-                // Start the driver immediately to affect the audio feed
-                driver.start();
-                console.log(`🌊 Switched to ${driverType} waveform driver and started`);
-              } else {
-                console.log(`🌊 Switched to ${driverType} driver (using existing oscillators)`);
-              }
-            }
-          });
-        }
-        
-        if (testDriverButton && driverSelect) {
-          testDriverButton.addEventListener('click', () => {
-            const driverType = driverSelect.value;
-            if (window.testDriverEffects) {
-              const analysis = window.testDriverEffects(driverType, 30); // 30 second test
-              if (analysis) {
-                console.log(`🔬 Testing ${driverType} driver effects for 30 seconds...`);
-                console.log('   Use analysis.getResults() to see effects');
-                console.log('   Use analysis.stop() to end test');
-                window.currentDriverTest = analysis;
-
-                if (driverMetricsContainer && driverMetricsBody && driverMetricsStatus) {
-                  driverMetricsContainer.style.display = 'block';
-                  driverMetricsStatus.textContent = 'Collecting...';
-
-                  if (metricsIntervalId) {
-                    clearInterval(metricsIntervalId);
-                  }
-
-                  const updateMetrics = () => {
-                    const snapshot = window.zxEvolutionEngine?.getSnapshot?.();
-                    const analysisResults = window.currentFractalAnalysis?.getResults?.();
-
-                    if (!snapshot) {
-                      driverMetricsStatus.textContent = 'No ZX snapshot available';
-                      driverMetricsBody.innerHTML = '';
-                      return;
-                    }
-
-                    const rows = [];
-                    rows.push(`<tr><td>Driver Type</td><td>${analysisResults?.driverType || driverType}</td></tr>`);
-                    rows.push(`<tr><td>ZX Nodes</td><td>${snapshot.graph.nodes.length}</td></tr>`);
-                    rows.push(`<tr><td>ZX Edges</td><td>${snapshot.graph.edges.length}</td></tr>`);
-                    rows.push(`<tr><td>Coherence C(G)</td><td>${snapshot.coherence.toFixed(6)}</td></tr>`);
-
-                    if (analysisResults) {
-                      rows.push(`<tr><td>ΔConsciousness</td><td>${(analysisResults.changes.consciousness || 0).toFixed(6)}</td></tr>`);
-                      const graceRatio = analysisResults.changes.grace_ratio;
-                      rows.push(`<tr><td>Grace Ratio</td><td>${Number.isFinite(graceRatio) ? graceRatio.toFixed(6) : 'n/a'}</td></tr>`);
-                      rows.push(`<tr><td>ΔNodes</td><td>${analysisResults.changes.node_change}</td></tr>`);
-                      rows.push(`<tr><td>ΔEvents</td><td>${analysisResults.changes.event_change}</td></tr>`);
-                      rows.push(`<tr><td>Duration (s)</td><td>${analysisResults.duration.toFixed(2)}</td></tr>`);
-                      driverMetricsStatus.textContent = 'Live';
-                    } else {
-                      driverMetricsStatus.textContent = 'Awaiting analysis results';
-                    }
-
-                    driverMetricsBody.innerHTML = rows.join('');
-                  };
-
-                  updateMetrics();
-                  metricsIntervalId = setInterval(updateMetrics, 1000);
-                }
-              }
-            }
-          });
-        }
-
-        const stopDriverButton = document.getElementById('stopDriverTest');
-        if (stopDriverButton) {
-          stopDriverButton.addEventListener('click', () => {
-            if (metricsIntervalId) {
-              clearInterval(metricsIntervalId);
-              metricsIntervalId = null;
-            }
-
-            if (window.currentDriverTest?.stop) {
-              window.currentDriverTest.stop();
-            }
-
-            if (driverMetricsStatus) {
-              driverMetricsStatus.textContent = 'Stopped';
-            }
-          });
-        }
         
         // Grace Coherence Slider
         const graceSlider = document.getElementById('graceSlider');
@@ -1339,190 +1121,8 @@ const initializeFIRM = async () => {
           });
         }
         
-        // Run Experiments Button
-        const experimentsButton = document.getElementById('runExperiments');
-        const experimentsResults = document.getElementById('experimentResults');
-        const experimentsResultsBody = document.getElementById('experimentResultsBody');
-
-        if (experimentsButton && experimentsResults && experimentsResultsBody) {
-          experimentsButton.addEventListener('click', async () => {
-            experimentsButton.textContent = '⏳ Running...';
-            experimentsButton.disabled = true;
-            experimentsResults.style.display = 'block';
-            experimentsResultsBody.innerHTML = 'Running experimental tests...<br>';
-            
-            const results = [];
-            
-            try {
-              // Experiment 1: Sphere counting
-              if (window.verifySphereCount) {
-                try {
-                  const sphereResult = window.verifySphereCount();
-                  results.push(`✓ Sphere Count: ${sphereResult ? 'PASS' : 'FAIL'}`);
-                } catch (e) {
-                  results.push(`✗ Sphere Count: ERROR (${e.message})`);
-                }
-              } else {
-                results.push(`⚠ Sphere Count: Function not available`);
-              }
-              
-              // Experiment 2: Interference prediction
-              if (window.predictInterference) {
-                try {
-                  const interference = window.predictInterference();
-                  results.push(`✓ Interference: ${interference ? 'Predicted' : 'N/A'}`);
-                } catch (e) {
-                  results.push(`✗ Interference: ERROR (${e.message})`);
-                }
-              } else {
-                results.push(`⚠ Interference: Function not available`);
-              }
-              
-              // Experiment 3: Evolution tracking (5 seconds for quick test)
-              if (window.trackEvolution) {
-                try {
-                  experimentsResultsBody.innerHTML += 'Tracking evolution (5s)...<br>';
-                  const trackResult = await window.trackEvolution(5);
-                  results.push(`✓ Evolution: ${trackResult?.samples || 0} samples`);
-                } catch (e) {
-                  results.push(`✗ Evolution: ERROR (${e.message})`);
-                }
-              } else {
-                results.push(`⚠ Evolution: Function not available`);
-              }
-              
-              // Display results
-              experimentsResultsBody.innerHTML = results.join('<br>');
-            } catch (error) {
-              experimentsResultsBody.innerHTML = `<span style="color: #ff5555;">Error running experiments: ${error.message}</span>`;
-              console.error('Experiments error:', error);
-            }
-            
-            experimentsButton.textContent = '🧪 Run Experiments';
-            experimentsButton.disabled = false;
-            
-            console.log('🧪 Experiments complete:', results);
-          });
-        }
         
-        // Validate Theory Button
-        const validateButton = document.getElementById('validateTheory');
-        const validationResults = document.getElementById('validationResults');
-        const validationResultsBody = document.getElementById('validationResultsBody');
-
-        if (validateButton && validationResults && validationResultsBody) {
-          validateButton.addEventListener('click', async () => {
-            validateButton.textContent = '⏳ Validating...';
-            validateButton.disabled = true;
-            validationResults.style.display = 'block';
-            validationResultsBody.innerHTML = 'Running theory validation...<br>';
-            
-            try {
-              // Run theory tests if available
-              if (window.theoryTests?.runAllTests) {
-                await window.theoryTests.runAllTests();
-                const results = window.theoryTests.testResults;
-                const passed = results.filter(r => r.success).length;
-                const total = results.length;
-                
-                validationResultsBody.innerHTML = `
-                  <strong>${passed}/${total} tests passed</strong><br><br>
-                  ${results.map(r => `${r.success ? '✓' : '✗'} ${r.scenario}`).join('<br>')}
-                `;
-              } else {
-                // Basic validation without test suite
-                const validations = [];
-                
-                // E8 validation
-                if (window.PHYSICS?.E8?.check) {
-                  const e8Valid = window.PHYSICS.E8.check();
-                  validations.push(`${e8Valid ? '✓' : '✗'} E8 encoding (dim=248, roots=240)`);
-                }
-                
-                // Alpha calculation
-                if (window.PHYSICS?.ALPHA?.calculate) {
-                  const alpha = window.PHYSICS.ALPHA.calculate();
-                  const error = Math.abs(alpha - 1/137.036) / (1/137.036) * 100;
-                  validations.push(`${error < 1 ? '✓' : '✗'} α = 1/${(1/alpha).toFixed(3)} (${error.toFixed(2)}% error)`);
-                }
-                
-                // ZX engine status
-                if (window.zxEvolutionEngine) {
-                  const snapshot = window.zxEvolutionEngine.getSnapshot?.();
-                  if (snapshot) {
-                    validations.push(`✓ ZX engine active (${snapshot.graph.nodes.length} nodes)`);
-                    validations.push(`✓ Coherence: ${snapshot.coherence.toFixed(3)}`);
-                  }
-                }
-                
-                // Renderer status
-                if (window.renderer?.gl) {
-                  validations.push(`✓ WebGL renderer active`);
-                }
-                
-                // Audio status
-                if (window.analogEngine?.audioContext) {
-                  const state = window.analogEngine.audioContext.state;
-                  validations.push(`${state === 'running' ? '✓' : '⚠'} Audio context: ${state}`);
-                }
-                
-                validationResultsBody.innerHTML = validations.length > 0 
-                  ? validations.join('<br>')
-                  : '<span style="color: #888;">No validation data available</span>';
-              }
-            } catch (error) {
-              validationResultsBody.innerHTML = `<span style="color: #ff5555;">Error: ${error.message}</span>`;
-              console.error('Validation error:', error);
-            }
-            
-            validateButton.textContent = '✓ Validate Theory';
-            validateButton.disabled = false;
-          });
-        }
         
-        // Consciousness Visualization Controls
-        const showConsciousness = document.getElementById('showConsciousness');
-        const showWill = document.getElementById('showWill');
-        const showReflexivePain = document.getElementById('showReflexivePain');
-        const showOrMakifPnimi = document.getElementById('showOrMakifPnimi');
-        
-        // Initialize consciousness display settings
-        if (!window.consciousnessDisplaySettings) {
-          window.consciousnessDisplaySettings = {
-            showConsciousness: true,
-            showWill: true,
-            showReflexivePain: true,
-            showOrMakifPnimi: false
-          };
-        }
-        
-        if (showConsciousness) {
-          showConsciousness.addEventListener('change', (e) => {
-            window.consciousnessDisplaySettings.showConsciousness = e.target.checked;
-            console.log(`💖 Show Consciousness Levels: ${e.target.checked}`);
-          });
-        }
-        
-        if (showWill) {
-          showWill.addEventListener('change', (e) => {
-            window.consciousnessDisplaySettings.showWill = e.target.checked;
-            console.log(`💪 Show Will to Emerge: ${e.target.checked}`);
-          });
-        }
-        
-        if (showReflexivePain) {
-          showReflexivePain.addEventListener('change', (e) => {
-            window.consciousnessDisplaySettings.showReflexivePain = e.target.checked;
-            console.log(`💔 Show Reflexive Pain: ${e.target.checked}`);
-          });
-        }
-        
-        if (showOrMakifPnimi) {
-          showOrMakifPnimi.addEventListener('change', (e) => {
-            window.consciousnessDisplaySettings.showOrMakifPnimi = e.target.checked;
-            console.log(`✨ Show Or Makif/Pnimi Bridge: ${e.target.checked}`);
-          });
-        }
         
         console.log('🎛️ Theory exploration controls initialized');
       };
@@ -1565,8 +1165,25 @@ const initializeFIRM = async () => {
       console.log('🎵 Sovereign audio system initialized (monad singing)');
       
       // TRUE ANALOG EVOLUTION: Complete theory-compliant chain
-      renderer.startRenderLoop(() => {
+      if (rendererSuccess) {
+        renderer.startRenderLoop(async () => {
         try {
+          // THEORY: Camera lock for emergent complexity observation
+          // Must check FIRST before any other systems that might move camera
+          if (systemState.cameraFixed) {
+            // Restore camera to theoretical optimal distance if it has drifted
+            const currentPos = systemState.camera.position;
+            const currentDistance = Math.sqrt(currentPos[0]**2 + currentPos[1]**2 + currentPos[2]**2);
+            const theoreticalDistance = 12.0; // manifoldRadius * 4.0
+            
+            if (Math.abs(currentDistance - theoreticalDistance) > 0.1) {
+              // Camera has drifted, restore to optimal position
+              const direction = currentDistance > 0 ? 
+                currentPos.map(p => p / currentDistance) : [0, 0, 1];
+              systemState.camera.position = direction.map(d => d * theoreticalDistance);
+            }
+          }
+          
           // Increment frame counter for stable animations
           systemState.frameCount++;
           
@@ -1641,18 +1258,14 @@ const initializeFIRM = async () => {
             console.log('👑 SOVEREIGNTY ACHIEVED: System is fully autonomous');
           }
 
-          // ZX EVOLUTION: Use ObjectG snapshot pipeline
-          const zxEvolutionEngine = window.zxEvolutionEngine;
-        let zxSnapshot = null;
-        let graphCoherence = 0.0;
+          // ZX EVOLUTION: Use Network or single system
+          let zxSnapshot = null;
+          let graphCoherence = 0.0;
+          let networkSnapshot = null;
           
-          // DIAGNOSTIC: Check if evolution engine exists (first call only)
-          if (!window._engineCheckLogged) {
-            console.log('🔍 ENGINE CHECK:', { frame: systemState.frameCount, hasEngine: !!zxEvolutionEngine });
-            window._engineCheckLogged = true;
-          }
-          
-          if (zxEvolutionEngine) {
+          // RESONANCE-DRIVEN: Use resonance-driven engine
+          if (window.zxEvolutionEngine) {
+            // Fallback to single system
             const enhancedCoherence = audioCoherence * theoryControls.emergenceRate;
           const deltaTime = 0.016;
 
@@ -1663,19 +1276,31 @@ const initializeFIRM = async () => {
           // Both are needed but must use same audioCoherence value
           
           // 4. Emergent field evolution (consciousness dynamics)
-          const evolutionState = zxEvolutionEngine.evolveSystem ?
-            zxEvolutionEngine.evolveSystem(enhancedCoherence, deltaTime) : null;
+          // REMOVED: Duplicate evolveSystem() call - handled by interval loop
+          const evolutionState = null; // zxEvolutionEngine.evolveSystem ?
+            // zxEvolutionEngine.evolveSystem(enhancedCoherence, deltaTime) : null;
 
-          if (evolutionState) {
-            console.log(`🌌 Evolution: ${evolutionState.phase} | Coherence: ${evolutionState.coherence.toFixed(2)} | Structure: ${evolutionState.structure.toFixed(2)} | Volume: ${evolutionState.volume.toFixed(3)} | Letters: ${evolutionState.emergentLetters.length}`);
+          if (evolutionState && evolutionState.coherence !== undefined && evolutionState.structure !== undefined && evolutionState.volume !== undefined) {
+            console.log(`🌌 Evolution: ${evolutionState.phase || 'unknown'} | Coherence: ${evolutionState.coherence.toFixed(2)} | Structure: ${evolutionState.structure.toFixed(2)} | Volume: ${evolutionState.volume.toFixed(3)} | Letters: ${evolutionState.emergentLetters?.length || 0}`);
           }
 
           // 5. Graph evolution (ZX rewrites, grace emergence)
           // CRITICAL: Use same enhancedCoherence for consistency
-          zxEvolutionEngine.evolve(enhancedCoherence, deltaTime);
+          // REMOVED: Duplicate evolve() call - handled by interval loop
+          // zxEvolutionEngine.evolve(enhancedCoherence, deltaTime);
 
-          zxSnapshot = zxEvolutionEngine.getSnapshot();
+          zxSnapshot = await zxEvolutionEngine.getSnapshot();
           graphCoherence = zxSnapshot ? zxSnapshot.coherence : 0.0;
+          
+          // DEBUG: Check snapshot structure
+          if (systemState.frameCount % 300 === 0) {
+            console.log('🔍 SNAPSHOT DEBUG:', {
+              hasSnapshot: !!zxSnapshot,
+              hasField: !!zxSnapshot?.cliffordField,
+              fieldType: zxSnapshot?.cliffordField?.constructor?.name,
+              fieldComponents: zxSnapshot?.cliffordField?.payload?.components?.length || 0
+            });
+          }
 
           // DIAGNOSTIC: Check cliffordField population (first call only)
           if (!window._fieldCheckLogged) {
@@ -1689,10 +1314,18 @@ const initializeFIRM = async () => {
             window._fieldCheckLogged = true;
           }
 
-          systemState.zxEngine = zxEvolutionEngine;
+          systemState.zxEngine = window.zxEvolutionEngine;
           systemState.currentGraph = zxSnapshot ? zxSnapshot.graph : null;
           systemState.graphCoherence = graphCoherence;
           systemState.cliffordField = zxSnapshot ? zxSnapshot.cliffordField : null;
+          
+          // NETWORK STATE: Add network information if available
+          if (networkSnapshot) {
+            systemState.networkSnapshot = networkSnapshot;
+            systemState.globalCoherence = networkSnapshot.globalCoherence;
+            systemState.synchronization = networkSnapshot.synchronization;
+            systemState.networkSystems = networkSnapshot.systems;
+          }
           
           // DIAGNOSTIC: Verify field assignment
           if (!window._fieldAssignLogged) {
@@ -1738,7 +1371,7 @@ const initializeFIRM = async () => {
           
           // 6. CONSCIOUSNESS EVOLUTION: Use cached field to avoid duplicate generation
           // Field will be generated in the render loop - reuse it here for efficiency
-          zxSnapshot = zxSnapshot || systemState.zxSnapshot || (window.zxEvolutionEngine ? window.zxEvolutionEngine.getSnapshot() : null);
+          zxSnapshot = zxSnapshot || systemState.zxSnapshot || (window.zxEvolutionEngine ? await window.zxEvolutionEngine.getSnapshot() : null);
           if (zxSnapshot) {
             systemState.zxSnapshot = zxSnapshot;
             // BUGFIX: Only overwrite if field exists
@@ -1750,12 +1383,12 @@ const initializeFIRM = async () => {
         // Use systemState.cliffordField directly (already assigned above)
         const cliffordField = systemState.cliffordField;
         
-        // EMERGENT OBSERVER: Only run if field exists
+        // EMERGENT OBSERVER: Only run if field exists AND camera not fixed
         let fieldAnalysis = null;
         let consciousness = null;
         let optimalObservation = null;
         
-        if (cliffordField && emergentObserver) {
+        if (cliffordField && emergentObserver && !systemState.cameraFixed) {
           fieldAnalysis = emergentObserver.analyzeFieldBoundaries(cliffordField);
           consciousness = emergentObserver.evolveConsciousness(fieldAnalysis, {nonBlackPixels: 0}); // Will be updated with real visual feedback
           optimalObservation = fieldAnalysis ? emergentObserver.computeOptimalObservation(fieldAnalysis, consciousness) : null;
@@ -1789,7 +1422,9 @@ const initializeFIRM = async () => {
           }
 
           // 8. MANIFOLD OBSERVATION: Update camera to observe transforming manifold
-          if (optimalObservation && fieldAnalysis) {
+          // THEORY: Camera should remain at optimal distance (manifoldRadius * 4.0 = 12.0 units)
+          // when cameraFixed is true to observe emergent complexity
+          if (optimalObservation && fieldAnalysis && !systemState.cameraFixed) {
             // Compute manifold-appropriate observation distance
             const manifoldRadius = 3.0;  // Base manifold size
             const complexityFactor = 1.0 + fieldAnalysis.fieldActivity * 0.05; // Reduced sensitivity
@@ -1805,9 +1440,9 @@ const initializeFIRM = async () => {
               const baseDistance = manifoldRadius * 4.0;
               const maxDistanceChange = 0.5;
               
-              // Calculate target distance with adaptive scaling for growing field
-              const fieldSize = Math.max(5.0, fieldAnalysis.fieldActivity * 2.0);
-              const minSafeDistance = fieldSize * 2.0;
+              // Calculate target distance with GENTLE scaling for stable viewing
+              const fieldSize = Math.max(3.0, fieldAnalysis.fieldActivity * 0.5); // Much gentler scaling
+              const minSafeDistance = fieldSize * 1.5; // Closer viewing
               targetDistance = Math.max(
                 minSafeDistance,
                 baseDistance + Math.sin(systemState.frameCount * 0.005) * maxDistanceChange
@@ -1819,8 +1454,8 @@ const initializeFIRM = async () => {
             const currentDistance = Math.sqrt(currentPos[0]**2 + currentPos[1]**2 + currentPos[2]**2);
             
             // Calculate minimum safe distance (always respect field boundaries)
-            const fieldSize = Math.max(5.0, fieldAnalysis.fieldActivity * 2.0);
-            const minSafeDistance = fieldSize * 2.0;
+            const fieldSize = Math.max(3.0, fieldAnalysis.fieldActivity * 0.5); // Consistent gentle scaling
+            const minSafeDistance = fieldSize * 1.5; // Consistent closer viewing
             
             if (currentDistance > 0) {
               const direction = currentPos.map(p => p / currentDistance);
@@ -1841,15 +1476,24 @@ const initializeFIRM = async () => {
               // Final safety check - never go inside the manifold (override manual distance if needed)
               const finalDistance = Math.max(minSafeDistance, newDistance);
               
-              systemState.camera.position = direction.map(d => d * finalDistance);
+              // Respect camera lock for emergent complexity observation
+              if (!systemState.cameraFixed) {
+                systemState.camera.position = direction.map(d => d * finalDistance);
+              }
             } else {
               // Ensure initial position respects safety distance
               const safeTargetDistance = Math.max(minSafeDistance, targetDistance);
-              systemState.camera.position = [0, 0, safeTargetDistance];
+              
+              // Respect camera lock for emergent complexity observation
+              if (!systemState.cameraFixed) {
+                systemState.camera.position = [0, 0, safeTargetDistance];
+              }
             }
             
             // Adaptive field of view for manifold observation
-            systemState.camera.fov = Math.max(30, Math.min(90, 45 + complexityFactor * 10));
+            if (!systemState.cameraFixed) {
+              systemState.camera.fov = Math.max(30, Math.min(90, 45 + complexityFactor * 10));
+            }
             
             // THEORY COMPLIANT: Use deterministic frame-based logging instead of random
             if (systemState.frameCount % 2000 === 0) { // Every 2000 frames - deterministic
@@ -1868,7 +1512,7 @@ const initializeFIRM = async () => {
           
           // Log evolution for verification (much less frequent) - THEORY COMPLIANT
           if (systemState.frameCount % 1000 === 0) { // Every 1000 frames - deterministic
-            zxSnapshot = systemState.zxSnapshot || (window.zxEvolutionEngine ? window.zxEvolutionEngine.getSnapshot() : null);
+            zxSnapshot = systemState.zxSnapshot || (window.zxEvolutionEngine ? await window.zxEvolutionEngine.getSnapshot() : null);
             if (zxSnapshot) {
               const { cliffordField, graph, coherence } = zxSnapshot;
               const fieldMagnitude = cliffordField.payload?.components?.reduce((sum, c) => sum + Math.abs(c), 0) || 0;
@@ -1902,15 +1546,19 @@ const initializeFIRM = async () => {
               e8DimEl.textContent = `${dim} ${dim === 248 ? '✓' : '✗'}`;
               e8DimEl.style.color = dim === 248 ? '#00ff00' : '#ff5555';
               
-              e8RootsEl.textContent = `${roots} ${roots === 240 ? '✓' : '✗'}`;
-              e8RootsEl.style.color = roots === 240 ? '#00ff00' : '#ff5555';
+              if (e8RootsEl) {
+                e8RootsEl.textContent = `${roots} ${roots === 240 ? '✓' : '✗'}`;
+                e8RootsEl.style.color = roots === 240 ? '#00ff00' : '#ff5555';
+              }
               
-              alphaEl.textContent = `1/${(1/alpha).toFixed(3)}`;
+              if (alphaEl) {
+                alphaEl.textContent = `1/${(1/alpha).toFixed(3)}`;
+              }
               
-              if (window.zxEvolutionEngine?._currentSector) {
+              if (window.zxEvolutionEngine?._currentSector && sectorEl) {
                 sectorEl.textContent = window.zxEvolutionEngine._currentSector.replace('_', ' ');
                 const sector = window.PHYSICS.SECTORS[window.zxEvolutionEngine._currentSector];
-                if (sector) {
+                if (sector && topologyEl) {
                   topologyEl.textContent = sector.topology;
                 }
               }
@@ -1922,9 +1570,12 @@ const initializeFIRM = async () => {
           console.error('🚨 Evolution chain error:', error);
           return systemState;
         }
-      });
-      
-      console.log('🌌 Ex Nihilo Monad Universe rendering started');
+        });
+        
+        console.log('🌌 Ex Nihilo Monad Universe rendering started');
+      } else {
+        console.log('⚠️ Rendering disabled - WebGL not available');
+      }
       try { window.__setLoaderText?.('Rendering…'); } catch(_) {}
       // Hide loader on first successful render tick or metrics tick (whichever first)
       (function attachFirstFrameHider(){
@@ -1947,9 +1598,66 @@ const initializeFIRM = async () => {
       
       // Analog substrate is now running and feeding the render loop
       
-      // Theory iteration COMPLETELY DISABLED - no timer started
-      console.log('🔬 Theory iteration COMPLETELY DISABLED - allowing natural evolution');
-      console.log('🎯 No timers started - pure natural evolution only');
+      // Start evolution loop at 60fps
+      firmUI.evolutionInterval = setInterval(async () => {
+        try {
+          const audioCoherence = window.analogEngine?.getAudioCoherence?.() || 0.8;
+          
+          // RESONANCE-DRIVEN: Use resonance-driven engine
+          if (window.zxEvolutionEngine && window.zxEvolutionEngine.isInitialized()) {
+            // Fallback to single system - just call evolve
+            const evolutionResult = await window.zxEvolutionEngine.evolve(audioCoherence, 0.016);
+            const coherence = evolutionResult.coherence || 0.0;
+            
+            if (window._evolutionDebugCounter === undefined) window._evolutionDebugCounter = 0;
+            window._evolutionDebugCounter++;
+            if (window._evolutionDebugCounter % 60 === 0) {
+              const snapshot = await window.zxEvolutionEngine.getSnapshot();
+              console.log(`🔄 Single: nodes=${snapshot.graph.nodes.length}, coherence=${coherence.toFixed(4)}`);
+            }
+          } else {
+            console.log('❌ No evolution engine available');
+          }
+        } catch (error) {
+          console.error('❌ Evolution loop error:', error);
+        }
+      }, 16);
+      console.log('🎯 Evolution loop started at 60fps');
+      
+      // Add camera reset function for debugging
+      window.resetCamera = () => {
+        systemState.camera.position = [0, 0, 5];
+        systemState.camera.target = [0, 0, 0];
+        console.log('📷 Camera reset to default position');
+      };
+      
+      
+      // Add manual evolution trigger for debugging
+      window.triggerEvolution = async () => {
+        if (window.zxEvolutionEngine) {
+          console.log('🔄 Manual evolution trigger...');
+          const snapshot1 = await window.zxEvolutionEngine.getSnapshot();
+          console.log(`📊 Before: nodes=${snapshot1.graph.nodes.length}, edges=${snapshot1.graph.edges.length}`);
+          
+          const evolutionResult = await window.zxEvolutionEngine.evolve(0.8, 0.016);
+          const coherence = evolutionResult.coherence || 0.0;
+          console.log(`✅ Evolution completed, coherence=${coherence}`);
+          
+          const snapshot2 = await window.zxEvolutionEngine.getSnapshot();
+          console.log(`📊 After: nodes=${snapshot2.graph.nodes.length}, edges=${snapshot2.graph.edges.length}`);
+          
+          if (snapshot2.graph.nodes.length > snapshot1.graph.nodes.length) {
+            console.log('🎉 Evolution working! Nodes increased');
+          } else {
+            console.log('❌ Evolution not working - no node increase');
+          }
+        } else {
+          console.log('❌ Evolution engine not available');
+        }
+      };
+      
+      // Metrics updates are handled by metrics_updater.js
+      // No need to start duplicate update loop here
       
     } catch (error) {
       console.error('❌ FIRM UI initialization failed:', error);

@@ -36,7 +36,11 @@ export class FIRMRenderer {
   
   async initialize() {
     // Initialize WebGL runtime
-    this.runtime.initialize();
+    const webglSuccess = this.runtime.initialize();
+    if (!webglSuccess) {
+      console.error('❌ WebGL initialization failed - rendering disabled');
+      return false;
+    }
     
     // Create fullscreen quad for raymarching
     const quadVertices = new Float32Array([
@@ -46,6 +50,7 @@ export class FIRMRenderer {
     
     this.quadBuffer = this.runtime.createBuffer(quadVertices);
     
+    console.log('✅ Renderer initialized successfully');
     return true;
   }
   
@@ -180,12 +185,18 @@ export class FIRMRenderer {
       throw new Error("Valid pipeline required");
     }
     
+    console.log('🔧 Setting up raymarching program...');
+    console.log('🔧 Vertex shader length:', pipeline.vertex_shader_source.length);
+    console.log('🔧 Fragment shader length:', pipeline.fragment_shader_source.length);
+    
     // Create and validate shader program
     const program = this.runtime.createProgram(
       pipeline.vertex_shader_source,
       pipeline.fragment_shader_source,
       'raymarching'
     );
+    
+    console.log('🔧 Program created:', !!program);
     
     this.runtime.validateProgram('raymarching');
     
@@ -194,9 +205,11 @@ export class FIRMRenderer {
     for (const uniformName of Object.keys(pipeline.uniforms)) {
       const location = this.runtime.getUniformLocation('raymarching', uniformName);
       this.uniformLocations.set(uniformName, location);
+      console.log('🔧 Uniform location:', uniformName, !!location);
     }
     
     this.currentPipeline = pipeline;
+    console.log('✅ Raymarching program setup complete');
     return program;
   }
   
@@ -358,6 +371,17 @@ export class FIRMRenderer {
      */
     const gl = this.runtime.gl;
     
+    // Debug: Log render frame calls
+    if (this.frameCount === 0 || this.frameCount % 60 === 0) {
+      console.log('🎨 RENDER FRAME:', {
+        frame: this.frameCount,
+        hasField: !!cliffordField,
+        canvasSize: { width: this.canvas.width, height: this.canvas.height },
+        webglContext: !!gl,
+        programReady: !!this.currentPipeline
+      });
+    }
+    
     // Clear canvas first
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.clearColor(0.0, 0.0, 0.1, 1.0);
@@ -384,6 +408,10 @@ export class FIRMRenderer {
         // Default: 3D raymarched Clifford field
         this.renderCliffordView(cameraState, renderingParams, audioCoherence);
         break;
+      case 'resonance-driven':
+        // Resonance-driven: φ-structured resonance visualization
+        this.renderResonanceDrivenView(cameraState, renderingParams, audioCoherence);
+        break;
       case 'e8':
         // E8 Topology visualization
         console.log('E8 view mode selected');
@@ -399,28 +427,10 @@ export class FIRMRenderer {
         break;
 
         
-      case 'zx':
-        // ZX Graph: Render Clifford base + 2D graph overlay
-        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
-        this.renderZXGraphOverlay(zxGraph);
-        break;
-        
       case 'consciousness':
         // Consciousness: Render Clifford field with consciousness overlay
         this.renderCliffordView(cameraState, renderingParams, audioCoherence);
         this.renderConsciousnessOverlay(zxGraph);
-        break;
-        
-      case 'sheaf':
-        // Sheaf Tree: Render Clifford base + category structure overlay
-        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
-        this.renderSheafOverlay(zxGraph);
-        break;
-        
-      case 'echo':
-        // Echo Map: Render Clifford base + temporal evolution overlay
-        this.renderCliffordView(cameraState, renderingParams, audioCoherence);
-        this.renderEchoOverlay(zxGraph);
         break;
         
       default:
@@ -783,21 +793,29 @@ export class FIRMRenderer {
     }
     
     this.isRunning = true;
+    this.getStateFunction = getStateFunction; // Store the state function
     
-    const renderLoop = () => {
+    const renderLoop = async () => {
       if (!this.isRunning) return;
       
       try {
-        const state = getStateFunction();
+        const state = await getStateFunction();
         const cliffordField = state.cliffordField;
         
         // DIAGNOSTIC: Log field status periodically
         if (this.frameCount === 0 || this.frameCount % 60 === 0) {
+          const fieldComponents = cliffordField?.payload?.components?.slice(0, 4) || [];
           console.log('🎨 RENDERER CHECK:', { 
             frame: this.frameCount, 
             hasState: !!state, 
             hasField: !!cliffordField,
-            fieldType: cliffordField?.constructor?.name || typeof cliffordField
+            fieldType: cliffordField?.constructor?.name || typeof cliffordField,
+            fieldComponents: fieldComponents.map(c => c?.toFixed(2) || 'null'),
+            graphNodes: state?.currentGraph?.nodes?.length || 0,
+            graphEdges: state?.currentGraph?.edges?.length || 0,
+            canvasSize: { width: this.canvas.width, height: this.canvas.height },
+            webglContext: !!this.runtime.gl,
+            programReady: !!this.currentPipeline
           });
         }
         
@@ -828,12 +846,30 @@ export class FIRMRenderer {
     // RESPECT VIEW MODE: Use view-specific generation based on active tab
     const currentView = state.view || 'clifford';
     
+    // Debug: Log field generation
+    if (this.frameCount === 0 || this.frameCount % 60 === 0) {
+      console.log('🔧 FIELD GENERATION DEBUG:', {
+        frame: this.frameCount,
+        currentView,
+        hasCliffordField: !!state.cliffordField,
+        cliffordFieldType: state.cliffordField?.constructor?.name,
+        hasZxEngine: !!state.zxEngine,
+        zxEngineType: state.zxEngine?.constructor?.name
+      });
+    }
+    
     switch(currentView) {
       case 'clifford':
-        // Clifford view: Use ZX-driven field if available, otherwise mathematical field
+        // Clifford view: Use pre-generated field if available, otherwise generate from ZX engine
+        if (state.cliffordField) {
+          console.log('🔧 Using pre-generated field');
+          return state.cliffordField;
+        }
         if (state.zxEngine && typeof state.zxEngine.mapToCliffordField === 'function') {
+          console.log('🔧 Generating field from ZX engine');
           return state.zxEngine.mapToCliffordField();
         }
+        console.log('🔧 Falling back to generateCliffordField');
         return this.generateCliffordField(state);
         
       case 'zx':
@@ -981,6 +1017,119 @@ export class FIRMRenderer {
     this.isRunning = false;
   }
   
+  renderNetworkView(cameraState, renderingParams, audioCoherence) {
+    // NETWORK VISUALIZATION: Render combined field from all systems
+    if (!window.zxNetworkEngine) {
+      // Fallback to single system if network not available
+      this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+      return;
+    }
+    
+    const networkSnapshot = window.zxNetworkEngine.getNetworkSnapshot();
+    
+    // MULTI-SYSTEM FIELD COMBINATION: Create composite Clifford field
+    let combinedField = null;
+    let totalActivity = 0;
+    
+    for (const systemSnapshot of networkSnapshot.systems) {
+      const system = window.zxNetworkEngine.systems[systemSnapshot.systemId];
+      const systemField = system.mapToCliffordField();
+      
+      if (systemField && systemField.payload && systemField.payload.components) {
+        if (!combinedField) {
+          // Initialize with first system
+          combinedField = {
+            payload: {
+              components: [...systemField.payload.components],
+              algebra: systemField.payload.algebra
+            }
+          };
+        } else {
+          // Add subsequent systems with position-based weighting
+          const systemPosition = systemSnapshot.position;
+          const weight = 1.0 / (1.0 + Math.sqrt(systemPosition[0]**2 + systemPosition[1]**2 + systemPosition[2]**2) * 0.1);
+          
+          for (let i = 0; i < 16; i++) {
+            combinedField.payload.components[i] += systemField.payload.components[i] * weight;
+          }
+        }
+        
+        const systemActivity = systemField.payload.components.reduce((sum, c) => sum + Math.abs(c), 0);
+        totalActivity += systemActivity;
+      }
+    }
+    
+    // Update field texture with combined network field
+    if (combinedField && this.fieldTexture) {
+      this.updateCliffordFieldTexture(combinedField);
+    }
+    
+    // Render base Clifford view with network field
+    this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+    
+    // Add network-specific overlays
+    this.renderNetworkOverlay(networkSnapshot);
+    
+    // Debug network visualization
+    if (this.frameCount % 60 === 0) {
+      console.log(`🌐 Network view: ${networkSnapshot.systems.length} systems, total activity=${totalActivity.toFixed(3)}, sync=${networkSnapshot.synchronization.toFixed(3)}`);
+    }
+  }
+
+  renderNetworkOverlay(networkSnapshot) {
+    // Network overlay showing system positions and connections
+    if (this.frameCount % 120 === 0) {
+      console.log(`🔗 Network overlay: ${networkSnapshot.systems.length} systems in φ-spiral arrangement`);
+      networkSnapshot.systems.forEach(sys => {
+        console.log(`  System ${sys.systemId}: ${sys.snapshot.graph.nodes.length} nodes at position [${sys.position.map(p => p.toFixed(1)).join(',')}]`);
+      });
+    }
+  }
+
+  /**
+   * Render resonance-driven view showing φ-structured resonance evolution
+   * Theory: Coherence emerges from RESONANCE CONDITIONS, not brute-force calculations
+   */
+  async renderResonanceDrivenView(cameraState, renderingParams, audioCoherence) {
+    // Get resonance-driven engine snapshot
+    if (!window.resonanceDrivenEngine) {
+      console.warn('⚠️ Resonance-driven engine not available, falling back to clifford view');
+      this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+      return;
+    }
+
+    try {
+      const snapshot = await window.resonanceDrivenEngine.getSnapshot();
+      
+      // Validate Clifford field
+      if (!snapshot.cliffordField || !snapshot.cliffordField.payload || !snapshot.cliffordField.payload.components) {
+        console.warn('⚠️ Invalid Clifford field from resonance-driven engine');
+        return;
+      }
+
+      // Update field texture with resonance-driven field
+      this.updateCliffordFieldTexture(snapshot.cliffordField);
+
+      // Render using standard Clifford field rendering
+      this.renderCliffordView(cameraState, renderingParams, 0.5);
+
+      // Debug resonance-driven visualization
+      if (this.frameCount % 60 === 0) {
+        console.log(`🌊 Resonance-driven view:`);
+        console.log(`  Time: ${snapshot.time.toFixed(3)}`);
+        console.log(`  Step: ${snapshot.step}`);
+        console.log(`  Coherence: ${snapshot.coherence.toFixed(6)}`);
+        console.log(`  Resonance phase: ${snapshot.resonancePhase.toFixed(3)}`);
+        console.log(`  Spectral gap: ${snapshot.spectralGap.toFixed(6)}`);
+      }
+    } catch (error) {
+      console.error('❌ Error in resonance-driven view:', error);
+      // Fallback to clifford view
+      this.renderCliffordView(cameraState, renderingParams, audioCoherence);
+    }
+  }
+
+
   dispose() {
     this.stop();
     if (this.fieldTexture) {

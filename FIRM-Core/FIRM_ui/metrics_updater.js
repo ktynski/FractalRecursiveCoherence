@@ -13,19 +13,25 @@ async function updateScientificMetrics() {
   
   try {
     // Get current snapshot
-    const snapshot = window.zxEvolutionEngine.getSnapshot();
-    const graph = snapshot.graph;
-    const rewrites = window.zxEvolutionEngine.getRewriteHistory();
+    const snapshot = await window.zxEvolutionEngine.getSnapshot();
+    const graph = snapshot?.graph;
+    const rewrites = window.zxEvolutionEngine.getRewriteHistory() || [];
+    
+    // Validate snapshot and graph structure
+    if (!snapshot || !graph || !graph.nodes || !Array.isArray(graph.nodes)) {
+      console.warn('⚠️ Metrics update: Invalid snapshot or graph structure');
+      return;
+    }
     
     // ZX Graph Structure
-    document.getElementById('metric-nodes').textContent = graph.nodes.length;
+    document.getElementById('metric-nodes').textContent = graph.nodes?.length || 0;
     
-    const zCount = Object.values(graph.labels).filter(l => l.kind === 'Z').length;
-    const xCount = Object.values(graph.labels).filter(l => l.kind === 'X').length;
+    const zCount = Object.values(graph.labels || {}).filter(l => l?.kind === 'Z').length;
+    const xCount = Object.values(graph.labels || {}).filter(l => l?.kind === 'X').length;
     document.getElementById('metric-z-spiders').textContent = zCount;
     document.getElementById('metric-x-spiders').textContent = xCount;
-    document.getElementById('metric-edges').textContent = graph.edges.length;
-    document.getElementById('metric-coherence').textContent = snapshot.coherence.toFixed(4);
+    document.getElementById('metric-edges').textContent = graph.edges?.length || 0;
+    document.getElementById('metric-coherence').textContent = snapshot.coherence?.toFixed(4) || '0.0000';
     
     // Clifford Field Components
     if (snapshot.cliffordField && snapshot.cliffordField.payload) {
@@ -60,23 +66,25 @@ async function updateScientificMetrics() {
     }
     
     // Evolution Dynamics
-    document.getElementById('metric-rewrites').textContent = rewrites.length;
-    document.getElementById('metric-fusion').textContent = rewrites.filter(r => r.type === 'fusion').length;
-    document.getElementById('metric-colorflip').textContent = rewrites.filter(r => r.type === 'color_flip').length;
-    document.getElementById('metric-grace').textContent = rewrites.filter(r => r.type === 'grace_emergence').length;
-    document.getElementById('metric-steps').textContent = window.zxEvolutionEngine._stepCount || 0;
+    document.getElementById('metric-rewrites').textContent = rewrites?.length || 0;
+    document.getElementById('metric-fusion').textContent = rewrites?.filter(r => r?.operation === 'fusion').length || 0;
+    document.getElementById('metric-colorflip').textContent = rewrites?.filter(r => r?.operation === 'color_flip').length || 0;
+    document.getElementById('metric-grace').textContent = rewrites?.filter(r => r?.operation === 'grace_emergence').length || 0;
+    document.getElementById('metric-steps').textContent = window.zxEvolutionEngine?.stepCount || 0;
     
     // Physics Observables
     document.getElementById('metric-pred-spheres').textContent = xCount;
     
     // Get audio coherence
     const audioCoherence = window.analogEngine?.getAudioCoherence() || 0;
-    document.getElementById('metric-audio').textContent = audioCoherence.toFixed(3);
+    document.getElementById('metric-audio').textContent = audioCoherence?.toFixed(3) || '0.000';
     
     // Get control parameters
-    const controlParams = window.zxEvolutionEngine._controlParams || {};
-    document.getElementById('metric-boot-energy').textContent = (controlParams.bootstrapEnergy || 1.0).toFixed(2);
-    document.getElementById('metric-emerg-rate').textContent = (controlParams.emergenceRate || 1.0).toFixed(2);
+    const controlParams = window.zxEvolutionEngine?._controlParams || {};
+    const bootstrapEnergy = typeof controlParams.bootstrapEnergy === 'number' ? controlParams.bootstrapEnergy : 1.0;
+    const emergenceRate = typeof controlParams.emergenceRate === 'number' ? controlParams.emergenceRate : 1.0;
+    document.getElementById('metric-boot-energy').textContent = bootstrapEnergy.toFixed(2);
+    document.getElementById('metric-emerg-rate').textContent = emergenceRate.toFixed(2);
     
     // Resonance metrics (Ω and Res) with resilient fallback
     try {
@@ -185,12 +193,43 @@ function initializeInterpretationButton() {
 // Start metrics update loop
 function startMetricsUpdates() {
   // Update immediately
-  updateScientificMetrics();
+  updateScientificMetrics().catch(err => {
+    console.warn('📊 Initial metrics update failed:', err);
+  });
   
   // Update every second
-  setInterval(updateScientificMetrics, 1000);
+  setInterval(() => {
+    updateScientificMetrics().catch(err => {
+      console.warn('📊 Metrics update failed:', err);
+    });
+  }, 1000);
   
   console.log('📊 Metrics update loop started (1Hz)');
+}
+
+// Wait for engine to be fully initialized before starting metrics
+function waitForEngineAndStartMetrics() {
+  const checkEngine = () => {
+    if (window.zxEvolutionEngine && typeof window.zxEvolutionEngine.getSnapshot === 'function') {
+      // Test that engine is actually working
+      window.zxEvolutionEngine.getSnapshot().then(snapshot => {
+        if (snapshot && snapshot.graph && Array.isArray(snapshot.graph.nodes)) {
+          startMetricsUpdates();
+        } else {
+          // Engine not ready yet, check again
+          setTimeout(checkEngine, 200);
+        }
+      }).catch(() => {
+        // Engine not ready yet, check again
+        setTimeout(checkEngine, 200);
+      });
+    } else {
+      // Engine not available yet, check again
+      setTimeout(checkEngine, 200);
+    }
+  };
+  
+  checkEngine();
 }
 
 // Initialize on load
@@ -199,27 +238,14 @@ if (document.readyState === 'loading') {
     initializeMetricsPanel();
     initializeInterpretationButton();
     
-    // Wait for ZX engine to be ready, then start metrics
-    const waitForEngine = setInterval(() => {
-      if (window.zxEvolutionEngine) {
-        clearInterval(waitForEngine);
-        startMetricsUpdates();
-      }
-    }, 100);
+    // Wait for ZX engine to be fully ready, then start metrics
+    waitForEngineAndStartMetrics();
   });
 } else {
   initializeMetricsPanel();
   initializeInterpretationButton();
   
-  if (window.zxEvolutionEngine) {
-    startMetricsUpdates();
-  } else {
-    const waitForEngine = setInterval(() => {
-      if (window.zxEvolutionEngine) {
-        clearInterval(waitForEngine);
-        startMetricsUpdates();
-      }
-    }, 100);
-  }
+  // Wait for ZX engine to be fully ready, then start metrics
+  waitForEngineAndStartMetrics();
 }
 
